@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
@@ -12,11 +12,11 @@ const Projects = () => {
 
   return (
     <>
-      <div className='flex flex-col justify-center items-center w-[80%] mx-auto gap-10 text-center py-16'>
-        <div className='mb-4'>
-          <h1 className='text-5xl font-semibold'>Bots & Projects</h1>
+      <div className="flex flex-col justify-center items-center w-[80%] mx-auto gap-10 text-center py-16">
+        <div className="mb-4">
+          <h1 className="text-5xl font-semibold">Bots & Projects</h1>
         </div>
-        <div className='max-w-8xl px-6 text-lg text-gray-300'>
+        <div className="max-w-8xl px-6 text-lg text-gray-300">
           Robotics projects thrive on teamwork, where diverse expertise fuels innovation and problem-solving.
         </div>
       </div>
@@ -40,10 +40,13 @@ const Projects = () => {
                 <h2 className="text-3xl font-bold text-orange-400">{project.name}</h2>
                 <p className="text-gray-300 mt-3 text-lg">{project.projectDescription}</p>
                 <p className="text-gray-400 mt-2">By: {project.name}</p>
+
+                {/* Download Abstract Link */}
                 <a
                   href={`http://localhost:5000/${project.abstractDoc}`}
                   download
-                  className="mt-4 inline-block px-4 py-2 bg-orange-500 text-black font-bold rounded-lg hover:bg-orange-600 transition"
+                  
+                  className="mt-4 px-4 py-2 bg-orange-500 text-black font-bold rounded-lg hover:bg-orange-600 transition inline-block"
                 >
                   Download Abstract
                 </a>

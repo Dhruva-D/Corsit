@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@keyframes border-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.card-wrapper {
+  @apply relative bg-gradient-to-b from-slate-700 to-slate-800 rounded-2xl overflow-hidden;
+}
+
+.card-wrapper::before {
+  background: conic-gradient(
+    rgba(244, 114, 182, 0.4) 0deg,
+    rgba(192, 132, 252, 0.4) 0deg,
+    transparent 100deg
+  );
+  content: '';
+  @apply absolute h-[150%] w-[150%] left-[-25%] top-[-25%] ;
+  animation: border-spin 4s linear infinite;
+}
+
+.card-content {
+  @apply absolute w-[calc(100%-3px)] h-[calc(100%-3px)] top-[1.5px] left-[1.5px] bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl
+}

@@ -1,13 +1,18 @@
 import React from 'react'
 
 const Home = () => {
+
+
   return (
     <>
       <div className='h-screen'>
-        Home
+      <spline-viewer url="https://prod.spline.design/8Q-TXZHyF66OklDE/scene.splinecode"></spline-viewer>
       </div>
 
-      <div className="bg-black text-white py-16">
+      
+       
+
+      <div className="bg-black text-white py-60">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
             <h2 className="text-4xl font-bold mb-2">Our Projects</h2>
@@ -101,7 +106,7 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="bg-black text-white py-16">
+      <div className="bg-black text-white ">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
             <h2 className="text-4xl font-bold mb-2">Our Achievements</h2>

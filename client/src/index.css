@@ -9,3 +9,15 @@
 body {
   @apply bg-black text-white;
 }
+
+spline-viewer {
+  width: 170%;
+  height: 160%;
+  display: block;
+  margin-top: -250px; /* Adjust this value based on your navbar height */
+  margin-left: -790px; 
+  
+
+  position: relative;
+}
+

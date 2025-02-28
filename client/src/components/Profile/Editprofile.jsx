@@ -14,7 +14,8 @@ const EditProfile = () => {
     profilePhoto: '',
     projectPhoto: '',
     projectDescription: '',
-    abstractDoc: ''
+    abstractDoc: '',
+    projectTitle: ''
   });
 
   const [preview, setPreview] = useState({ profilePhoto: '', projectPhoto: '' });
@@ -115,13 +116,20 @@ const EditProfile = () => {
               <input type="file" name="projectPhoto" onChange={handleFileChange} className="input-file" />
               {preview.projectPhoto && <img src={preview.projectPhoto} alt="Project" className="preview-image" />}
             </div>
-            
+
+            <div className="section">
+            <label className="text-lg font-semibold">Project Title:</label>
+            <input type="text" name="projectTitle" value={userData.projectTitle} onChange={handleChange} placeholder="Project Title" className="input-field" required />
+            </div>
+
+            <div className="section">
+            <label className="text-lg font-semibold">Project Description:</label>
             <textarea name="projectDescription" value={userData.projectDescription} onChange={handleChange} placeholder="Project Description" className="input-field" rows="4" />
-            
+            </div>
+           
             <div className="section">
               <label className="text-lg font-semibold">Abstract Document (Only .doc format allowed):</label>
               <input type="file" name="abstractDoc" onChange={handleFileChange} className="input-file" accept=".doc,.docx" />
-
             </div>
             
             <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">Save Changes</button>
@@ -129,29 +137,29 @@ const EditProfile = () => {
         </form>
       </div>
       <style jsx>{`
-        .input-field, .input-file {
-          width: 100%;
-          padding: 12px;
-          border-radius: 8px;
-          border: 1px solid rgba(173,216,230,0.8);
-          background: #141026;
-          color: white;
-          font-size: 1rem;
-        }
-        .preview-image {
-          width: 120px;
-          height: 120px;
-          object-fit: cover;
-          border-radius: 50%;
-          margin-top: 10px;
-          border: 2px solid rgba(173,216,230,0.8);
-        }
-        .section {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-      `}</style>
+    .input-field, .input-file {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(173,216,230,0.8);
+      background: #141026;
+      color: white;
+      font-size: 1rem;
+    }
+    .preview-image {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      margin-top: 10px;
+      border: 2px solid rgba(173,216,230,0.8);
+    }
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+  `}</style>
     </>
   );
 };

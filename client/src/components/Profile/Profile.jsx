@@ -83,7 +83,8 @@ const Profile = () => {
               />
             </div>
             <div className="w-2/3">
-              <h3 className="text-2xl font-semibold">Project Description:</h3>
+              <h3 className="text-2xl font-semibold">Project Title:  {userData.projectTitle}</h3>
+              <h3 className="text-2xl font-semibold mt-4">Project Description:</h3>
               <p className="text-gray-300 mt-2">{userData.projectDescription}</p>
               {userData.abstractDoc && (
                 <div className="mt-4">

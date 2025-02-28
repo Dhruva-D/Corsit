@@ -37,19 +37,19 @@ const Projects = () => {
                 />
               </div>
               <div className="p-6">
-                <h2 className="text-3xl font-bold text-orange-400">{project.name}</h2>
+                <h2 className="text-3xl font-bold text-orange-400">{project.projectTitle}</h2>
                 <p className="text-gray-300 mt-3 text-lg">{project.projectDescription}</p>
                 <p className="text-gray-400 mt-2">By: {project.name}</p>
 
                 {/* Download Abstract Link */}
                 <a
                   href={`http://localhost:5000/${project.abstractDoc}`}
-                  download
                   
                   className="mt-4 px-4 py-2 bg-orange-500 text-black font-bold rounded-lg hover:bg-orange-600 transition inline-block"
                 >
                   Download Abstract
                 </a>
+                
               </div>
             </div>
           ))}

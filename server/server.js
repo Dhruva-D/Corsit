@@ -140,6 +140,12 @@ app.get("/profile", authMiddleware, async (req, res) => {
     }
 });
 
+app.get("/team", async (req, res) => {
+    const teamData = await User.find(); // Fetch from MongoDB
+    res.json(teamData);
+  });
+  
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

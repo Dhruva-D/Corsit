@@ -24,7 +24,6 @@ const Header = () => {
         { path: 'team', label: 'TEAM' },
         { path: 'alumni', label: 'ALUMNI' },
         { path: 'contact', label: 'CONTACT' },
-        { path: 'login', label: 'LOGIN' }
     ];
 
     return (
@@ -54,6 +53,17 @@ const Header = () => {
                                     </NavLink>
                                 </li>
                             ))}
+                            <li>
+                                <NavLink
+                                    to="/login"
+                                    onClick={() => window.scrollTo(0, 0)}
+                                    className={({ isActive }) =>
+                                        `block py-2 px-6 text-[1.2rem] duration-200 ${isActive ? 'bg-[#ed5a2d] text-white' : 'bg-transparent text-[#ed5a2d] border-2 border-[#ed5a2d]'} rounded-full hover:bg-[#ed5a2d] hover:text-white transition-all`
+                                    }
+                                >
+                                    LOGIN
+                                </NavLink>
+                            </li>
                         </ul>
                     </div>
                 </div>

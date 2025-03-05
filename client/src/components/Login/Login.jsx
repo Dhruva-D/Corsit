@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import './Login.css';
+import { useAuth } from "../../context/AuthContext"; // Import AuthContext
+import "./Login.css";
 
 const Login = ({ setShowHeader }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { login } = useAuth(); // ✅ Use login() instead of setUser
 
   useEffect(() => {
     if (setShowHeader) setShowHeader(false);
@@ -20,7 +22,7 @@ const Login = ({ setShowHeader }) => {
       const response = await fetch("https://corsit-backend.onrender.com/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
@@ -28,8 +30,9 @@ const Login = ({ setShowHeader }) => {
         throw new Error(data.message || "Login failed");
       }
 
+      // Store token and update auth state
       localStorage.setItem("token", data.token);
-      navigate("/profile"); // Redirect user after login
+      login({ loggedIn: true }); // ✅ Use login() from AuthContext
     } catch (err) {
       setError(err.message);
     }

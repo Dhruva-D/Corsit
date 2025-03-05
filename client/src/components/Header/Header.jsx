@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 
 const Header = () => {
     const [navOpen, setNavOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const location = useLocation();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -27,10 +28,10 @@ const Header = () => {
     ];
 
     return (
-        <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out ${scrolled ? 'bg-[#070517] bg-opacity-100' : 'bg-[#070412]'}`}>
+        <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out ${location.pathname === '/' && !scrolled ? 'bg-black' : 'bg-[#272928] bg-opacity-95'}`}>
             <nav className='flex justify-between items-center w-[92%] mx-auto py-4'>
                 <div>
-                    <Link to='/'>
+                    <Link to='/' onClick={() => window.scrollTo(0, 0)}>
                         <div>
                             <img src={logo} alt='Logo' className='w-[3.5rem]' />
                         </div>
@@ -42,10 +43,11 @@ const Header = () => {
                         <ul className='flex lg:flex-row flex-col items-center lg:gap-[2vw] gap-10 text-[1.2rem]'>
                             {navLinks.map(({ path, label }, index) => (
                                 <li key={index}>
-                                    <NavLink 
-                                        to={path} 
-                                        className={({ isActive }) => 
-                                            `block py-2 pr-4 pl-3 text-[1.2rem] duration-200 ${isActive ? 'text-red-600' : 'text-white'} border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-red-600 lg:p-0`
+                                    <NavLink
+                                        to={path}
+                                        onClick={() => window.scrollTo(0, 0)}
+                                        className={({ isActive }) =>
+                                            `block py-2 pr-4 pl-3 text-[1.2rem] duration-200 ${isActive ? 'text-[#ed5a2d]' : 'text-[#f7ffff]'} border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-[#ed5a2d] lg:p-0`
                                         }
                                     >
                                         {label}

@@ -36,8 +36,8 @@ const Login = ({ setShowHeader }) => {
   };
 
   return (
-    <div className="flex h-[100vh] flex-col items-center justify-center bg-[#080514] text-white relative">
-      <NavLink to="/" className="absolute top-6 right-10 text-xl font-semibold text-white hover:text-[rgba(173,216,230,0.8)]">
+    <div className="flex h-[100vh] flex-col items-center justify-center bg-[#272829] text-[#f7ffff] relative">
+      <NavLink to="/" className="absolute top-6 right-10 text-xl font-semibold hover:text-[rgba(173,216,230,0.8)]">
         Home
       </NavLink>
       <div className="card-wrapper h-[600px] w-[500px] mt-20">

@@ -450,13 +450,13 @@ const people = [
 
 export default function Alumni() {
   return (
-    <div className="py-20 sm:py-40 bg-[#080514] text-white">
+    <div className="py-20 sm:py-24 bg-[#272928] text-[#f7ffff]">
       <div className="pt-8 mx-auto max-w-screen-2xl px-8 lg:px-12 flex flex-col items-center text-center">
         <div className="max-w-3xl">
-          <h2 className="text-6xl font-bold tracking-tight sm:text-7xl ">
+          <h2 className="text-5xl font-bold text-[#ed5a2d] tracking-tight sm:text-6xl ">
             Meet our Alumni
           </h2>
-          <p className="mt-8 text-xl leading-9 text-gray-300">
+          <p className="mt-8 text-xl leading-9">
             Carrying Forward the Legacy and Making an Impact!
           </p>
         </div>
@@ -472,11 +472,11 @@ export default function Alumni() {
           {people.map((person, i) => (
             <li
               key={i}
-              className="flex flex-col items-center text-center rounded-2xl py-6 px-5 border-[2px] bg-black/60 
-      backdrop-blur-xl min-h-80 border-[rgba(173,216,230,0.6)] shadow-lg 
-      transition-all duration-300 hover:shadow-[0_0_15px_rgba(173,216,230,0.6)]"
+              className="flex flex-col items-center text-center rounded-2xl py-6 px-5 border-[2px] bg-black/40 
+                backdrop-blur-xl min-h-80 border-[rgba(237,90,45,0.8)] shadow-[0_0_10px_rgba(237,90,45,0.5)] 
+                transition-all duration-300 hover:shadow-[0_0_15px_rgba(237,90,45,0.8)]"
             >
-              <div className="w-40 h-40 rounded-full overflow-hidden border-[3px] shadow-md border-[rgba(173,216,230,0.8)]">
+              <div className="w-40 h-40 rounded-full overflow-hidden border-[3px] shadow-md border-[rgba(237,90,45,0.8)]">
                 <img
                   className="w-full h-full object-cover"
                   src={person.ima}
@@ -495,7 +495,7 @@ export default function Alumni() {
                   target="_blank"
                   rel="noreferrer"
                   className="text-3xl text-gray-400 hover:text-blue-400 transition-transform 
-                  duration-300 hover:scale-110 hover:rotate-6"
+          duration-300 hover:scale-110 hover:rotate-6"
                 >
                   <FontAwesomeIcon icon={faLinkedin} />
                 </a>
@@ -503,6 +503,7 @@ export default function Alumni() {
             </li>
           ))}
         </ul>
+
 
 
 

@@ -25,5 +25,5 @@
 }
 
 .card-content {
-  @apply absolute w-[calc(100%-3px)] h-[calc(100%-3px)] top-[1.5px] left-[1.5px] bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl
+  @apply absolute w-[calc(100%-3px)] h-[calc(100%-3px)] top-[1.5px] left-[1.5px] bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl
 }

@@ -1,8 +1,8 @@
-import React from 'react';
+import React from "react";
 
 const Contact = () => {
   return (
-    <div className='bg-[#080514]'>
+    <div className="bg-[#272928]">
       <div className="flex flex-col md:flex-row items-center justify-center w-[90%] mx-auto py-36 gap-20">
         <div className="w-full md:w-[60%] rounded-lg overflow-hidden shadow-lg relative">
           <div className="absolute inset-0 bg-black opacity-40 pointer-events-none"></div>
@@ -18,30 +18,39 @@ const Contact = () => {
             className="w-full h-[550px] rounded-2xl"
           />
 
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-[85%] md:w-[75%] text-white p-6 rounded-2xl shadow-xl border-2 border-[rgba(173,216,230,0.8)] bg-gray-900 backdrop-blur-3xl">
-            <div className="flex flex-col md:flex-row justify-between items-start text-left gap-40">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-[85%] md:w-[75%] text-white p-6 rounded-3xl shadow-xl border border-[rgba(237,90,45,0.8)] bg-[#252525] backdrop-blur-3xl">
+            <div className="flex flex-col md:flex-row justify-between items-start text-left gap-32">
               <div className="w-full md:w-1/2">
-                <h2 className="text-sm font-semibold uppercase mb-1">Address</h2>
-                <p>
-                  E-Yantra Robotics Lab, Siddaganga Institute of Technology, Tumkur, Karnataka
+                <h2 className="text-sm font-semibold uppercase mb-1 text-gray-300">
+                  Address
+                </h2>
+                <p className="text-lg text-white">
+                  E-Yantra Robotics Lab, Siddaganga Institute of Technology,
+                  Tumkur, Karnataka
                 </p>
               </div>
 
               <div className="w-full md:w-1/2 mt-4 md:mt-0 flex flex-col items-start">
                 <div className="mb-2">
-                  <h2 className="text-sm font-semibold uppercase mb-1">Email</h2>
-                  <a href="mailto:corsit@sit.ac.in" className="cursor-pointer hover:underline hover:text-orange-500">
+                  <h2 className="text-sm font-semibold uppercase mb-1 text-gray-300">
+                    Email
+                  </h2>
+                  <a
+                    href="mailto:corsit@sit.ac.in"
+                    className="text-lg text-white hover:text-[rgba(237,90,45,0.8)]"
+                  >
                     corsit@sit.ac.in
                   </a>
                 </div>
                 <div>
-                  <h2 className="text-sm font-semibold uppercase mb-1">Phone</h2>
-                  <p>8104882160</p>
+                  <h2 className="text-sm font-semibold uppercase mb-1 text-gray-300">
+                    Phone
+                  </h2>
+                  <p className="text-lg text-white">8104882160</p>
                 </div>
               </div>
             </div>
           </div>
-
         </div>
 
 
@@ -51,45 +60,46 @@ const Contact = () => {
 
 
 
-
-        <div className="w-full md:w-[40%] border border-[rgba(173,216,230,0.8)] shadow-lg rounded-3xl px-9 py-16 bg-gray-900 backdrop-blur-3xl flex flex-col justify-center">
+        <div className="w-full md:w-[40%] border border-[rgba(237,90,45,0.8)] shadow-xl rounded-3xl px-10 py-16 bg-[#1f1f1f] flex flex-col justify-center">
           <h1 className="text-4xl lg:text-5xl font-semibold text-white mb-6 flex items-center justify-center">
             <span>Contact Us</span>
           </h1>
 
           <form className="flex flex-col space-y-5">
             <div>
-              <label className="block text-xl font-medium text-gray-300 pl-2 pb-2">Name</label>
+              <label className="block text-xl font-medium text-gray-300 pl-2 pb-2">
+                Name
+              </label>
               <input
                 type="text"
-                className="w-full h-12 px-4 text-lg border border-gray-600 text-white rounded-3xl focus:outline-none focus:ring-2 focus:ring-[rgba(173,216,230,0.6)]"
+                className="w-full h-12 px-4 text-lg border border-[rgba(237,90,45,0.33)] bg-[#333] text-white rounded-3xl focus:outline-none focus:ring-2 focus:ring-[rgba(237,90,45,0.8)] transition"
               />
             </div>
 
             <div>
-              <label className="block text-xl font-medium text-gray-300 pl-2 pb-2">Email</label>
+              <label className="block text-xl font-medium text-gray-300 pl-2 pb-2">
+                Email
+              </label>
               <input
                 type="email"
-                className="w-full h-12 px-4 text-lg border border-gray-600 text-white rounded-3xl focus:outline-none focus:ring-2 focus:ring-[rgba(173,216,230,0.6)]"
+                className="w-full h-12 px-4 text-lg border border-[rgba(237,90,45,0.32)] bg-[#333] text-white rounded-3xl focus:outline-none focus:ring-2 focus:ring-[rgba(237,90,45,0.8)] transition"
               />
             </div>
 
             <div>
-              <label className="block text-lg font-medium text-gray-300 pl-2 pb-2">Message</label>
-              <textarea
-                className="w-full h-32 p-4 text-lg border border-gray-600 text-white rounded-3xl focus:outline-none focus:ring-2 focus:ring-[rgba(173,216,230,0.6)]"
-              ></textarea>
+              <label className="block text-lg font-medium text-gray-300 pl-2 pb-2">
+                Message
+              </label>
+              <textarea className="w-full h-32 p-4 text-lg border border-[rgba(237,90,45,0.31)] bg-[#333] text-white rounded-3xl focus:outline-none focus:ring-2 focus:ring-[rgba(237,90,45,0.8)] transition"></textarea>
             </div>
 
             <input
               type="submit"
               value="Submit"
-              className="w-[95%] mx-auto px-6 my-2 py-3 border-[0.25px] border-slate-400 rounded-4xl text-xl font-semibold text-center transition text-white shadow-md hover:scale-105 active:scale-95 cursor-pointer bg-[rgba(209,213,219,0.1)]"
+              className="w-[95%] mx-auto px-6 my-2 py-3 border border-[rgba(237,90,45,0.83)] rounded-3xl text-xl font-semibold text-center transition text-white shadow-md hover:scale-105 active:scale-95 cursor-pointer hover:bg-[rgba(237,90,45,0.82)]"
             />
           </form>
         </div>
-
-
       </div>
     </div>
   );

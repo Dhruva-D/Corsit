@@ -2,8 +2,8 @@ import React from 'react';
 
 const Register = () => {
   return (
-    <div className="flex justify-center items-center min-h-screen">
-      <div className="w-full max-w-lg bg-[#1a1a1a] border-2 border-orange-500 shadow-lg rounded-lg p-6">
+    <div className="flex justify-center items-center min-h-screen bg-[#272928]">
+      <div className="w-full max-w-lg bg-[#232323] border-2 border-orange-500 shadow-lg rounded-lg p-6">
         <h1 className="text-3xl font-semibold text-white mb-6 text-center">Register</h1>
 
         <form className="flex flex-col space-y-4">
@@ -41,7 +41,7 @@ const Register = () => {
 
           <div>
             <label className="block text-lg font-medium text-gray-300">Year</label>
-            <select className="w-full h-12 px-4 text-lg border border-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+            <select className="w-full h-12 px-4 text-lg border border-gray-600 bg-[#272928] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
               <option value="" disabled selected>Select Year</option>
               <option value="1">First Year</option>
               <option value="2">Second Year</option>

@@ -30,13 +30,13 @@ const EditProfile = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/profile', {
+        const response = await axios.get('https://corsit-backend.onrender.com/profile', {
           headers: { Authorization: localStorage.getItem('token') }
         });
         setUserData(response.data);
         setPreview({
-          profilePhoto: response.data.profilePhoto ? `http://localhost:5000/${response.data.profilePhoto}` : '',
-          projectPhoto: response.data.projectPhoto ? `http://localhost:5000/${response.data.projectPhoto}` : ''
+          profilePhoto: response.data.profilePhoto ? `https://corsit-backend.onrender.com/${response.data.profilePhoto}` : '',
+          projectPhoto: response.data.projectPhoto ? `https://corsit-backend.onrender.com/${response.data.projectPhoto}` : ''
         });
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -71,7 +71,7 @@ const EditProfile = () => {
       formData.append(key, userData[key]);
     }
     try {
-      await axios.post('http://localhost:5000/edit-profile', formData, {
+      await axios.post('https://corsit-backend.onrender.com/edit-profile', formData, {
         headers: {
           Authorization: localStorage.getItem('token'),
           'Content-Type': 'multipart/form-data'

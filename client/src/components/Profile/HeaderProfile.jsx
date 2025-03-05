@@ -23,7 +23,7 @@ const Header = () => {
     useEffect(() => {
         const fetchUserData = async () => {
           try {
-            const response = await axios.get('http://localhost:5000/profile', {
+            const response = await axios.get('https://corsit-backend.onrender.com/profile', {
               headers: {
                 Authorization: localStorage.getItem('token')
               }
@@ -72,7 +72,7 @@ const Header = () => {
                     <div className="relative">
                         <button onClick={() => setDropdownOpen(!dropdownOpen)}>
                             <img 
-                                src={`http://localhost:5000/${userData.profilePhoto}`} 
+                                src={`https://corsit-backend.onrender.com/${userData.profilePhoto}`} 
                                 alt="Profile" 
                                 className='w-12 h-12 rounded-full border-1 border-white cursor-pointer'
                                 onError={(e) => e.target.src = "/default_profile.png"} 

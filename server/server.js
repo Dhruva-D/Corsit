@@ -60,7 +60,7 @@ app.post("/login", async (req, res) => {
         user = new User({
             email,
             password: hashedPassword,
-            name: "YOUR NAME",
+            name: "YOUR NAME", 
             designation: "Member",
             linkedin: "https://www.linkedin.com/",
             github: "https://github.com/",

@@ -10,7 +10,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/profile', {
+        const response = await axios.get('https://corsit-backend.onrender.com/profile', {
           headers: {
             Authorization: localStorage.getItem('token')
           }
@@ -36,7 +36,7 @@ const Profile = () => {
             <div className="max-w-md rounded-3xl p-[0.3rem] bg-gradient-to-b from-slate-300 to-pink-300 dark:from-slate-400 dark:to-[rgba(136,217,244,0.8)]">
               <div className="rounded-[calc(1.5rem-1px)] p-[0.5px] bg-white dark:bg-gray-900">
                 <img 
-                  src={`http://localhost:5000/${userData.profilePhoto}`} 
+                  src={`https://corsit-backend.onrender.com/${userData.profilePhoto}`} 
                   alt="Profile" 
                   className="w-48 h-48 object-cover rounded-full" 
                   onError={(e) => e.target.src = "/default_profile.png"} 
@@ -76,7 +76,7 @@ const Profile = () => {
           <div className="flex gap-12">
             <div className="w-1/3">
               <img 
-                src={`http://localhost:5000/${userData.projectPhoto}`} 
+                src={`https://corsit-backend.onrender.com/${userData.projectPhoto}`} 
                 alt="Project" 
                 className="w-full h-64 object-cover rounded-lg" 
                 onError={(e) => e.target.src = "/default_project.jpeg"} 
@@ -90,7 +90,7 @@ const Profile = () => {
                 <div className="mt-4">
                   <h3 className="text-2xl font-semibold">Abstract:</h3>
                   <a 
-                    href={`http://localhost:5000/${userData.abstractDoc}`} 
+                    href={`https://corsit-backend.onrender.com/${userData.abstractDoc}`} 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     className="text-blue-400 underline"

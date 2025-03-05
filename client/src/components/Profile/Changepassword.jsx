@@ -23,7 +23,7 @@ const ChangePassword = () => {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/change-password',
+        'https://corsit-backend.onrender.com/change-password',
         { oldPassword, newPassword },
         { headers: { Authorization: localStorage.getItem('token') } }
       );

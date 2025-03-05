@@ -4,7 +4,7 @@ const Projects = () => {
   const [projects, setProjects] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/team")
+    fetch("https://corsit-backend.onrender.com/team")
       .then((response) => response.json())
       .then((data) => setProjects(data))
       .catch((error) => console.error("Error fetching projects data:", error));
@@ -37,7 +37,7 @@ const Projects = () => {
                 
                 <div className="w-full rounded-lg overflow-hidden border-2 border-orange-500">
                   <img
-                    src={`http://localhost:5000/${project.projectPhoto}`}
+                    src={`https://corsit-backend.onrender.com/${project.projectPhoto}`}
                     alt={project.name}
                     className="w-full h-60 object-cover rounded-lg transition-transform duration-500 hover:scale-105"
                   />
@@ -53,7 +53,7 @@ const Projects = () => {
                   <div className="mt-auto">
                     {project.abstractDoc ? (
                       <a
-                        href={`http://localhost:5000/${project.abstractDoc}`}
+                        href={`https://corsit-backend.onrender.com/${project.abstractDoc}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full block text-center mt-4 px-6 py-2 bg-orange-500 text-black font-bold rounded-lg transition-all transform hover:scale-105 hover:bg-orange-600 shadow-lg shadow-orange-500/50"

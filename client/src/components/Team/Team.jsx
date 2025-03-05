@@ -12,7 +12,7 @@ const Team = () => {
   const [teamMembers, setTeamMembers] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/team")
+    fetch("https://corsit-backend.onrender.com/team")
       .then((response) => response.json())
       .then((data) => {
         // Sort the team members based on the predefined order of designations
@@ -54,7 +54,7 @@ const ProfileCard = ({ person }) => {
     <div className="flex items-center justify-center">
       <div className="w-80 h-96 bg-black/40 backdrop-blur-xl rounded-2xl border-[2px] border-[rgba(237,90,45,0.8)] shadow-[0_0_10px_rgba(237,90,45,0.5)] transition-all duration-300 hover:shadow-[0_0_15px_rgba(237,90,45,0.8)] flex flex-col items-center p-6 hover:scale-105">
         <div className="relative w-44 h-44 rounded-full overflow-hidden border-[3px] shadow-md border-[rgba(237,90,45,0.8)]">
-          <img className="w-full h-full object-cover" src={`http://localhost:5000/${person.profilePhoto}`} alt={person.name} />
+          <img className="w-full h-full object-cover" src={`https://corsit-backend.onrender.com/${person.profilePhoto}`} alt={person.name} />
         </div>
         <h1 className="mt-6 text-center text-2xl font-semibold text-white leading-7 tracking-tight">{person.name}</h1>
         <h3 className="text-center text-md text-gray-300 font-medium leading-6">{person.designation}</h3>

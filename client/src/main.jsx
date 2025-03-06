@@ -1,13 +1,7 @@
-import { StrictMode } from "react";
+import React from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import {
-  createBrowserRouter,
-  createRoutesFromElements,
-  RouterProvider,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./Layout.jsx";
 import About from "./components/About/About.jsx";
 import Alumni from "./components/Alumni/Alumni.jsx";
@@ -18,10 +12,11 @@ import Projects from "./components/Projects/Projects.jsx";
 import Register from "./components/Register/Register.jsx";
 import Team from "./components/Team/Team.jsx";
 import Login from "./components/Login/Login.jsx";
+import Signup from "./components/Login/Signup.jsx";
 import Profile from "./components/Profile/Profile.jsx";
 import Editprofile from "./components/Profile/Editprofile.jsx";
 import Changepassword from "./components/Profile/Changepassword.jsx";
-import { AuthProvider } from "./context/AuthContext"; // Import AuthProvider
+import { AuthProvider, useAuth } from "./context/AuthContext";
 
 // Error Component
 const ErrorPage = () => {
@@ -41,40 +36,51 @@ const ErrorPage = () => {
   );
 };
 
-const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route
-      path="/"
-      element={
-        <AuthProvider>
-          <Layout />
-        </AuthProvider>
-      }
-      errorElement={<ErrorPage />}
-    >
-      <Route index element={<Home />} />
-      <Route path="about" element={<About />} />
-      <Route path="projects" element={<Projects />} />
-      <Route path="alumni" element={<Alumni />} />
-      <Route path="contact" element={<Contact />} />
-      <Route path="events" element={<Events />} />
-      <Route path="register" element={<Register />} />
-      <Route path="team" element={<Team />} />
-      <Route path="login" element={<Login />} />
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { user } = useAuth();
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
 
-      {/* Protected Routes */}
-      <Route path="profile" element={<Profile />} />
-      <Route path="edit-profile" element={<Editprofile />} />
-      <Route path="change-password" element={<Changepassword />} />
-
-      {/* Catch all unmatched routes */}
-      <Route path="*" element={<ErrorPage />} />
-    </Route>
-  )
-);
+const App = () => {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          {/* Auth routes outside of Layout */}
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+          
+          {/* Main layout with nested routes */}
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route path="about" element={<About />} />
+            <Route path="projects" element={<Projects />} />
+            <Route path="alumni" element={<Alumni />} />
+            <Route path="contact" element={<Contact />} />
+            <Route path="events" element={<Events />} />
+            <Route path="register" element={<Register />} />
+            <Route path="team" element={<Team />} />
+            
+            {/* Protected Routes */}
+            <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="edit-profile" element={<ProtectedRoute><Editprofile /></ProtectedRoute>} />
+            <Route path="change-password" element={<ProtectedRoute><Changepassword /></ProtectedRoute>} />
+          </Route>
+          
+          {/* Catch all unmatched routes */}
+          <Route path="*" element={<ErrorPage />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
+  );
+};
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <RouterProvider router={router} />
-  </StrictMode>
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
 );

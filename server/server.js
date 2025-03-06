@@ -20,17 +20,20 @@ mongoose.connect(process.env.MONGO_URI, {
 
 // User Schema
 const userSchema = new mongoose.Schema({
-    email: { type: String, unique: true, required: true },
-    password: { type: String, required: true },
     name: { type: String, required: true },
-    designation: { type: String, required: true },
-    linkedin: String,
-    github: String,
-    profilePhoto: String,
-    projectTitle: String,
-    projectPhoto: String,
-    abstractDoc: String,
-    projectDescription: String,
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    phone: { type: String },
+    instagram: { type: String },
+    designation: { type: String, default: 'Member' },
+    profilePhoto: { type: String },
+    linkedin: { type: String },
+    github: { type: String },
+    projectPhoto: { type: String },
+    projectTitle: { type: String },
+    projectDescription: { type: String },
+    abstractDoc: { type: String },
+    createdAt: { type: Date, default: Date.now }
 });
 const User = mongoose.model("User", userSchema);
 
@@ -50,35 +53,42 @@ const authMiddleware = async (req, res, next) => {
 
 // Register/Login Route
 app.post("/login", async (req, res) => {
-    const { email, password } = req.body;
-    if (!password) return res.status(400).json({ message: "Password is required" });
-    
-    let user = await User.findOne({ email });
-    if (!user) {
-        const hashedPassword = await bcrypt.hash(password, 10);
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required" });
+        }
+        
+        // Check if user exists
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
-        user = new User({
-            email,
-            password: hashedPassword,
-            name: "YOUR NAME", 
-            designation: "Member",
-            linkedin: "https://www.linkedin.com/",
-            github: "https://github.com/",
-            profilePhoto: "./uploads/default.png",
-            projectTitle: "Project Title",
-            projectPhoto: "./uploads/default_project.jpeg",
-            abstractDoc: "",
-            projectDescription: "ADD YOUR PROJECT DESCRIPTION HERE",
+        // Verify password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+
+        // Generate token
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        
+        // Return success response
+        res.json({ 
+            message: "Login successful", 
+            token, 
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                designation: user.designation
+            } 
         });
-
-        await user.save();
+    } catch (error) {
+        console.error("Login error:", error);
+        res.status(500).json({ message: "Server error" });
     }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    res.json({ message: "Login successful", token, user });
 });
 
 // Change Password Route
@@ -110,8 +120,17 @@ app.post("/edit-profile", authMiddleware, upload.fields([
     { name: "projectPhoto" }, 
     { name: "abstractDoc" }
 ]), async (req, res) => {
-    const { name, designation, linkedin, github, projectTitle, projectDescription } = req.body;
-    const updateData = { name, designation, linkedin, github, projectTitle, projectDescription };
+    const { name, designation, linkedin, github, projectTitle, projectDescription, phone, instagram } = req.body;
+    const updateData = { 
+        name, 
+        designation, 
+        linkedin, 
+        github, 
+        projectTitle, 
+        projectDescription,
+        phone,
+        instagram
+    };
 
     if (req.files.profilePhoto) updateData.profilePhoto = req.files.profilePhoto[0].path;
     if (req.files.projectPhoto) updateData.projectPhoto = req.files.projectPhoto[0].path;
@@ -136,6 +155,42 @@ app.get("/profile", authMiddleware, async (req, res) => {
 app.get("/team", async (req, res) => {
     const teamData = await User.find();
     res.json(teamData);
+});
+
+// Signup endpoint
+app.post('/signup', async (req, res) => {
+    try {
+        const { name, email, password, secretKey } = req.body;
+
+        // Verify secret key
+        if (secretKey !== process.env.CORSIT_SECRET_KEY) {
+            return res.status(401).json({ message: 'Invalid secret key' });
+        }
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create new user
+        const user = new User({
+            name,
+            email,
+            password: hashedPassword,
+            designation: 'Member' // Default designation
+        });
+
+        await user.save();
+
+        res.status(201).json({ message: 'User registered successfully' });
+    } catch (error) {
+        console.error('Signup error:', error);
+        res.status(500).json({ message: 'Error registering user' });
+    }
 });
 
 const PORT = process.env.PORT || 5000;

@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import logo from '../../assets/logo.png';
 import axios from 'axios';
+import config from '../../config';
 
 const HeaderProfile = () => {
     const [navOpen, setNavOpen] = useState(false);
@@ -21,7 +22,7 @@ const HeaderProfile = () => {
                 setUserData(JSON.parse(cachedData));
                 setIsLoading(false);
                 // Fetch fresh data in background
-                const response = await axios.get('https://corsit-backend.onrender.com/profile', {
+                const response = await axios.get(`${config.apiBaseUrl}/profile`, {
                     headers: {
                         Authorization: localStorage.getItem('token')
                     }
@@ -30,7 +31,7 @@ const HeaderProfile = () => {
                 setUserData(newData);
                 sessionStorage.setItem('userData', JSON.stringify(newData));
             } else {
-                const response = await axios.get('https://corsit-backend.onrender.com/profile', {
+                const response = await axios.get(`${config.apiBaseUrl}/profile`, {
                     headers: {
                         Authorization: localStorage.getItem('token')
                     }
@@ -136,7 +137,7 @@ const HeaderProfile = () => {
                             className="flex items-center gap-2"
                         >
                             <img 
-                                src={`https://corsit-backend.onrender.com/${userData?.profilePhoto}`} 
+                                src={userData?.profilePhoto ? `${config.apiBaseUrl}/${userData.profilePhoto}` : config.defaultProfileImage} 
                                 alt="Profile" 
                                 className='w-12 h-12 rounded-full border-2 border-[#ed5a2d] cursor-pointer transition-all duration-300 hover:scale-110'
                                 onError={(e) => e.target.src = "/default_profile.png"} 

@@ -50,11 +50,11 @@ const Signup = () => {
   return (
     <>
       <Header />
-      <div className="flex h-[100vh] flex-col items-center justify-center bg-[#272829] text-[#f7ffff] relative">
-        <div className="card-wrapper h-[750px] w-[500px] mt-20">
-          <div className="card-content flex items-center justify-center text-lg">
-            <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center px-12 space-y-6 w-full max-w-lg">
-              <h1 className="text-4xl font-bold mb-10">SIGN UP</h1>
+      <div className="min-h-screen bg-[#272829] text-[#f7ffff] py-12 px-4 mt-22">
+        <div className="max-w-[550px] mx-auto mb-8 card-wrapper min-h-[1000px] w-full">
+          <div className="card-content flex items-center justify-center text-lg bg-[rgba(217,217,217,0.1)] p-8 rounded-3xl border border-slate-400 shadow-lg backdrop-blur-sm">
+            <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center px-6 space-y-8 w-full">
+              <h1 className="text-4xl font-bold mb-5">SIGN UP</h1>
               
               {error && <p className="text-red-500 text-center w-full p-3 bg-red-500/10 rounded-lg">{error}</p>}
               {success && <p className="text-green-500 text-center w-full p-3 bg-green-500/10 rounded-lg">{success}</p>}

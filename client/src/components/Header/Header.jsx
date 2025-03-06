@@ -18,12 +18,12 @@ const Header = () => {
 
     const navLinks = [
         { path: '/', label: 'HOME' },
-        { path: 'events', label: 'EVENTS' },
-        { path: 'about', label: 'ABOUT' },
-        { path: 'projects', label: 'PROJECTS' },
-        { path: 'team', label: 'TEAM' },
-        { path: 'alumni', label: 'ALUMNI' },
-        { path: 'contact', label: 'CONTACT' },
+        { path: '/events', label: 'EVENTS' },
+        { path: '/about', label: 'ABOUT' },
+        { path: '/projects', label: 'PROJECTS' },
+        { path: '/team', label: 'TEAM' },
+        { path: '/alumni', label: 'ALUMNI' },
+        { path: '/contact', label: 'CONTACT' },
     ];
 
     return (

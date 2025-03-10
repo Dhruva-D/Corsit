@@ -5,7 +5,9 @@
 
 const config = {
   // API URLs
-  apiBaseUrl: 'https://corsit-backend.onrender.com',
+  apiBaseUrl: process.env.NODE_ENV === 'production' 
+    ? 'https://corsit-server.vercel.app' 
+    : 'http://localhost:5000',
   
   // Other global configuration values can be added here
   defaultProfileImage: '/default_profile.png',

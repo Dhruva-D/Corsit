@@ -8,9 +8,10 @@ import { loadSlim } from "@tsparticles/slim"; // if you are going to use `loadSl
 
 
 const ParticlesComponent = (props) => {
-
   const [init, setInit] = useState(false);
-  // this should be run only once per application lifetime
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Initialize particles engine once
   useEffect(() => {
     initParticlesEngine(async (engine) => {
       // you can initiate the tsParticles instance (engine) here, adding custom shapes or presets
@@ -25,10 +26,33 @@ const ParticlesComponent = (props) => {
     });
   }, []);
 
+  // Track window size for responsive adjustments
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const particlesLoaded = (container) => {
-    console.log(container);
+    // Avoid console.log in production for better performance
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("Particles container loaded", container);
+    }
   };
 
+  // Adjust particle count based on screen size
+  const getParticleCount = () => {
+    if (windowWidth <= 768) {
+      return 50; // Mobile
+    } else if (windowWidth <= 1024) {
+      return 80; // Tablet
+    } else {
+      return 100; // Desktop
+    }
+  };
 
   const options = useMemo(
     () => ({
@@ -37,7 +61,7 @@ const ParticlesComponent = (props) => {
           value: "#000000",
         },
       },
-      fpsLimit: 120,
+      fpsLimit: 60, // Reduced from 120 for better performance
       interactivity: {
         events: {
           onClick: {
@@ -45,17 +69,17 @@ const ParticlesComponent = (props) => {
             mode: "repulse",
           },
           onHover: {
-            enable: true,
+            enable: windowWidth > 768, // Disable hover effects on mobile for better performance
             mode: 'grab',
           },
         },
         modes: {
           push: {
-            distance: 200,
-            duration: 15,
+            distance: 150,
+            duration: 10,
           },
           grab: {
-            distance: 150,
+            distance: 120,
           },
         },
       },
@@ -65,7 +89,7 @@ const ParticlesComponent = (props) => {
         },
         links: {
           color: "#FFFFFF",
-          distance: 150,
+          distance: 120,
           enable: true,
           opacity: 0.3,
           width: 1,
@@ -77,30 +101,33 @@ const ParticlesComponent = (props) => {
             default: "bounce",
           },
           random: true,
-          speed: 1,
+          speed: windowWidth <= 768 ? 0.8 : 1, // Slower on mobile
           straight: false,
         },
         number: {
           density: {
             enable: true,
+            area: 800,
           },
-          value: 150,
+          value: getParticleCount(),
         },
         opacity: {
-          value: 1.0,
+          value: 0.8, // Reduced from 1.0
         },
         shape: {
           type: "circle",
         },
         size: {
-          value: { min: 1, max: 3 },
+          value: { min: 1, max: 2 }, // Reduced max size
         },
       },
       detectRetina: true,
     }),
-    [],
+    [windowWidth],
   );
 
+  // Only render particles if initialized
+  if (!init) return null;
 
   return <Particles id={props.id} init={particlesLoaded} options={options} />; 
 };

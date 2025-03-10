@@ -4,11 +4,30 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const cors = require("cors");
+const path = require("path");
+const { processFileUpload } = require("./utils/fileStorage");
 require("dotenv").config();
 
 const app = express();
-app.use(express.json());
-app.use(cors());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(cors({
+  origin: ['https://corsit.vercel.app', 'http://localhost:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+
+// For Vercel, we need to handle file uploads differently
+// Configure storage for file uploads
+const storage = multer.memoryStorage(); // Use memory storage for Vercel
+
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
+
+// Serve static files - this won't work in Vercel's serverless environment
+// We'll need to use a different approach for file storage
 app.use("/uploads", express.static("uploads"));
 
 // MongoDB Connection
@@ -52,249 +71,231 @@ const authMiddleware = async (req, res, next) => {
     }
 };
 
+// Routes
+app.get("/", (req, res) => {
+    res.send("CORSIT API is running");
+});
+
 // Register/Login Route
-app.post("/login", async (req, res) => {
+app.post("/api/register", async (req, res) => {
     try {
-        const { email, password } = req.body;
-        if (!email || !password) {
-            return res.status(400).json({ message: "Email and password are required" });
-        }
-        
-        // Check if user exists
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        // Verify password
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: "Invalid credentials" });
-        }
-
-        // Generate token
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-        
-        // Return success response
-        res.json({ 
-            message: "Login successful", 
-            token, 
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-            } 
-        });
-    } catch (error) {
-        console.error("Login error:", error);
-        res.status(500).json({ message: "Server error" });
-    }
-});
-
-// Change Password Route
-app.post("/change-password", authMiddleware, async (req, res) => {
-    const { oldPassword, newPassword } = req.body;
-    if (!newPassword) return res.status(400).json({ message: "New password is required" });
-
-    const user = await User.findById(req.user.id);
-    const isMatch = await bcrypt.compare(oldPassword, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Incorrect old password" });
-
-    user.password = await bcrypt.hash(newPassword, 10);
-    await user.save();
-    res.json({ message: "Password updated successfully" });
-});
-
-// Multer Setup
-const storage = multer.diskStorage({
-    destination: "uploads/",
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + "-" + file.originalname);
-    },
-});
-const upload = multer({ storage });
-
-// Update Profile
-app.post("/edit-profile", authMiddleware, upload.fields([
-    { name: "profilePhoto" }, 
-    { name: "projectPhoto" }, 
-    { name: "abstractDoc" }
-]), async (req, res) => {
-    const { name, designation, linkedin, github, projectTitle, projectDescription, phone, instagram } = req.body;
-    const updateData = { 
-        name, 
-        designation, 
-        linkedin, 
-        github, 
-        projectTitle, 
-        projectDescription,
-        phone,
-        instagram
-    };
-
-    if (req.files.profilePhoto) updateData.profilePhoto = req.files.profilePhoto[0].path;
-    if (req.files.projectPhoto) updateData.projectPhoto = req.files.projectPhoto[0].path;
-    if (req.files.abstractDoc) updateData.abstractDoc = req.files.abstractDoc[0].path;
-
-    await User.findByIdAndUpdate(req.user.id, updateData);
-    res.json({ message: "Profile and project details updated" });
-});
-
-// Get Profile
-app.get("/profile", authMiddleware, async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id);
-        if (!user) return res.status(404).json({ message: "User not found" });
-        res.json(user);
-    } catch (err) {
-        res.status(500).json({ message: "Server error" });
-    }
-});
-
-// Admin Authentication Route
-app.post("/admin/auth", authMiddleware, async (req, res) => {
-    try {
-        const { adminSecret } = req.body;
-        
-        // Check if the provided secret matches the one in .env
-        if (adminSecret !== process.env.ADMIN_SECRET) {
-            return res.status(401).json({ message: "Invalid admin credentials" });
-        }
-        
-        // Get the user
-        const user = await User.findById(req.user.id);
-        
-        // Update user with admin role or return success
-        res.json({ 
-            message: "Admin authentication successful",
-            isAdmin: true
-        });
-    } catch (error) {
-        console.error("Admin auth error:", error);
-        res.status(500).json({ message: "Server error" });
-    }
-});
-
-// Get Team Data
-app.get("/team", async (req, res) => {
-    const teamData = await User.find({ adminAuthenticated: 'yes' });
-    res.json(teamData);
-});
-
-// Get All Users for Admin
-app.get("/admin/users", authMiddleware, async (req, res) => {
-    try {
-        // Check if user is admin (has the isAdmin flag in the request)
-        const isAdmin = req.header("isAdmin");
-        if (!isAdmin || isAdmin !== 'true') {
-            return res.status(403).json({ message: "Access denied. Admin privileges required." });
-        }
-        
-        const allUsers = await User.find();
-        res.json(allUsers);
-    } catch (error) {
-        console.error('Error fetching all users:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-// Update User by Admin
-app.put("/admin/users/:userId", authMiddleware, upload.fields([
-    { name: "profilePhoto" },
-    { name: "projectPhoto" },
-    { name: "abstractDoc" }
-]), async (req, res) => {
-    try {
-        // Check if user is admin
-        const isAdmin = req.header("isAdmin");
-        if (!isAdmin || isAdmin !== 'true') {
-            return res.status(403).json({ message: "Access denied. Admin privileges required." });
-        }
-        
-        const { userId } = req.params;
-        const updateData = req.body;
-        
-        // Handle file uploads
-        if (req.files) {
-            if (req.files.profilePhoto) {
-                updateData.profilePhoto = req.files.profilePhoto[0].path;
-            }
-            if (req.files.projectPhoto) {
-                updateData.projectPhoto = req.files.projectPhoto[0].path;
-            }
-            if (req.files.abstractDoc) {
-                updateData.abstractDoc = req.files.abstractDoc[0].path;
-            }
-        }
-        
-        // Always set adminAuthenticated to 'yes' when admin updates a user
-        updateData.adminAuthenticated = 'yes';
-        
-        const updatedUser = await User.findByIdAndUpdate(
-            userId, 
-            updateData, 
-            { new: true }
-        );
-        
-        if (!updatedUser) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        
-        res.json({ message: "User updated successfully", user: updatedUser });
-    } catch (error) {
-        console.error('Error updating user:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-// Delete User by Admin
-app.delete("/admin/users/:userId", authMiddleware, async (req, res) => {
-    try {
-        // Check if user is admin
-        const isAdmin = req.header("isAdmin");
-        if (!isAdmin || isAdmin !== 'true') {
-            return res.status(403).json({ message: "Access denied. Admin privileges required." });
-        }
-        
-        const { userId } = req.params;
-        const deletedUser = await User.findByIdAndDelete(userId);
-        
-        if (!deletedUser) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        
-        res.json({ message: "User deleted successfully" });
-    } catch (error) {
-        console.error('Error deleting user:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-// Signup endpoint
-app.post('/signup', async (req, res) => {
-    try {
-        const { name, email, password, secretKey } = req.body;
-
-        // Verify secret key
-        if (secretKey !== process.env.CORSIT_SECRET_KEY) {
-            return res.status(401).json({ message: 'Invalid secret key' });
-        }
+        const { name, email, password } = req.body;
 
         // Check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ message: 'User already exists' });
+            return res.status(400).json({ message: "User already exists" });
         }
 
         // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
         // Create new user
         const user = new User({
             name,
             email,
             password: hashedPassword,
-            adminAuthenticated: 'no'
+        });
+
+        await user.save();
+        res.status(201).json({ message: "User registered successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+app.post("/api/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Check if user exists
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: "Invalid email or password" });
+        }
+
+        // Validate password
+        const validPassword = await bcrypt.compare(password, user.password);
+        if (!validPassword) {
+            return res.status(400).json({ message: "Invalid email or password" });
+        }
+
+        // Create and assign token
+        const token = jwt.sign(
+            { _id: user._id, name: user.name, email: user.email },
+            process.env.JWT_SECRET,
+            { expiresIn: "1d" }
+        );
+
+        const isAdmin = user.email === "admin@corsit.com";
+        
+        res.status(200).json({
+            token,
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                isAdmin,
+                adminAuthenticated: user.adminAuthenticated
+            },
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// Protected Routes
+app.get("/api/user", authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select("-password");
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.json(user);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+app.put("/api/user/password", authMiddleware, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const user = await User.findById(req.user._id);
+
+        // Verify current password
+        const validPassword = await bcrypt.compare(currentPassword, user.password);
+        if (!validPassword) {
+            return res.status(400).json({ message: "Current password is incorrect" });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // Update password
+        user.password = hashedPassword;
+        await user.save();
+
+        res.json({ message: "Password updated successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// Update Profile
+app.put("/api/user/profile", authMiddleware, upload.fields([
+    { name: 'profilePhoto', maxCount: 1 },
+    { name: 'projectPhoto', maxCount: 1 },
+    { name: 'abstractDoc', maxCount: 1 }
+]), async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Update user fields
+        const updateFields = ['name', 'phone', 'instagram', 'linkedin', 'github', 'projectTitle', 'projectDescription'];
+        updateFields.forEach(field => {
+            if (req.body[field] !== undefined) {
+                user[field] = req.body[field];
+            }
+        });
+
+        // Process file uploads using our utility
+        if (req.files) {
+            if (req.files.profilePhoto) {
+                user.profilePhoto = processFileUpload(req.files.profilePhoto[0]);
+            }
+            if (req.files.projectPhoto) {
+                user.projectPhoto = processFileUpload(req.files.projectPhoto[0]);
+            }
+            if (req.files.abstractDoc) {
+                user.abstractDoc = processFileUpload(req.files.abstractDoc[0]);
+            }
+        }
+
+        await user.save();
+        res.json({ message: "Profile updated successfully", user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// Admin Routes
+app.get("/api/admin/users", authMiddleware, async (req, res) => {
+    try {
+        // Check if user is admin
+        const user = await User.findById(req.user._id);
+        if (user.email !== "admin@corsit.com") {
+            return res.status(403).json({ message: "Access denied" });
+        }
+
+        const users = await User.find().select("-password");
+        res.json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+app.put("/api/admin/user/:id", authMiddleware, async (req, res) => {
+    try {
+        // Check if user is admin
+        const adminUser = await User.findById(req.user._id);
+        if (adminUser.email !== "admin@corsit.com") {
+            return res.status(403).json({ message: "Access denied" });
+        }
+
+        const { designation, adminAuthenticated } = req.body;
+        const user = await User.findById(req.params.id);
+        
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (designation) user.designation = designation;
+        if (adminAuthenticated) user.adminAuthenticated = adminAuthenticated;
+
+        await user.save();
+        res.json({ message: "User updated successfully", user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// Signup with secret key
+app.post("/api/signup-with-key", async (req, res) => {
+    try {
+        const { name, email, password, secretKey } = req.body;
+
+        // Verify secret key
+        if (secretKey !== process.env.CORSIT_SECRET_KEY) {
+            return res.status(400).json({ message: "Invalid secret key" });
+        }
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: "User already exists" });
+        }
+
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Create new user
+        const user = new User({
+            name,
+            email,
+            password: hashedPassword,
         });
 
         await user.save();
@@ -306,6 +307,14 @@ app.post('/signup', async (req, res) => {
     }
 });
 
+// For Vercel, we need to export the Express app
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// Only start the server if we're not in a serverless environment
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+// Export the Express API for Vercel
+module.exports = app;
 

@@ -13,6 +13,7 @@ const HeaderProfile = () => {
     const [userData, setUserData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [showAdminModal, setShowAdminModal] = useState(false);
+    const [adminDestination, setAdminDestination] = useState('');
     const navigate = useNavigate();
     const { logout } = useAuth();
 
@@ -73,7 +74,20 @@ const HeaderProfile = () => {
 
     const handleAdminClick = () => {
         setShowAdminModal(true);
+        setAdminDestination('/admin');
         setDropdownOpen(false);
+    };
+
+    const handleAdminGalleryClick = (e) => {
+        e.preventDefault();
+        setShowAdminModal(true);
+        setAdminDestination('/admins-gallery');
+        setDropdownOpen(false);
+    };
+
+    const handleAuthSuccess = () => {
+        setShowAdminModal(false);
+        navigate(adminDestination);
     };
 
     const navLinks = [
@@ -176,6 +190,13 @@ const HeaderProfile = () => {
                                     >
                                         Change Password
                                     </NavLink>
+                                    <NavLink 
+                                        to="#" 
+                                        onClick={handleAdminGalleryClick}
+                                        className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200"
+                                    >
+                                        Admins Gallery
+                                    </NavLink>
                                     <button 
                                         onClick={handleAdminClick} 
                                         className="block w-full text-left px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200"
@@ -197,7 +218,8 @@ const HeaderProfile = () => {
             
             <AdminAuth 
                 isOpen={showAdminModal} 
-                onClose={() => setShowAdminModal(false)} 
+                onClose={() => setShowAdminModal(false)}
+                onSuccess={handleAuthSuccess}
             />
         </>
     );

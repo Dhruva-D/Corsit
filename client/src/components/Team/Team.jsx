@@ -63,42 +63,52 @@ const ProfileCard = ({ person }) => {
         <h1 className="mt-6 text-center text-2xl font-semibold text-white leading-7 tracking-tight">{person.name}</h1>
         <h3 className="text-center text-md text-gray-300 font-medium leading-6">{person.designation}</h3>
         <div className="mt-auto pb-4 flex justify-center space-x-3">
-          <a 
-            href={person.linkedin} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="text-[1.9rem] text-gray-400 hover:text-blue-400 transition-transform duration-300 hover:scale-110 hover:rotate-6"
-          >
-            <FontAwesomeIcon icon={faLinkedin} />
-          </a>
-          <a 
-            href={person.github} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="text-[1.9rem] text-gray-400 hover:text-gray-300 transition-transform duration-300 hover:scale-110 hover:rotate-6"
-          >
-            <FontAwesomeIcon icon={faGithub} />
-          </a>
-          <a 
-            href={`mailto:${person.email}`} 
-            className="text-[1.9rem] text-gray-400 hover:text-red-400 transition-transform duration-300 hover:scale-110 hover:rotate-6"
-          >
-            <FontAwesomeIcon icon={faEnvelope} />
-          </a>
-          <a 
-            href={`https://instagram.com/${person.instagram}`} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="text-[1.9rem] text-gray-400 hover:text-pink-500 transition-transform duration-300 hover:scale-110 hover:rotate-6"
-          >
-            <FontAwesomeIcon icon={faInstagram} />
-          </a>
-          <a 
-            href={`tel:${person.phone}`} 
-            className="text-[1.9rem] text-gray-400 hover:text-green-500 transition-transform duration-300 hover:scale-110 hover:rotate-6"
-          >
-            <FontAwesomeIcon icon={faPhone} />
-          </a>
+          {person.linkedin && (
+            <a 
+              href={person.linkedin} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-[1.9rem] text-gray-400 hover:text-blue-400 transition-transform duration-300 hover:scale-110 hover:rotate-6"
+            >
+              <FontAwesomeIcon icon={faLinkedin} />
+            </a>
+          )}
+          {person.github && (
+            <a 
+              href={person.github} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-[1.9rem] text-gray-400 hover:text-gray-300 transition-transform duration-300 hover:scale-110 hover:rotate-6"
+            >
+              <FontAwesomeIcon icon={faGithub} />
+            </a>
+          )}
+          {person.email && (
+            <a 
+              href={`mailto:${person.email}`} 
+              className="text-[1.9rem] text-gray-400 hover:text-red-400 transition-transform duration-300 hover:scale-110 hover:rotate-6"
+            >
+              <FontAwesomeIcon icon={faEnvelope} />
+            </a>
+          )}
+          {person.instagram && (
+            <a 
+              href={`https://instagram.com/${person.instagram}`} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-[1.9rem] text-gray-400 hover:text-pink-500 transition-transform duration-300 hover:scale-110 hover:rotate-6"
+            >
+              <FontAwesomeIcon icon={faInstagram} />
+            </a>
+          )}
+          {person.phone && (
+            <a 
+              href={`tel:${person.phone}`} 
+              className="text-[1.9rem] text-gray-400 hover:text-green-500 transition-transform duration-300 hover:scale-110 hover:rotate-6"
+            >
+              <FontAwesomeIcon icon={faPhone} />
+            </a>
+          )}
         </div>
       </div>
     </div>

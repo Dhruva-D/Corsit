@@ -7,21 +7,22 @@ import { FaLinkedin } from 'react-icons/fa';
 import { FaGithub } from 'react-icons/fa';
 import { FaPhone } from 'react-icons/fa';
 
-const DESIGNATION_OPTIONS = [
-    'Member',
-    'President',
-    'Vice President',
-    'Secretary',
-    'Joint Secretary',
-    'Treasurer',
-    'Technical Head',
-    'Creative Head',
-    'Marketing Head',
-    'Event Coordinator',
-    'Web Developer',
-    'Content Writer',
-    'Designer'
-];
+const DESIGNATION_ORDER = {
+    'First Year': 1,
+    'Second Year': 2,
+    'Third Year': 3,
+    'Fourth Year': 4,
+    'Digital Lead': 5,
+    'Photoshop Lead': 6,
+    'Tech Lead': 7,
+    'Android Dev Lead': 8,
+    'Web Dev Lead': 9,
+    'Treasurer': 10,
+    'Vice-Chairman': 11,
+    'Chairman': 12
+};
+
+const DESIGNATION_OPTIONS = Object.keys(DESIGNATION_ORDER);
 
 const Admin = () => {
     const [loading, setLoading] = useState(false);
@@ -207,6 +208,12 @@ const Admin = () => {
         }
     };
 
+    const sortedUsers = [...users].sort((a, b) => {
+        const orderA = DESIGNATION_ORDER[a.designation || 'Member'] || 999;
+        const orderB = DESIGNATION_ORDER[b.designation || 'Member'] || 999;
+        return orderA - orderB;
+    });
+
     const renderSocialLinks = (user) => (
         <div className="flex space-x-4 mt-2">
             {user.instagram && (
@@ -279,7 +286,7 @@ const Admin = () => {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {users.map((user) => (
+                                {sortedUsers.map((user) => (
                                     <div 
                                         key={user._id} 
                                         className={`bg-gradient-to-b from-slate-700 to-slate-800 rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-[1.02] ${user.adminAuthenticated === 'yes' ? 'border-l-4 border-green-500' : 'border-l-4 border-yellow-500'}`}
@@ -329,22 +336,25 @@ const Admin = () => {
                                                 {user.adminAuthenticated === 'no' && (
                                                     <button 
                                                         onClick={() => handleAccept(user._id)}
-                                                        className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white rounded-lg transition-all duration-300 flex-1 transform hover:scale-105"
+                                                        className="group relative px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg transition-all duration-300 flex-1 transform hover:scale-105 overflow-hidden"
                                                     >
-                                                        Accept
+                                                        <span className="relative z-10">Accept</span>
+                                                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-400 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
                                                     </button>
                                                 )}
                                                 <button 
                                                     onClick={() => handleEdit(user)}
-                                                    className="px-4 py-2 bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] hover:from-[#ff6b3d] hover:to-[#ed5a2d] text-white rounded-lg transition-all duration-300 flex-1 transform hover:scale-105"
+                                                    className="group relative px-4 py-2 bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] hover:from-[#ff6b3d] hover:to-[#ed5a2d] text-white rounded-lg transition-all duration-300 flex-1 transform hover:scale-105 overflow-hidden"
                                                 >
-                                                    Edit
+                                                    <span className="relative z-10">Edit</span>
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-[#ff6b3d] to-[#ed5a2d] transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
                                                 </button>
                                                 <button 
                                                     onClick={() => handleReject(user._id)}
-                                                    className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-lg transition-all duration-300 flex-1 transform hover:scale-105"
+                                                    className="group relative px-4 py-2 bg-gradient-to-r from-red-500 to-rose-500 hover:from-rose-500 hover:to-red-500 text-white rounded-lg transition-all duration-300 flex-1 transform hover:scale-105 overflow-hidden"
                                                 >
-                                                    Reject
+                                                    <span className="relative z-10">Reject</span>
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-rose-400 to-red-400 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
                                                 </button>
                                             </div>
                                         </div>
@@ -422,9 +432,14 @@ const Admin = () => {
                             <div>
                                 <label className="block text-gray-300 mb-2">Project Abstract</label>
                                 <div className="relative">
-                                    <div className="w-32 h-32 rounded-lg bg-slate-700 flex items-center justify-center mb-2">
+                                    <div className="w-32 h-32 rounded-lg bg-slate-700 flex flex-col items-center justify-center mb-2 p-2">
                                         {previewImages.abstractDoc ? (
-                                            <span className="text-sm text-white">Document Selected</span>
+                                            <>
+                                                <span className="text-sm text-white text-center mb-1">Document Selected</span>
+                                                <span className="text-xs text-gray-400 text-center break-all">
+                                                    {fileInputRefs.abstractDoc.current?.files[0]?.name || 'Current: Abstract'}
+                                                </span>
+                                            </>
                                         ) : (
                                             <span className="text-sm text-gray-400">No Document</span>
                                         )}
@@ -438,7 +453,7 @@ const Admin = () => {
                                     />
                                     <button
                                         onClick={() => fileInputRefs.abstractDoc.current.click()}
-                                        className="px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors text-sm w-full"
+                                        className="px-4 py-2 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 text-white rounded-lg transition-all duration-300 text-sm w-full transform hover:scale-105"
                                     >
                                         Change Document
                                     </button>
@@ -469,16 +484,23 @@ const Admin = () => {
                             </div>
                             <div>
                                 <label className="block text-gray-300 mb-2">Designation</label>
-                                <select
-                                    name="designation"
-                                    value={formData.designation}
-                                    onChange={handleInputChange}
-                                    className="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-[#ed5a2d]"
-                                >
-                                    {DESIGNATION_OPTIONS.map(option => (
-                                        <option key={option} value={option}>{option}</option>
-                                    ))}
-                                </select>
+                                <div className="relative">
+                                    <select
+                                        name="designation"
+                                        value={formData.designation}
+                                        onChange={handleInputChange}
+                                        className="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-[#ed5a2d] appearance-none"
+                                    >
+                                        {DESIGNATION_OPTIONS.map(option => (
+                                            <option key={option} value={option}>{option}</option>
+                                        ))}
+                                    </select>
+                                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-gray-300 mb-2">Phone</label>

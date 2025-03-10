@@ -3,7 +3,7 @@ import axios from 'axios';
 import config from '../../config';
 import { useNavigate } from 'react-router-dom';
 
-const AdminAuth = ({ isOpen, onClose }) => {
+const AdminAuth = ({ isOpen, onClose, onSuccess }) => {
     const [adminSecret, setAdminSecret] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -28,7 +28,9 @@ const AdminAuth = ({ isOpen, onClose }) => {
             if (response.data.isAdmin) {
                 localStorage.setItem('isAdmin', 'true');
                 onClose();
-                navigate('/admin');
+                if (onSuccess) {
+                    onSuccess();
+                }
             }
         } catch (error) {
             console.error('Admin auth error:', error);

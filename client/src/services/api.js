@@ -41,6 +41,11 @@ export const authService = {
   changePassword: async (passwordData) => {
     const response = await api.put('/api/user/password', passwordData);
     return response.data;
+  },
+  
+  adminAuth: async (adminData) => {
+    const response = await api.post('/api/admin/auth', adminData);
+    return response.data;
   }
 };
 
@@ -95,11 +100,39 @@ export const adminService = {
   updateUser: async (userId, userData) => {
     const response = await api.put(`/api/admin/user/${userId}`, userData);
     return response.data;
+  },
+  
+  deleteUser: async (userId) => {
+    const response = await api.delete(`/api/admin/user/${userId}`);
+    return response.data;
   }
+};
+
+// Team services
+export const teamService = {
+  getTeamMembers: async () => {
+    const response = await api.get('/api/team');
+    return response.data;
+  }
+};
+
+// Helper function to handle file URLs
+export const getFileUrl = (filePath) => {
+  if (!filePath) return null;
+  
+  // If it's already a data URL (base64), return it as is
+  if (filePath.startsWith('data:')) {
+    return filePath;
+  }
+  
+  // Otherwise, construct the full URL
+  return `${config.apiBaseUrl}/${filePath}`;
 };
 
 export default {
   auth: authService,
   user: userService,
-  admin: adminService
+  admin: adminService,
+  team: teamService,
+  getFileUrl
 }; 

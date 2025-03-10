@@ -161,6 +161,20 @@ app.get("/api/user", authMiddleware, async (req, res) => {
     }
 });
 
+// Legacy route for backward compatibility
+app.get("/profile", authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select("-password");
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.json(user);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
 app.put("/api/user/password", authMiddleware, async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
@@ -168,6 +182,33 @@ app.put("/api/user/password", authMiddleware, async (req, res) => {
 
         // Verify current password
         const validPassword = await bcrypt.compare(currentPassword, user.password);
+        if (!validPassword) {
+            return res.status(400).json({ message: "Current password is incorrect" });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // Update password
+        user.password = hashedPassword;
+        await user.save();
+
+        res.json({ message: "Password updated successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// Legacy route for backward compatibility
+app.post("/change-password", authMiddleware, async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const user = await User.findById(req.user._id);
+
+        // Verify current password
+        const validPassword = await bcrypt.compare(oldPassword, user.password);
         if (!validPassword) {
             return res.status(400).json({ message: "Current password is incorrect" });
         }
@@ -200,7 +241,48 @@ app.put("/api/user/profile", authMiddleware, upload.fields([
         }
 
         // Update user fields
-        const updateFields = ['name', 'phone', 'instagram', 'linkedin', 'github', 'projectTitle', 'projectDescription'];
+        const updateFields = ['name', 'phone', 'instagram', 'linkedin', 'github', 'projectTitle', 'projectDescription', 'designation'];
+        updateFields.forEach(field => {
+            if (req.body[field] !== undefined) {
+                user[field] = req.body[field];
+            }
+        });
+
+        // Process file uploads using our utility
+        if (req.files) {
+            if (req.files.profilePhoto) {
+                user.profilePhoto = processFileUpload(req.files.profilePhoto[0]);
+            }
+            if (req.files.projectPhoto) {
+                user.projectPhoto = processFileUpload(req.files.projectPhoto[0]);
+            }
+            if (req.files.abstractDoc) {
+                user.abstractDoc = processFileUpload(req.files.abstractDoc[0]);
+            }
+        }
+
+        await user.save();
+        res.json({ message: "Profile updated successfully", user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// Legacy route for backward compatibility
+app.post("/edit-profile", authMiddleware, upload.fields([
+    { name: 'profilePhoto', maxCount: 1 },
+    { name: 'projectPhoto', maxCount: 1 },
+    { name: 'abstractDoc', maxCount: 1 }
+]), async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Update user fields
+        const updateFields = ['name', 'phone', 'instagram', 'linkedin', 'github', 'projectTitle', 'projectDescription', 'designation'];
         updateFields.forEach(field => {
             if (req.body[field] !== undefined) {
                 user[field] = req.body[field];
@@ -245,6 +327,23 @@ app.get("/api/admin/users", authMiddleware, async (req, res) => {
     }
 });
 
+// Legacy route for backward compatibility
+app.get("/admin/users", authMiddleware, async (req, res) => {
+    try {
+        // Check if user is admin
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+
+        const users = await User.find().select("-password");
+        res.json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
 app.put("/api/admin/user/:id", authMiddleware, async (req, res) => {
     try {
         // Check if user is admin
@@ -271,8 +370,180 @@ app.put("/api/admin/user/:id", authMiddleware, async (req, res) => {
     }
 });
 
+// Legacy route for backward compatibility
+app.put("/admin/users/:userId", authMiddleware, upload.fields([
+    { name: 'profilePhoto', maxCount: 1 },
+    { name: 'projectPhoto', maxCount: 1 },
+    { name: 'abstractDoc', maxCount: 1 }
+]), async (req, res) => {
+    try {
+        // Check if user is admin
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+
+        const { userId } = req.params;
+        const updateData = req.body;
+        
+        // Process file uploads using our utility
+        if (req.files) {
+            if (req.files.profilePhoto) {
+                updateData.profilePhoto = processFileUpload(req.files.profilePhoto[0]);
+            }
+            if (req.files.projectPhoto) {
+                updateData.projectPhoto = processFileUpload(req.files.projectPhoto[0]);
+            }
+            if (req.files.abstractDoc) {
+                updateData.abstractDoc = processFileUpload(req.files.abstractDoc[0]);
+            }
+        }
+
+        // Always set adminAuthenticated to 'yes' when admin updates a user
+        updateData.adminAuthenticated = 'yes';
+        
+        const updatedUser = await User.findByIdAndUpdate(
+            userId, 
+            updateData, 
+            { new: true }
+        );
+        
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.json({ message: "User updated successfully", user: updatedUser });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// Legacy route for backward compatibility
+app.delete("/admin/users/:userId", authMiddleware, async (req, res) => {
+    try {
+        // Check if user is admin
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+
+        const { userId } = req.params;
+        const deletedUser = await User.findByIdAndDelete(userId);
+        
+        if (!deletedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.json({ message: "User deleted successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// Admin Authentication Route
+app.post("/api/admin/auth", authMiddleware, async (req, res) => {
+    try {
+        const { adminSecret } = req.body;
+        
+        // Check if the provided secret matches the one in .env
+        if (adminSecret !== process.env.ADMIN_SECRET) {
+            return res.status(401).json({ message: "Invalid admin credentials" });
+        }
+        
+        // Return success
+        res.json({ 
+            message: "Admin authentication successful",
+            isAdmin: true
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// Legacy route for backward compatibility
+app.post("/admin/auth", authMiddleware, async (req, res) => {
+    try {
+        const { adminSecret } = req.body;
+        
+        // Check if the provided secret matches the one in .env
+        if (adminSecret !== process.env.ADMIN_SECRET) {
+            return res.status(401).json({ message: "Invalid admin credentials" });
+        }
+        
+        // Return success
+        res.json({ 
+            message: "Admin authentication successful",
+            isAdmin: true
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// Team Data Route
+app.get("/api/team", async (req, res) => {
+    try {
+        const teamData = await User.find({ adminAuthenticated: 'yes' });
+        res.json(teamData);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// Legacy route for backward compatibility
+app.get("/team", async (req, res) => {
+    try {
+        const teamData = await User.find({ adminAuthenticated: 'yes' });
+        res.json(teamData);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
 // Signup with secret key
 app.post("/api/signup-with-key", async (req, res) => {
+    try {
+        const { name, email, password, secretKey } = req.body;
+
+        // Verify secret key
+        if (secretKey !== process.env.CORSIT_SECRET_KEY) {
+            return res.status(400).json({ message: "Invalid secret key" });
+        }
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: "User already exists" });
+        }
+
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Create new user
+        const user = new User({
+            name,
+            email,
+            password: hashedPassword,
+        });
+
+        await user.save();
+
+        res.status(201).json({ message: 'User registered successfully' });
+    } catch (error) {
+        console.error('Signup error:', error);
+        res.status(500).json({ message: 'Error registering user' });
+    }
+});
+
+// Legacy route for backward compatibility
+app.post("/signup", async (req, res) => {
     try {
         const { name, email, password, secretKey } = req.body;
 

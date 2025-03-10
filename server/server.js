@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema({
     projectTitle: { type: String },
     projectDescription: { type: String },
     abstractDoc: { type: String },
+    adminAuthenticated: { type: String, default: 'no' },
     createdAt: { type: Date, default: Date.now }
 });
 const User = mongoose.model("User", userSchema);
@@ -150,10 +151,123 @@ app.get("/profile", authMiddleware, async (req, res) => {
     }
 });
 
+// Admin Authentication Route
+app.post("/admin/auth", authMiddleware, async (req, res) => {
+    try {
+        const { adminSecret } = req.body;
+        
+        // Check if the provided secret matches the one in .env
+        if (adminSecret !== process.env.ADMIN_SECRET) {
+            return res.status(401).json({ message: "Invalid admin credentials" });
+        }
+        
+        // Get the user
+        const user = await User.findById(req.user.id);
+        
+        // Update user with admin role or return success
+        res.json({ 
+            message: "Admin authentication successful",
+            isAdmin: true
+        });
+    } catch (error) {
+        console.error("Admin auth error:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
 // Get Team Data
 app.get("/team", async (req, res) => {
-    const teamData = await User.find();
+    const teamData = await User.find({ adminAuthenticated: 'yes' });
     res.json(teamData);
+});
+
+// Get All Users for Admin
+app.get("/admin/users", authMiddleware, async (req, res) => {
+    try {
+        // Check if user is admin (has the isAdmin flag in the request)
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        const allUsers = await User.find();
+        res.json(allUsers);
+    } catch (error) {
+        console.error('Error fetching all users:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Update User by Admin
+app.put("/admin/users/:userId", authMiddleware, upload.fields([
+    { name: "profilePhoto" },
+    { name: "projectPhoto" },
+    { name: "abstractDoc" }
+]), async (req, res) => {
+    try {
+        // Check if user is admin
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        const { userId } = req.params;
+        const updateData = req.body;
+        
+        // Handle file uploads
+        if (req.files) {
+            if (req.files.profilePhoto) {
+                updateData.profilePhoto = req.files.profilePhoto[0].path;
+            }
+            if (req.files.projectPhoto) {
+                updateData.projectPhoto = req.files.projectPhoto[0].path;
+            }
+            if (req.files.abstractDoc) {
+                updateData.abstractDoc = req.files.abstractDoc[0].path;
+            }
+        }
+        
+        // Always set adminAuthenticated to 'yes' when admin updates a user
+        updateData.adminAuthenticated = 'yes';
+        
+        const updatedUser = await User.findByIdAndUpdate(
+            userId, 
+            updateData, 
+            { new: true }
+        );
+        
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        
+        res.json({ message: "User updated successfully", user: updatedUser });
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Delete User by Admin
+app.delete("/admin/users/:userId", authMiddleware, async (req, res) => {
+    try {
+        // Check if user is admin
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        const { userId } = req.params;
+        const deletedUser = await User.findByIdAndDelete(userId);
+        
+        if (!deletedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        
+        res.json({ message: "User deleted successfully" });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
 });
 
 // Signup endpoint
@@ -180,6 +294,7 @@ app.post('/signup', async (req, res) => {
             name,
             email,
             password: hashedPassword,
+            adminAuthenticated: 'no'
         });
 
         await user.save();

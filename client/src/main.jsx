@@ -16,6 +16,7 @@ import Signup from "./components/Login/Signup.jsx";
 import Profile from "./components/Profile/Profile.jsx";
 import Editprofile from "./components/Profile/Editprofile.jsx";
 import Changepassword from "./components/Profile/Changepassword.jsx";
+import Admin from "./components/Profile/Admin.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 // Error Component
@@ -45,6 +46,22 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Admin Protected Route Component
+const AdminProtectedRoute = ({ children }) => {
+  const { user } = useAuth();
+  const isAdmin = localStorage.getItem('isAdmin') === 'true';
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  if (!isAdmin) {
+    return <Navigate to="/profile" replace />;
+  }
+  
+  return children;
+};
+
 const App = () => {
   return (
     <BrowserRouter>
@@ -69,6 +86,7 @@ const App = () => {
             <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="edit-profile" element={<ProtectedRoute><Editprofile /></ProtectedRoute>} />
             <Route path="change-password" element={<ProtectedRoute><Changepassword /></ProtectedRoute>} />
+            <Route path="admin" element={<AdminProtectedRoute><Admin /></AdminProtectedRoute>} />
           </Route>
           
           {/* Catch all unmatched routes */}

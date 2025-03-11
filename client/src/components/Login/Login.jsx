@@ -40,7 +40,7 @@ const Login = () => {
     <>
       <Header />
       <div className="flex h-[100vh] flex-col items-center justify-center bg-[#0d0f10] text-[#f7ffff] relative">
-        <div className="card-wrapper h-[600px] w-[500px] mt-20">
+        <div className="card-wrapper h-[600px] w-[350px] md:min-w-[500px] mt-20">
           <div className="card-content flex items-center justify-center text-lg">
             <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center px-12 space-y-8 w-full max-w-lg">
               <h1 className="text-4xl font-bold mb-20">SIGN IN</h1>

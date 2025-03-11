@@ -5,6 +5,10 @@ import rc1 from '../../assets/events/robocor/1.png';
 import rc2 from '../../assets/events/robocor/2.png';
 import rc3 from '../../assets/events//robocor/3.png';
 
+import re1 from '../../assets/events/roboexpo/1.jpg';
+import re2 from '../../assets/events/roboexpo/2.jpg';
+import re3 from '../../assets/events/roboexpo/3.jpg';
+
 const eventsData = [
   {
     title: 'RoboCor',
@@ -21,9 +25,9 @@ const eventsData = [
     title: 'RoboExpo',
     description: 'ROBOEXPO is an annual event organized by the Robotics club of SIT CORSIT. The primary objective is to introduce the club and its activities to the newcomers by displaying the bots that the members have created over the year. The event showcases various bots such as Line Follower Robots (LFR), Roboracer, Gesture controlled bots, Bluetooth controlled bots, etc. The exhibition provides students with an opportunity to witness and understand the workings of these bots up close. It serves as an excellent platform for the Robotics club to attract new members who are interested in this field.',
     images: [
-      'https://source.unsplash.com/400x400/?coding',
-      'https://source.unsplash.com/500x300/?hackathon',
-      'https://source.unsplash.com/300x500/?developers'
+      re1,
+      re2,
+      re3
     ]
   },
   {
@@ -71,7 +75,7 @@ const Events = () => {
             </div>
 
             <div className='md:w-3/5 p-8 md:p-12 text-center md:text-left'>
-              <h3 className='text-5xl font-semibold text-[#ed5a2d]'>{event.title}</h3>
+              <h3 className='text-6xl font-semibold text-[#ed5a2d]'>{event.title}</h3>
               <p className='text-[#f7ffff] mt-4 text-xl leading-relaxed'>{event.description}</p>
               {event.register && (
                 <NavLink

@@ -1,4 +1,5 @@
 import React from "react";
+import team from '../../assets/team.jpg';
 import dean from '../../assets/mentors/dean.jpeg';
 import mentor from '../../assets/mentors/mentor.jpeg';
 import one from '../../assets/founders/team1a.jpg';
@@ -12,7 +13,7 @@ const About = () => {
 
       <div className="flex justify-center items-center w-[80%] mx-auto mt-20 mb-40 gap-x-10">
         <div className="w-[55%]">
-          <img src="https://placehold.co/700x500.png" className="rounded-xl shadow-lg" alt="About Us" />
+          <img src={team} className="rounded-xl shadow-lg" alt="About Us" />
         </div>
         <div className="w-[45%] text-xl leading-8">
           <p className="text-gray-300">

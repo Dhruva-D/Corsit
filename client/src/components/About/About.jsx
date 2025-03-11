@@ -11,7 +11,7 @@ const About = () => {
     <div className="bg-[#272928] text-white py-20 px-6 sm:px-4">
       <div className="text-center text-4xl sm:text-5xl text-[#ed5a2d] font-semibold mb-16">About Us</div>
 
-      <div className="flex flex-col lg:flex-row justify-center items-center w-full lg:w-[80%] mx-auto px-10 mt-10 mb-20 gap-10">
+      <div className="flex flex-col lg:flex-row justify-center items-center w-full lg:w-[80%] mx-auto px-3 mt-10 mb-20 gap-10">
         <div className="w-full lg:w-[55%]">
           <img src={team} className="rounded-xl shadow-lg w-full" alt="About Us" />
         </div>

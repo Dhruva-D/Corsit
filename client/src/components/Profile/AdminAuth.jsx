@@ -40,8 +40,6 @@ const AdminAuth = ({ isOpen, onClose, onSuccess }) => {
         }
     };
 
-    if (!isOpen) return null;
-
     return (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 px-4">
             <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-xl shadow-2xl p-6 w-full max-w-md relative animate-fadeIn">

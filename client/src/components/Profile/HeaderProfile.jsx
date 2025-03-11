@@ -63,13 +63,16 @@ const HeaderProfile = () => {
         navigate('/');
     };
 
-    const handleAdminClick = () => {
+    const handleAdminClick = (e) => {
+        e.preventDefault();
+        setDropdownOpen(false);
         setShowAdminModal(true);
         setAdminDestination('/admin');
     };
 
     const handleAdminGalleryClick = (e) => {
         e.preventDefault();
+        setDropdownOpen(false);
         setShowAdminModal(true);
         setAdminDestination('/admins-gallery');
     };
@@ -122,21 +125,15 @@ const HeaderProfile = () => {
                             <NavLink to='/profile' className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Profile</NavLink>
                             <NavLink to='/edit-profile' className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Edit Profile</NavLink>
                             <NavLink to='/change-password' className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Change Password</NavLink>
-                            <NavLink to="#" onClick={handleAdminGalleryClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200"
-                            >Admins Gallery</NavLink>
-                             <button 
-                                        onClick={handleAdminClick} 
-                                        className="block w-full text-left px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200"
-                                    >
-                                        Admin Page
-                                    </button>
+                            <NavLink to="#" onClick={handleAdminGalleryClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Admins Gallery</NavLink>
+                            <NavLink to="#" onClick={handleAdminClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Admin Page</NavLink>
                             <button onClick={handleLogout} className='block w-full text-left px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Logout</button>
                         </div>
                     )}
                 </div>
             </nav>
 
-            {showAdminModal && <AdminAuth onSuccess={handleAuthSuccess} onClose={() => setShowAdminModal(false)} />}
+            {showAdminModal && <AdminAuth isOpen={showAdminModal} onSuccess={handleAuthSuccess} onClose={() => setShowAdminModal(false)} />}
         </header>
     );
 };

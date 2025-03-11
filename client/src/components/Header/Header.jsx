@@ -57,7 +57,7 @@ const Header = () => {
                         </Link>
                         <X className='text-white cursor-pointer' size={28} onClick={() => setNavOpen(false)} />
                     </div>
-                    <ul className='flex lg:flex-row flex-col items-center gap-10 text-[1.2rem]'>
+                    <ul className='flex lg:flex-row flex-col items-center gap-5 text-[1.2rem]'>
                         {navLinks.map(({ path, label }, index) => (
                             <li key={index}>
                                 <NavLink

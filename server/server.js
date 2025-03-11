@@ -294,7 +294,9 @@ app.post('/signup', async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            adminAuthenticated: 'no'
+            adminAuthenticated: 'no',
+            profilePhoto: 'uploads/default-profile.png',
+            projectPhoto: 'uploads/default-project.png',
         });
 
         await user.save();

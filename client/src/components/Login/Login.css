@@ -10,7 +10,7 @@
 }
 
 .card-wrapper {
-  @apply relative bg-gradient-to-b from-slate-700 to-slate-800 rounded-2xl overflow-hidden;
+  @apply relative bg-gradient-to-b from-[#31363a] to-[#1e2124] rounded-2xl overflow-hidden;
 }
 
 .card-wrapper::before {
@@ -25,5 +25,5 @@
 }
 
 .card-content {
-  @apply absolute w-[calc(100%-3px)] h-[calc(100%-3px)] top-[1.5px] left-[1.5px] bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl
+  @apply absolute w-[calc(100%-3px)] h-[calc(100%-3px)] top-[1.5px] left-[1.5px] bg-gradient-to-b from-[#171a1c] to-[#1e2124] rounded-2xl
 }

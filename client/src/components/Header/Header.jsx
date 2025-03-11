@@ -5,16 +5,24 @@ import logo from '../../assets/logo.png';
 const Header = () => {
     const [navOpen, setNavOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [bgColor, setBgColor] = useState('');
     const location = useLocation();
 
     useEffect(() => {
         const handleScroll = () => {
             setScrolled(window.scrollY > 80);
         };
-
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    useEffect(() => {
+        if (location.pathname === '/login') {
+            setBgColor('#0d0f10');
+        } else {
+            setBgColor(location.pathname === '/' && !scrolled ? 'bg-black' : 'bg-[#272928] bg-opacity-95');
+        }
+    }, [location, scrolled]);
 
     const navLinks = [
         { path: '/', label: 'HOME' },
@@ -27,7 +35,7 @@ const Header = () => {
     ];
 
     return (
-        <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out ${location.pathname === '/' && !scrolled ? 'bg-black' : 'bg-[#272928] bg-opacity-95'}`}>
+        <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out ${bgColor}`}>
             <nav className='flex justify-between items-center w-[92%] mx-auto py-4'>
                 <div>
                     <Link to='/' onClick={() => window.scrollTo(0, 0)}>

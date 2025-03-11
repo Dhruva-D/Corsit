@@ -39,7 +39,7 @@ const Login = () => {
   return (
     <>
       <Header />
-      <div className="flex h-[100vh] flex-col items-center justify-center bg-[#272829] text-[#f7ffff] relative">
+      <div className="flex h-[100vh] flex-col items-center justify-center bg-[#0d0f10] text-[#f7ffff] relative">
         <div className="card-wrapper h-[600px] w-[500px] mt-20">
           <div className="card-content flex items-center justify-center text-lg">
             <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center px-12 space-y-8 w-full max-w-lg">

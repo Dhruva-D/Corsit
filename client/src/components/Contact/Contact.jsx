@@ -15,18 +15,18 @@ const Contact = () => {
             allowFullScreen={true}
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            className="w-full h-[550px] md:h-[450px] lg:h-[600px] rounded-2xl"
+            className="w-full h-[480px] md:h-[450px] lg:h-[600px] rounded-2xl"
           />
 
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-[90%] sm:w-[85%] md:w-[75%] lg:w-[70%] text-white p-6 sm:p-7 lg:p-8 rounded-3xl shadow-xl border border-[rgba(237,90,45,0.8)] bg-[#252525] backdrop-blur-3xl">
-            <div className="flex flex-col md:flex-row justify-between items-start text-left gap-8 sm:gap-10 md:gap-32 lg:gap-40">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-[90%] sm:w-[85%] md:w-[75%] lg:w-[70%] text-white p-4 sm:p-5 md:p-6 lg:p-8 rounded-3xl shadow-xl border border-[rgba(237,90,45,0.8)] bg-[#252525] backdrop-blur-3xl">
+            <div className="flex flex-col md:flex-row justify-between items-start text-left gap-6 sm:gap-8 md:gap-32 lg:gap-40">
               <div className="w-full md:w-1/2">
                 <h2 className="text-sm font-semibold uppercase mb-1 text-gray-300">Address</h2>
                 <p className="text-lg text-white">E-Yantra Robotics Lab, Siddaganga Institute of Technology, Tumkur, Karnataka</p>
               </div>
 
-              <div className="w-full md:w-1/2 mt-4 md:mt-0 flex flex-col items-start">
-                <div className="mb-2">
+              <div className="w-full md:w-1/2 mt-3 md:mt-0 flex flex-col items-start">
+                <div className="mb-1">
                   <h2 className="text-sm font-semibold uppercase mb-1 text-gray-300">Email</h2>
                   <a href="mailto:corsit@sit.ac.in" className="text-lg text-white hover:text-[rgba(237,90,45,0.8)]">corsit@sit.ac.in</a>
                 </div>
@@ -37,6 +37,7 @@ const Contact = () => {
               </div>
             </div>
           </div>
+
         </div>
 
         <div className="w-full sm:w-[90%] md:w-[40%] border border-[rgba(237,90,45,0.8)] shadow-xl rounded-3xl px-6 sm:px-8 md:px-10 lg:px-12 py-10 sm:py-12 md:py-16 lg:py-20 bg-[#1f1f1f] flex flex-col justify-center">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'; 
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { FiMenu, FiX } from 'react-icons/fi';
@@ -18,33 +18,23 @@ const HeaderProfile = () => {
     const navigate = useNavigate();
     const { logout } = useAuth();
 
-    // Memoize the fetch function
+    // Fetch user data
     const fetchUserData = useCallback(async () => {
         try {
             const cachedData = sessionStorage.getItem('userData');
             if (cachedData) {
                 setUserData(JSON.parse(cachedData));
                 setIsLoading(false);
-                // Fetch fresh data in background
-                const response = await axios.get(`${config.apiBaseUrl}/profile`, {
-                    headers: {
-                        Authorization: localStorage.getItem('token')
-                    }
-                });
-                
-                const newData = response.data;
-                setUserData(newData);
-                sessionStorage.setItem('userData', JSON.stringify(newData));
-            } else {
-                const response = await axios.get(`${config.apiBaseUrl}/profile`, {
-                    headers: {
-                        Authorization: localStorage.getItem('token')
-                    }
-                });
-                
-                setUserData(response.data);
-                sessionStorage.setItem('userData', JSON.stringify(response.data));
             }
+
+            const response = await axios.get(`${config.apiBaseUrl}/profile`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            setUserData(response.data);
+            sessionStorage.setItem('userData', JSON.stringify(response.data));
         } catch (error) {
             console.error('Error fetching user data:', error);
             if (error.response?.status === 401) {
@@ -56,16 +46,14 @@ const HeaderProfile = () => {
     }, []);
 
     useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 80);
-        };
+        fetchUserData();
+    }, [fetchUserData]);
+
+    useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 80);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
-
-    useEffect(() => {
-        fetchUserData();
-    }, [fetchUserData]);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -78,20 +66,19 @@ const HeaderProfile = () => {
     const handleAdminClick = () => {
         setShowAdminModal(true);
         setAdminDestination('/admin');
-        setDropdownOpen(false);
     };
 
     const handleAdminGalleryClick = (e) => {
         e.preventDefault();
         setShowAdminModal(true);
         setAdminDestination('/admins-gallery');
-        setDropdownOpen(false);
     };
 
     const handleAuthSuccess = () => {
         setShowAdminModal(false);
-        navigate(adminDestination);
+        navigate(adminDestination); // Ensure navigation happens
     };
+
 
     const navLinks = [
         { path: '/', label: 'HOME' },
@@ -109,11 +96,11 @@ const HeaderProfile = () => {
                 <Link to='/' onClick={() => window.scrollTo(0, 0)}>
                     <img src={logo} alt='Logo' className='w-[3.5rem]' />
                 </Link>
-                
+
                 <button className='lg:hidden text-white text-3xl' onClick={() => setNavOpen(!navOpen)}>
                     {navOpen ? <FiX /> : <FiMenu />}
                 </button>
-                
+
                 <div className={`lg:flex flex-col lg:flex-row absolute lg:static bg-black lg:bg-transparent top-16 left-0 w-full lg:w-auto ${navOpen ? 'block' : 'hidden'} lg:flex`}>
                     <ul className='flex flex-col lg:flex-row items-center lg:gap-6 gap-4 text-lg py-4 lg:py-0'>
                         {navLinks.map(({ path, label }, index) => (
@@ -125,7 +112,7 @@ const HeaderProfile = () => {
                         ))}
                     </ul>
                 </div>
-                
+
                 <div className='relative'>
                     <button onClick={() => setDropdownOpen(!dropdownOpen)}>
                         <img src={userData?.profilePhoto ? `${config.apiBaseUrl}/${userData.profilePhoto}` : '/default_profile.png'} alt='Profile' className='w-12 h-12 rounded-full border-2 border-[#ed5a2d] cursor-pointer' />
@@ -135,12 +122,21 @@ const HeaderProfile = () => {
                             <NavLink to='/profile' className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Profile</NavLink>
                             <NavLink to='/edit-profile' className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Edit Profile</NavLink>
                             <NavLink to='/change-password' className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Change Password</NavLink>
-                            <button onClick={handleAdminClick} className='block w-full text-left px-4 py-3 text-white hover:bg-gray-900'>Admin Page</button>
+                            <NavLink to="#" onClick={handleAdminGalleryClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200"
+                            >Admins Gallery</NavLink>
+                             <button 
+                                        onClick={handleAdminClick} 
+                                        className="block w-full text-left px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200"
+                                    >
+                                        Admin Page
+                                    </button>
                             <button onClick={handleLogout} className='block w-full text-left px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Logout</button>
                         </div>
                     )}
                 </div>
             </nav>
+
+            {showAdminModal && <AdminAuth onSuccess={handleAuthSuccess} onClose={() => setShowAdminModal(false)} />}
         </header>
     );
 };

@@ -18,22 +18,30 @@ const HeaderProfile = () => {
     const navigate = useNavigate();
     const { logout } = useAuth();
 
+    // Memoize the fetch function
     const fetchUserData = useCallback(async () => {
         try {
             const cachedData = sessionStorage.getItem('userData');
             if (cachedData) {
                 setUserData(JSON.parse(cachedData));
                 setIsLoading(false);
+                // Fetch fresh data in background
                 const response = await axios.get(`${config.apiBaseUrl}/profile`, {
-                    headers: { Authorization: localStorage.getItem('token') }
+                    headers: {
+                        Authorization: localStorage.getItem('token')
+                    }
                 });
+                
                 const newData = response.data;
                 setUserData(newData);
                 sessionStorage.setItem('userData', JSON.stringify(newData));
             } else {
                 const response = await axios.get(`${config.apiBaseUrl}/profile`, {
-                    headers: { Authorization: localStorage.getItem('token') }
+                    headers: {
+                        Authorization: localStorage.getItem('token')
+                    }
                 });
+                
                 setUserData(response.data);
                 sessionStorage.setItem('userData', JSON.stringify(response.data));
             }
@@ -65,6 +73,24 @@ const HeaderProfile = () => {
         sessionStorage.removeItem('userData');
         logout();
         navigate('/');
+    };
+
+    const handleAdminClick = () => {
+        setShowAdminModal(true);
+        setAdminDestination('/admin');
+        setDropdownOpen(false);
+    };
+
+    const handleAdminGalleryClick = (e) => {
+        e.preventDefault();
+        setShowAdminModal(true);
+        setAdminDestination('/admins-gallery');
+        setDropdownOpen(false);
+    };
+
+    const handleAuthSuccess = () => {
+        setShowAdminModal(false);
+        navigate(adminDestination);
     };
 
     const navLinks = [
@@ -109,6 +135,7 @@ const HeaderProfile = () => {
                             <NavLink to='/profile' className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Profile</NavLink>
                             <NavLink to='/edit-profile' className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Edit Profile</NavLink>
                             <NavLink to='/change-password' className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Change Password</NavLink>
+                            <button onClick={handleAdminClick} className='block w-full text-left px-4 py-3 text-white hover:bg-gray-900'>Admin Page</button>
                             <button onClick={handleLogout} className='block w-full text-left px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Logout</button>
                         </div>
                     )}

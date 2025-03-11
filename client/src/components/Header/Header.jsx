@@ -36,7 +36,7 @@ const Header = () => {
     ];
 
     return (
-        <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out ${bgColor}`}>
+        <header className={`fixed mb-40 top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out ${bgColor}`}>
             <nav className='flex justify-between items-center w-[92%] mx-auto py-4'>
                 <Link to='/' onClick={() => window.scrollTo(0, 0)} className='lg:block'>
                     <img src={logo} alt='Logo' className='w-[3.5rem]' />

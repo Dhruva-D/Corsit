@@ -13,6 +13,10 @@ import ws1 from '../../assets/events/workshop/1.jpg';
 import ws2 from '../../assets/events/workshop/2.jpg';
 import ws3 from '../../assets/events/workshop/3.jpg';
 
+import hc1 from '../../assets/events/hackathon/1.jpg';
+import hc2 from '../../assets/events/hackathon/2.jpg';
+import hc3 from '../../assets/events/hackathon/3.jpg';
+
 const eventsData = [
   {
     title: 'RoboCor',
@@ -47,9 +51,9 @@ const eventsData = [
     title: 'Hackathon',
     description: 'CORSIT, the Robotics club of SIT, conducts an annual 12-hour hackathon since 2017, where students collaborate to find innovative solutions to real-world problems in areas such as IoT, cybersecurity, blockchain, and data science etc. The event provides a platform for teams to compete for exciting cash prizes and recognition. The hackathon aims to foster creativity, teamwork, and problem-solving skills among students.',
     images: [
-      'https://source.unsplash.com/400x500/?robotics',
-      'https://source.unsplash.com/500x300/?ai',
-      'https://source.unsplash.com/300x400/?machinelearning'
+      hc2,
+      hc1,
+      hc3
     ]
   }
 ];

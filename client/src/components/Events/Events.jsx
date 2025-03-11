@@ -60,46 +60,52 @@ const eventsData = [
 
 const Events = () => {
   return (
-    <div className='min-h-screen bg-[#272928] py-36 px-6'>
-      <div className='text-center mb-16'>
-        <h2 className='text-7xl font-bold text-[#ed5a2d] tracking-tight'>Our Events</h2>
+    <div className='min-h-screen bg-[#272928] py-24 px-4 sm:px-6 md:py-36'>
+      <div className='text-center mb-12 sm:mb-16'>
+        <h2 className='text-5xl sm:text-7xl font-bold text-[#ed5a2d] tracking-tight'>Our Events</h2>
       </div>
 
-      <div className='max-w-7xl mx-auto space-y-52'>
+      <div className='max-w-7xl mx-auto space-y-24 sm:space-y-52'>
         {eventsData.map((event, index) => (
-          <div key={index} className={`relative flex flex-col md:flex-row items-center ${index % 2 === 0 ? 'md:flex-row-reverse' : ''} gap-16 md:gap-24 py-16`}>
-            <div className='md:w-2/5 grid grid-cols-2 gap-4 relative'>
-              {event.images.map((img, imgIndex) => (
-                <img
-                  key={imgIndex}
-                  src={img}
-                  alt={`${event.title} ${imgIndex + 1}`}
-                  className={`object-cover rounded-xl shadow-lg w-72 h-72 transition-transform duration-300
-                      ${imgIndex === 0 ? 'rotate-[-6deg] translate-x-4 translate-y-4 z-10' : ''}  
-                      ${imgIndex === 1 ? 'rotate-[8deg] -translate-x-6 -translate-y-2 z-20' : ''}  
-                      ${imgIndex === 2 ? 'rotate-[6deg] translate-x-28 translate-y-[-10%] z-0' : ''}`}
-                />
-              ))}
-            </div>
-
-            <div className='md:w-3/5 p-8 md:p-12 text-center md:text-left'>
-              <h3 className='text-6xl font-semibold text-[#ed5a2d]'>{event.title}</h3>
-              <p className='text-[#f7ffff] mt-4 text-xl leading-relaxed'>{event.description}</p>
+          <div
+            key={index}
+            className={`relative flex flex-col md:flex-row items-center md:items-start ${index % 2 === 0 ? 'md:flex-row-reverse' : ''} gap-8 sm:gap-16 md:gap-24 py-12 sm:py-16`}
+          >
+            {/* Text on the left for mobile, maintains original order for large screens */}
+            <div className='w-full text-center md:text-left md:w-3/5 p-6 sm:p-8 md:p-12 order-1 md:order-none'>
+              <h3 className='text-4xl sm:text-6xl font-semibold text-[#ed5a2d]'>{event.title}</h3>
+              <p className='text-[#f7ffff] mt-4 text-lg sm:text-xl leading-relaxed'>{event.description}</p>
               {event.register && (
                 <NavLink
                   to='/register'
-                  className='mt-6 inline-block border-2 border-[#ed5a2d] text-[#ed5a2d] px-14 py-4 rounded-3xl text-xl font-semibold transition duration-300 hover:bg-[#ed5a2d] hover:text-white hover:border-4 hover:shadow-lg'
+                  className='mt-6 inline-block border-2 border-[#ed5a2d] text-[#ed5a2d] px-10 sm:px-14 py-3 sm:py-4 rounded-3xl text-lg sm:text-xl font-semibold transition duration-300 hover:bg-[#ed5a2d] hover:text-white hover:border-4 hover:shadow-lg'
                 >
                   Register
                 </NavLink>
               )}
             </div>
+
+            {/* Smaller image cluster in mobile mode */}
+            <div className='w-full sm:w-3/5 md:w-2/5 grid grid-cols-2 gap-2 sm:gap-4 relative order-2 md:order-none'>
+              {event.images.map((img, imgIndex) => (
+                <img
+                  key={imgIndex}
+                  src={img}
+                  alt={`${event.title} ${imgIndex + 1}`}
+                  className={`object-cover rounded-xl shadow-lg w-32 h-32 sm:w-72 sm:h-72 transition-transform duration-300
+                      ${imgIndex === 0 ? 'rotate-[-10deg] translate-x-10 translate-y-1 sm:rotate-[-6deg] sm:translate-x-4 sm:translate-y-4 z-10' : ''}  
+                      ${imgIndex === 1 ? 'rotate-[8deg] -translate-x-8 translate-y-8 sm:rotate-[8deg] sm:-translate-x-6 sm:-translate-y-2 z-20' : ''}  
+                      ${imgIndex === 2 ? 'rotate-[8deg] translate-x-13 translate-y-[-10%] sm:rotate-[6deg] sm:translate-x-28 sm:translate-y-[-10%] z-0' : ''}`}
+                />
+              ))}
+            </div>
           </div>
         ))}
       </div>
     </div>
-
   );
 };
+
+
 
 export default Events;

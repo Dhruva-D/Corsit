@@ -30,46 +30,44 @@ const Home = () => {
         <div className="container mx-auto px-6">
           <div className="text-center mb-24">
             <h2 className="text-6xl text-[#ed5a2d] font-bold mb-4">Our Events</h2>
-            <p className="text-lg">Join us in our exciting robotics events and workshops</p>
+            <p className="text-lg text-gray-300">Join us in our exciting robotics events and workshops</p>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             {[
               {
-                date: 'Date',
+                date: 'Coming Soon',
+                title: 'RoboCor',
+                description: 'The ultimate battleground for innovation, where robots clash and creativity thrives!',
+                location: '📍 SIT Campus',
+              },
+              {
+                date: 'Coming Soon',
+                title: 'Robotics Workshop',
+                description: 'Learn the basics of robotics and automation in this hands-on workshop.',
+                location: '📍 Workshop Hall',
+              },
+              {
+                date: 'Coming Soon',
                 title: 'RoboExpo',
                 description: 'A showcase of cutting-edge robotics, AI, and automation innovations.',
                 location: '📍 Birla Auditorium',
-                icon: '📦',
-              },
-              {
-                date: 'Date',
-                title: 'Robotics Workshop',
-                description: 'Learn the basics of robotics and automation in this hands-on workshop.',
-                location: '📍 Location',
-                icon: '💡',
-              },
-              {
-                date: 'Date',
-                title: 'RoboCor',
-                description: 'The ultimate battleground for innovation, where robots clash and creativity thrives!',
-                location: '📍 SIT',
-                icon: '🖱️',
               },
             ].map((event, index) => (
               <div
                 key={index}
-                className="bg-[#1a1a1a] h-[350px] border border-[#ed5a2d] rounded-2xl shadow-lg overflow-hidden p-6 text-center backdrop-blur-md bg-opacity-80 relative transition-all duration-300 hover:scale-[1.05] hover:border-orange-500"
+                className="relative h-[380px] w-full rounded-xl p-10 bg-gradient-to-br from-[#1a1a1a] to-[#222222] shadow-lg 
+          hover:shadow-2xl transition-all duration-300 hover:scale-[1.05] border-4 border-[#ed5a2d40] 
+          flex flex-col items-center text-center justify-center backdrop-blur-md bg-opacity-80"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-[#ed5a2d30] to-transparent opacity-20"></div>
-
-                <div className="text-6xl mb-4">{event.icon}</div>
-                <h3 className="text-2xl font-extrabold text-white mb-2">{event.title}</h3>
-                <p className="text-gray-300 text-lg mb-4">{event.description}</p>
-                <p className="text-[#ed5a2d] text-sm font-semibold tracking-widest">{event.date}</p>
-                <p className="text-gray-400 text-sm mb-4">{event.location}</p>
+                <h3 className="text-4xl font-extrabold text-white mb-4">{event.title}</h3>
+                <p className="text-gray-300 text-lg">{event.description}</p>
+                <p className="text-[#ed5a2d] text-sm font-semibold tracking-widest mt-4">{event.date}</p>
+                <p className="text-gray-400 text-sm">{event.location}</p>
 
                 <NavLink to="/register" onClick={() => window.scrollTo(0, 0)}>
-                  <button className="bg-gradient-to-r from-[#ed5a2d] to-orange-500 hover:from-orange-500 hover:to-[#ed5a2d] text-white font-bold py-2 px-6 rounded-full shadow-md transition-all duration-300 hover:scale-110">
+                  <button className="mt-6 bg-gradient-to-r from-[#ed5a2d] to-orange-500 hover:from-orange-500 hover:to-[#ed5a2d] 
+            text-white font-bold py-2 px-6 rounded-full shadow-md transition-all duration-300 hover:scale-110">
                     Register Now
                   </button>
                 </NavLink>
@@ -79,12 +77,14 @@ const Home = () => {
         </div>
       </div>
 
+
       <div id="two" className="relative z-10 py-36 bg-[#272928] text-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-24">
             <h2 className="text-6xl text-[#ed5a2d] font-bold mb-4">Our Projects</h2>
-            <p className="text-lg">Exploring the boundaries of innovation through robotics</p>
+            <p className="text-lg text-gray-300">Exploring the boundaries of innovation through robotics</p>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             {[
               {
@@ -108,15 +108,20 @@ const Home = () => {
             ].map((project, index) => (
               <div
                 key={index}
-                className="bg-[#1f1f1f] border-3 border-[#ed5a2d] rounded-2xl overflow-hidden shadow-lg transition hover:scale-105 duration-300"
+                className="relative h-[500px] w-full rounded-xl bg-gradient-to-br from-[#1a1a1a] to-[#222222] 
+          shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.05] border-4 border-[#ed5a2d40] 
+          flex flex-col items-center text-center overflow-hidden"
               >
-                <img src={project.image} className="w-full h-72 object-cover" alt={project.title} />
-                <div className="p-6">
-                  <h3 className="text-2xl font-bold mb-3">{project.title}</h3>
-                  <p className="text-lg mb-4">{project.description}</p>
-                  <div className="flex flex-wrap gap-2">
+                <div className="p-4 w-full">
+                  <img src={project.image} className="w-full h-56 object-cover rounded-lg" alt={project.title} />
+                </div>
+
+                <div className="px-6 pb-6 flex flex-col items-center text-center">
+                  <h3 className="text-2xl font-bold text-white mb-3">{project.title}</h3>
+                  <p className="text-gray-300 text-lg">{project.description}</p>
+                  <div className="flex flex-wrap gap-2 mt-4">
                     {project.tags.map((tag, idx) => (
-                      <span key={idx} className="bg-[#ed5a2d] text-white px-3 py-1 rounded-full text-[15px]">
+                      <span key={idx} className="bg-[#ed5a2d] text-white px-3 py-1 rounded-full text-[14px]">
                         {tag}
                       </span>
                     ))}
@@ -127,6 +132,7 @@ const Home = () => {
           </div>
         </div>
       </div>
+
 
       <div id="three" className="bg-[#191a1a] relative z-10 py-10 text-center text-white">
         Photo Gallery

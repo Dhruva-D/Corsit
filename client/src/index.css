@@ -27,3 +27,22 @@ spline-viewer {
   width: 100%;
   position: absolute;
 }
+
+/* For WebKit browsers (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #404040; /* Light gray track */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #777777; /* Medium gray thumb */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #808080; /* Darker gray on hover */
+}

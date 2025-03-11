@@ -62,7 +62,7 @@ const Profile = () => {
       <div className="min-h-screen bg-[#272829] text-[#f7ffff] py-12 px-4 mt-22 ">
         <div className="max-w-6xl mx-auto space-y-8">
           {/* User Details Section */}
-          <div className="card-wrapper min-h-[550px] w-full">
+          <div className="card-wrapper min-h-[850px] md:min-h-[550px] w-full">
             <div className="card-content flex items-center justify-center text-lg bg-[rgba(217,217,217,0.1)] p-8 rounded-3xl border border-slate-400 shadow-lg backdrop-blur-sm">
               <div className="w-full">
                 <h1 className="text-4xl font-bold mb-8 text-center">User Profile</h1>
@@ -139,7 +139,7 @@ const Profile = () => {
           </div>
 
           {/* Project Details Section */}
-          <div className="card-wrapper min-h-[600px] w-full">
+          <div className="card-wrapper min-h-[800px] md:min-h-[600px] w-full">
             <div className="card-content flex items-center justify-center text-lg bg-[rgba(217,217,217,0.1)] p-8 rounded-3xl border border-slate-400 shadow-lg backdrop-blur-sm">
               <div className="w-full">
                 <h1 className="text-4xl font-bold mb-8 text-center">Project Details</h1>

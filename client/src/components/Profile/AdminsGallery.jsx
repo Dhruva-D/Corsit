@@ -62,7 +62,7 @@ const AdminsGallery = () => {
                                 </div>
 
                                 <div className="space-y-4 animate-fadeInUp">
-                                    <p className="text-3xl font-bold text-gray-300 bg-clip-text text-transparent bg-gradient-to-r from-gray-100 to-gray-300">
+                                    <p className="text-3xl font-bold text-gray-300 bg-clip-text bg-gradient-to-r from-gray-100 to-gray-300">
                                         Under Construction
                                     </p>
                                 </div>

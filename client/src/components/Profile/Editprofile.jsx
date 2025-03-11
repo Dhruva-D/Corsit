@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; 
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './HeaderProfile';
 import axios from 'axios';
@@ -54,9 +54,9 @@ const EditProfile = () => {
   const [preview, setPreview] = useState({ profilePhoto: '', projectPhoto: '' });
 
   const designations = [
-    "First Year", "Second Year", "Third Year", "Fourth Year", 
-    "Digital Lead", "Photoshop Lead", "Tech Lead", 
-    "Android Dev Lead", "Web Dev Lead", "Treasurer", 
+    "First Year", "Second Year", "Third Year", "Fourth Year",
+    "Digital Lead", "Photoshop Lead", "Tech Lead",
+    "Android Dev Lead", "Web Dev Lead", "Treasurer",
     "Vice-Chairman", "Chairman"
   ];
 
@@ -97,7 +97,7 @@ const EditProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
-    
+
     // Append text fields
     formData.append('name', userData.name);
     formData.append('designation', userData.designation);
@@ -141,24 +141,16 @@ const EditProfile = () => {
       <style>{selectStyles}</style>
       <Header />
       <div className="min-h-screen bg-[#272829] text-[#f7ffff] py-12 px-4 mt-22">
-        <div className="max-w-[750px] mx-auto mb-8 card-wrapper min-h-[1500px] w-full">
+        <div className="max-w-[750px] mx-auto mb-8 card-wrapper min-h-[2000px] md:min-h-[1500px] w-full">
           <div className="card-content flex items-center justify-center text-lg bg-[rgba(217,217,217,0.1)] p-8 rounded-3xl border border-slate-400 shadow-lg backdrop-blur-sm">
             <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center px-6 space-y-8 w-full">
               <h1 className="text-4xl font-bold mb-8">Edit Profile</h1>
 
               {/* Profile Photo Section */}
               <div className="w-full">
-                <label className="block text-xl font-medium mb-3">Profile Photo</label>
-                <div className="flex items-center gap-4">
-                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-400 shadow-lg">
-                    <img
-                      src={preview.profilePhoto || (userData.profilePhoto ? `${config.apiBaseUrl}/${userData.profilePhoto}` : config.defaultProfileImage)}
-                      alt="Profile Preview"
-                      className="w-full h-full object-cover"
-                      onError={(e) => e.target.src = config.defaultProfileImage}
-                    />
-                  </div>
-                  <div className="flex-1">
+                <label className="block text-xl text-center font-medium mb-3">Profile Photo</label>
+                <div className="flex flex-col-reverse md:flex-row items-center gap-4">
+                  <div className="flex-1 w-full">
                     <input
                       type="file"
                       accept="image/*"
@@ -166,22 +158,23 @@ const EditProfile = () => {
                       className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] outline-none transition shadow-md text-[#f7ffff] file:mr-4 file:py-2 file:px-4 file:rounded-3xl file:border-0 file:bg-[rgba(217,217,217,0.2)] file:text-white hover:file:bg-[rgba(217,217,217,0.3)] file:cursor-pointer"
                     />
                   </div>
+                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-400 shadow-lg">
+                    <img
+                      src={preview.profilePhoto || (userData.profilePhoto ? `${config.apiBaseUrl}/${userData.profilePhoto}` : config.defaultProfileImage)}
+                      alt="Profile Preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => (e.target.src = config.defaultProfileImage)}
+                    />
+                  </div>
                 </div>
               </div>
 
+
               {/* Project Photo Section */}
               <div className="w-full">
-                <label className="block text-xl font-medium mb-3">Project Photo</label>
-                <div className="flex items-center gap-4">
-                  <div className="w-32 h-32 rounded-3xl overflow-hidden border-4 border-slate-400 shadow-lg">
-                    <img
-                      src={preview.projectPhoto || (userData.projectPhoto ? `${config.apiBaseUrl}/${userData.projectPhoto}` : config.defaultProjectImage)}
-                      alt="Project Preview"
-                      className="w-full h-full object-cover"
-                      onError={(e) => e.target.src = config.defaultProjectImage}
-                    />
-                  </div>
-                  <div className="flex-1">
+                <label className="block text-xl text-center font-medium mb-3">Project Photo</label>
+                <div className="flex flex-col-reverse md:flex-row items-center gap-4">
+                  <div className="flex-1 w-full">
                     <input
                       type="file"
                       accept="image/*"
@@ -189,8 +182,17 @@ const EditProfile = () => {
                       className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] outline-none transition shadow-md text-[#f7ffff] file:mr-4 file:py-2 file:px-4 file:rounded-3xl file:border-0 file:bg-[rgba(217,217,217,0.2)] file:text-white hover:file:bg-[rgba(217,217,217,0.3)] file:cursor-pointer"
                     />
                   </div>
+                  <div className="w-32 h-32 rounded-3xl overflow-hidden border-4 border-slate-400 shadow-lg">
+                    <img
+                      src={preview.projectPhoto || (userData.projectPhoto ? `${config.apiBaseUrl}/${userData.projectPhoto}` : config.defaultProjectImage)}
+                      alt="Project Preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => (e.target.src = config.defaultProjectImage)}
+                    />
+                  </div>
                 </div>
               </div>
+
 
               {/* Text Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
@@ -215,8 +217,8 @@ const EditProfile = () => {
                   >
                     <option value="" className="bg-[#272829] text-[#f7ffff]">Select Designation</option>
                     {designations.map((designation, index) => (
-                      <option 
-                        key={index} 
+                      <option
+                        key={index}
                         value={designation}
                         className="bg-[#272829] text-[#f7ffff]"
                       >

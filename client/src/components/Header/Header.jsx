@@ -18,7 +18,7 @@ const Header = () => {
     }, []);
 
     useEffect(() => {
-        if (location.pathname === '/login') {
+        if (location.pathname === '/login' || location.pathname === '/signup') {
             setBgColor('#0d0f10');
         } else {
             setBgColor(location.pathname === '/' && !scrolled ? 'bg-black' : 'bg-[#272928] bg-opacity-95');

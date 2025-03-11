@@ -14,13 +14,15 @@ const Home = () => {
   });
 
   return (
-    <div className="relative text-[#f7ffff] flex flex-col overflow-x-hidden pt-48">
+    <div className="relative text-[#f7ffff] flex flex-col overflow-x-hidden pt-28">
       <div className="zero h-screen mb-20 mt-[-40px] relative z-10 flex items-center justify-center">
-        <spline-viewer url="https://prod.spline.design/8Q-TXZHyF66OklDE/scene.splinecode"></spline-viewer>
-        <div className="absolute top-[20vh] right-[24vw] md:right-[24vw] text-[#ed5a2d] text-5xl md:text-7xl font-bold z-20">
+        <div className='relative w-[100vw] h-[100vh]'>
+          <spline-viewer url="https://prod.spline.design/8Q-TXZHyF66OklDE/scene.splinecode"></spline-viewer>
+        </div>
+        <div className="absolute top-[28vh] right-[24vw] md:right-[24vw] text-[#ed5a2d] text-5xl md:text-7xl font-bold z-20">
           <div>CORSIT</div>
         </div>
-        <div className="absolute top-[28vh] left-[53%] -translate-x-1/2 md:left-[69vw] text-[#f7ffff] text-2xl md:text-4xl font-bold z-20">
+        <div className="absolute top-[36vh] left-[53%] -translate-x-1/2 md:left-[69vw] text-[#f7ffff] text-2xl md:text-4xl font-bold z-20">
           <span>{text}</span>
           <Cursor />
         </div>
@@ -117,9 +119,9 @@ const Home = () => {
         </div>
       </div>
 
-      <div id="three" className="bg-[#191a1a] relative z-10 py-10 text-center text-white">
+      {/* <div id="three" className="bg-[#191a1a] relative z-10 py-10 text-center text-white">
         Photo Gallery
-      </div>
+      </div> */}
     </div>
   );
 };

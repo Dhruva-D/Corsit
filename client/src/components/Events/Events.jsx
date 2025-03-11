@@ -9,6 +9,10 @@ import re1 from '../../assets/events/roboexpo/1.jpg';
 import re2 from '../../assets/events/roboexpo/2.jpg';
 import re3 from '../../assets/events/roboexpo/3.jpg';
 
+import ws1 from '../../assets/events/workshop/1.jpg';
+import ws2 from '../../assets/events/workshop/2.jpg';
+import ws3 from '../../assets/events/workshop/3.jpg';
+
 const eventsData = [
   {
     title: 'RoboCor',
@@ -34,9 +38,9 @@ const eventsData = [
     title: 'Robotics Workshop',
     description: 'CORSIT offers free workshops on IoT, Arduino, cloud, and more, providing students with hands-on experience in building basic bots such as LFR, Bluetooth, and obstacle-avoiding bots. Participants learn to code and use different components to program the bot\'s brain. The club also conducts a paid workshop where a mentor guides students on emerging technologies with a mix of studio practice and lectures. The workshop aims to enhance practical skills and teach the theory and context behind the practice.',
     images: [
-      'https://source.unsplash.com/500x300/?startup',
-      'https://source.unsplash.com/300x400/?business',
-      'https://source.unsplash.com/400x500/?pitching'
+      ws1,
+      ws2,
+      ws3
     ]
   },
   {

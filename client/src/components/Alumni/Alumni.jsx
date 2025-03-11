@@ -450,52 +450,48 @@ const people = [
 
 export default function Alumni() {
   return (
-    <div className="py-20 sm:py-24 bg-[#272928] text-[#f7ffff]">
-      <div className="pt-8 mx-auto max-w-screen-2xl px-8 lg:px-12 flex flex-col items-center text-center">
+    <div className="py-16 sm:py-20 md:py-24 bg-[#272928] text-[#f7ffff]">
+      <div className="pt-8 mx-auto max-w-screen-xl px-6 sm:px-8 lg:px-12 flex flex-col items-center text-center">
         <div className="max-w-3xl">
-          <h2 className="text-5xl font-bold text-[#ed5a2d] tracking-tight sm:text-6xl ">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#ed5a2d] tracking-tight">
             Meet our Alumni
           </h2>
-          <p className="mt-8 text-xl leading-9">
+          <p className="mt-6 sm:mt-8 text-lg sm:text-xl leading-8 sm:leading-9">
             Carrying Forward the Legacy and Making an Impact!
           </p>
         </div>
 
-
-
-
-
         <ul
           role="list"
-          className="mt-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-10"
+          className="mt-12 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-10"
         >
           {people.map((person, i) => (
             <li
               key={i}
-              className="flex flex-col items-center text-center rounded-2xl py-6 px-5 border-[2px] bg-black/40 
-                backdrop-blur-xl min-h-80 border-[rgba(237,90,45,0.8)] shadow-[0_0_10px_rgba(237,90,45,0.5)] 
-                transition-all duration-300 hover:shadow-[0_0_15px_rgba(237,90,45,0.8)]"
+              className="flex flex-col items-center text-center rounded-2xl p-5 sm:p-6 border-[2px] bg-black/40 
+                backdrop-blur-xl min-h-72 sm:min-h-80 border-[rgba(237,90,45,0.8)] shadow-[0_0_8px_rgba(237,90,45,0.5)] 
+                transition-all duration-300 hover:shadow-[0_0_12px_rgba(237,90,45,0.8)]"
             >
-              <div className="w-40 h-40 rounded-full overflow-hidden border-[3px] shadow-md border-[rgba(237,90,45,0.8)]">
+              <div className="w-32 sm:w-36 md:w-40 h-32 sm:h-36 md:h-40 rounded-full overflow-hidden border-[3px] shadow-md border-[rgba(237,90,45,0.8)]">
                 <img
                   className="w-full h-full object-cover"
                   src={person.ima}
                   alt={person.name}
                 />
               </div>
-              <div className="mt-5">
-                <h3 className="text-xl font-semibold leading-7 tracking-tight text-white mb-1">
+              <div className="mt-4 sm:mt-5">
+                <h3 className="text-lg sm:text-xl font-semibold leading-6 sm:leading-7 tracking-tight text-white mb-1">
                   {person.name}
                 </h3>
-                <p className="text-md font-medium leading-6 text-gray-300 mb-3">
+                <p className="text-sm sm:text-md font-medium leading-5 sm:leading-6 text-gray-300 mb-2 sm:mb-3">
                   {person.role}
                 </p>
                 <a
                   href={person.linkedin}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-3xl text-gray-400 hover:text-blue-400 transition-transform 
-          duration-300 hover:scale-110 hover:rotate-6"
+                  className="text-2xl sm:text-3xl text-gray-400 hover:text-blue-400 transition-transform 
+                    duration-300 hover:scale-110 hover:rotate-6"
                 >
                   <FontAwesomeIcon icon={faLinkedin} />
                 </a>
@@ -503,15 +499,8 @@ export default function Alumni() {
             </li>
           ))}
         </ul>
-
-
-
-
-
-
-
-
       </div>
     </div>
   );
 }
+

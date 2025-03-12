@@ -8,8 +8,8 @@ import three from "../../assets/founders/team1c.jpg";
 
 const About = () => {
   return (
-    <div className="bg-[#272928] text-white py-20 px-6 sm:px-4">
-      <div className="text-center text-4xl sm:text-5xl text-[#ed5a2d] font-semibold mb-16">About Us</div>
+    <div className="bg-[#272928] text-white py-32 px-6 sm:px-4">
+      <div className="text-center text-5xl sm:text-6xl text-[#ed5a2d] font-semibold mb-16">About Us</div>
 
       <div className="flex flex-col lg:flex-row justify-center items-center w-full lg:w-[80%] mx-auto px-3 mt-10 mb-20 gap-10">
         <div className="w-full lg:w-[55%]">

@@ -332,31 +332,32 @@ const Admin = () => {
                                                 </p>
                                             </div>
                                             
-                                            <div className="flex space-x-2 mt-4">
-                                                {user.adminAuthenticated === 'no' && (
-                                                    <button 
-                                                        onClick={() => handleAccept(user._id)}
-                                                        className="group relative px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg transition-all duration-300 flex-1 transform hover:scale-105 overflow-hidden"
-                                                    >
-                                                        <span className="relative z-10">Accept</span>
-                                                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-400 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
-                                                    </button>
-                                                )}
-                                                <button 
-                                                    onClick={() => handleEdit(user)}
-                                                    className="group relative px-4 py-2 bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] hover:from-[#ff6b3d] hover:to-[#ed5a2d] text-white rounded-lg transition-all duration-300 flex-1 transform hover:scale-105 overflow-hidden"
-                                                >
-                                                    <span className="relative z-10">Edit</span>
-                                                    <div className="absolute inset-0 bg-gradient-to-r from-[#ff6b3d] to-[#ed5a2d] transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleReject(user._id)}
-                                                    className="group relative px-4 py-2 bg-gradient-to-r from-red-500 to-rose-500 hover:from-rose-500 hover:to-red-500 text-white rounded-lg transition-all duration-300 flex-1 transform hover:scale-105 overflow-hidden"
-                                                >
-                                                    <span className="relative z-10">Reject</span>
-                                                    <div className="absolute inset-0 bg-gradient-to-r from-rose-400 to-red-400 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
-                                                </button>
-                                            </div>
+                                            <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mt-4">
+    {user.adminAuthenticated === 'no' && (
+        <button 
+            onClick={() => handleAccept(user._id)}
+            className="group relative px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg transition-all duration-300 transform hover:scale-105 overflow-hidden"
+        >
+            <span className="relative z-10">Accept</span>
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-400 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
+        </button>
+    )}
+    <button 
+        onClick={() => handleEdit(user)}
+        className="group relative px-4 py-2 bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] hover:from-[#ff6b3d] hover:to-[#ed5a2d] text-white rounded-lg transition-all duration-300 transform hover:scale-105 overflow-hidden"
+    >
+        <span className="relative z-10">Edit</span>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#ff6b3d] to-[#ed5a2d] transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
+    </button>
+    <button 
+        onClick={() => handleReject(user._id)}
+        className="group relative px-4 py-2 bg-gradient-to-r from-red-500 to-rose-500 hover:from-rose-500 hover:to-red-500 text-white rounded-lg transition-all duration-300 transform hover:scale-105 overflow-hidden"
+    >
+        <span className="relative z-10">Reject</span>
+        <div className="absolute inset-0 bg-gradient-to-r from-rose-400 to-red-400 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
+    </button>
+</div>
+
                                         </div>
                                     </div>
                                 ))}

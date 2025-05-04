@@ -19,6 +19,16 @@ import hc3 from '../../assets/events/hackathon/3.jpg';
 
 const eventsData = [
   {
+    title: 'Robotics Workshop',
+    description: 'CORSIT offers free workshops on IoT, Arduino, cloud, and more, providing students with hands-on experience in building basic bots such as LFR, Bluetooth, and obstacle-avoiding bots. Participants learn to code and use different components to program the bot\'s brain. The club also conducts a paid workshop where a mentor guides students on emerging technologies with a mix of studio practice and lectures. The workshop aims to enhance practical skills and teach the theory and context behind the practice.',
+    images: [
+      ws1,
+      ws2,
+      ws3
+    ],
+    register: true
+  },
+  {
     title: 'RoboCor',
     description: 'Robocor, a nationally renowned Robotics Competition, which is one of the biggest events in Karnataka. It provides a platform for participants to showcase their innovative designs and compete for glory. In Robocor, the team has successfully organized several events such as Dcode, Spardha, Rugged Rage, Robo Soccer, Arduino Clash, Binary Rash, Project Symposium, Paper Presentation, and Init_Rc.',
     images: [
@@ -26,8 +36,6 @@ const eventsData = [
       rc2,
       rc3
     ],
-
-    register: true
   },
   {
     title: 'RoboExpo',
@@ -38,15 +46,7 @@ const eventsData = [
       re3
     ]
   },
-  {
-    title: 'Robotics Workshop',
-    description: 'CORSIT offers free workshops on IoT, Arduino, cloud, and more, providing students with hands-on experience in building basic bots such as LFR, Bluetooth, and obstacle-avoiding bots. Participants learn to code and use different components to program the bot\'s brain. The club also conducts a paid workshop where a mentor guides students on emerging technologies with a mix of studio practice and lectures. The workshop aims to enhance practical skills and teach the theory and context behind the practice.',
-    images: [
-      ws1,
-      ws2,
-      ws3
-    ]
-  },
+  
   {
     title: 'Hackathon',
     description: 'CORSIT, the Robotics club of SIT, conducts an annual 12-hour hackathon since 2017, where students collaborate to find innovative solutions to real-world problems in areas such as IoT, cybersecurity, blockchain, and data science etc. The event provides a platform for teams to compete for exciting cash prizes and recognition. The hackathon aims to foster creativity, teamwork, and problem-solving skills among students.',

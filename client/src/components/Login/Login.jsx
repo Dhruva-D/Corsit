@@ -39,40 +39,40 @@ const Login = () => {
   return (
     <>
       <Header />
-      <div className="flex h-[100vh] flex-col items-center justify-center bg-[#0d0f10] text-[#f7ffff] relative">
+      <div className="flex h-[100vh] flex-col items-center justify-center bg-gray-900 text-gray-200 relative">
         <div className="card-wrapper h-[600px] w-[350px] md:min-w-[500px] mt-20">
-          <div className="card-content flex items-center justify-center text-lg">
+          <div className="card-content flex items-center justify-center text-lg bg-gray-800 p-8 rounded-lg shadow-md border border-gray-700">
             <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center px-12 space-y-8 w-full max-w-lg">
-              <h1 className="text-4xl font-bold mb-20">SIGN IN</h1>
-              {error && <p className="text-red-500 text-center">{error}</p>}
+              <h1 className="text-4xl font-bold mb-20 text-[#ed5a2d]">SIGN IN</h1>
+              {error && <p className="text-red-500 text-center bg-red-500/10 p-3 rounded-lg w-full">{error}</p>}
               <div className="w-full">
-                <label className="block text-2xl font-medium mb-3">Email</label>
+                <label className="block text-2xl font-medium mb-3 text-gray-300">Email</label>
                 <input
                   type="email"
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-xl focus:bg-[rgba(217,217,217,0.1)] outline-none transition shadow-md"
+                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-xl bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md"
                 />
               </div>
               <div className="w-full">
-                <label className="block text-2xl font-medium mb-3">Password</label>
+                <label className="block text-2xl font-medium mb-3 text-gray-300">Password</label>
                 <input
                   type="password"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-xl focus:bg-[rgba(217,217,217,0.1)] outline-none transition shadow-md"
+                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-xl bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full px-6 my-7 py-4 border-[0.25px] border-slate-400 rounded-4xl text-xl font-semibold text-center transition text-white shadow-md hover:scale-105 active:scale-95 cursor-pointer bg-[rgba(209,213,219,0.1)]"
+                className="w-full px-6 my-7 py-4 bg-[#ed5a2d] rounded-lg text-xl font-semibold text-center transition text-white shadow-md hover:bg-[#d54a1d] active:scale-95 cursor-pointer"
               >
                 Login
               </button>
 
-              <p className="text-center text-gray-300">
+              <p className="text-center text-gray-400">
                 Don't have an account?{' '}
                 <NavLink to="/signup" className="text-[#ed5a2d] hover:text-[#ff6b3d] font-bold">
                   Sign up here

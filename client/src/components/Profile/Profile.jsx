@@ -49,7 +49,7 @@ const Profile = () => {
     return (
       <>
         <Header />
-        <div className="flex h-[100vh] flex-col items-center justify-center bg-[#272829] text-[#f7ffff] relative">
+        <div className="flex h-[100vh] flex-col items-center justify-center bg-gray-900 text-gray-200 relative">
           <div className="w-48 h-48 rounded-full bg-gray-700/20 animate-pulse"></div>
         </div>
       </>
@@ -59,18 +59,18 @@ const Profile = () => {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-[#272829] text-[#f7ffff] py-12 px-4 mt-22 ">
+      <div className="min-h-screen bg-gray-900 text-gray-200 py-12 px-4 mt-22">
         <div className="max-w-6xl mx-auto space-y-8">
           {/* User Details Section */}
           <div className="card-wrapper min-h-[850px] md:min-h-[550px] w-full">
-            <div className="card-content flex items-center justify-center text-lg bg-[rgba(217,217,217,0.1)] p-8 rounded-3xl border border-slate-400 shadow-lg backdrop-blur-sm">
+            <div className="card-content flex items-center justify-center text-lg bg-gray-800 p-8 rounded-lg border border-gray-700 shadow-md">
               <div className="w-full">
-                <h1 className="text-4xl font-bold mb-8 text-center">User Profile</h1>
+                <h1 className="text-4xl font-bold mb-8 text-center text-[#ed5a2d]">User Profile</h1>
                 
                 <div className="flex flex-col md:flex-row items-center gap-8">
                   {/* Profile Image */}
                   <div className="w-full md:w-1/3 flex flex-col items-center">
-                    <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-slate-400 shadow-lg mb-4">
+                    <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-gray-700 shadow-lg mb-4">
                       <img 
                         src={userData?.profilePhoto ? `${config.apiBaseUrl}/${userData.profilePhoto}` : config.defaultProfileImage} 
                         alt="Profile" 
@@ -79,55 +79,55 @@ const Profile = () => {
                       />
                     </div>
                     <h2 className="text-3xl font-bold text-center mb-2">{userData?.name}</h2>
-                    <p className="text-xl text-gray-300 text-center">{userData?.designation}</p>
+                    <p className="text-xl text-gray-400 text-center">{userData?.designation}</p>
                   </div>
 
                   {/* Profile Details */}
                   <div className="w-full md:w-2/3 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-xl font-medium mb-3">Email</label>
-                        <p className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)]">
+                        <label className="block text-xl font-medium mb-3 text-gray-300">Email</label>
+                        <p className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700">
                           {userData?.email}
                         </p>
                       </div>
                       <div>
-                        <label className="block text-xl font-medium mb-3">Phone</label>
-                        <p className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)]">
+                        <label className="block text-xl font-medium mb-3 text-gray-300">Phone</label>
+                        <p className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700">
                           {userData?.phone || 'Not provided'}
                         </p>
                       </div>
                     </div>
 
                     {/* Social Links */}
-                    <div className="pt-6 border-t border-slate-400">
-                      <label className="block text-xl font-medium mb-3">Social Links</label>
+                    <div className="pt-6 border-t border-gray-700">
+                      <label className="block text-xl font-medium mb-3 text-gray-300">Social Links</label>
                       <div className="flex flex-wrap gap-4">
                         <a 
                           href={userData?.linkedin} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] hover:bg-[rgba(217,217,217,0.15)] transition-all"
+                          className="flex items-center gap-2 px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 hover:bg-gray-600 transition-all"
                         >
-                          <FontAwesomeIcon icon={faLinkedin} />
+                          <FontAwesomeIcon icon={faLinkedin} className="text-[#ed5a2d]" />
                           <span>LinkedIn</span>
                         </a>
                         <a 
                           href={userData?.github} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] hover:bg-[rgba(217,217,217,0.15)] transition-all"
+                          className="flex items-center gap-2 px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 hover:bg-gray-600 transition-all"
                         >
-                          <FontAwesomeIcon icon={faGithub} />
+                          <FontAwesomeIcon icon={faGithub} className="text-[#ed5a2d]" />
                           <span>GitHub</span>
                         </a>
                         <a 
                           href={`https://instagram.com/${userData?.instagram}`} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] hover:bg-[rgba(217,217,217,0.15)] transition-all"
+                          className="flex items-center gap-2 px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 hover:bg-gray-600 transition-all"
                         >
-                          <FontAwesomeIcon icon={faInstagram} />
+                          <FontAwesomeIcon icon={faInstagram} className="text-[#ed5a2d]" />
                           <span>Instagram</span>
                         </a>
                       </div>
@@ -140,14 +140,14 @@ const Profile = () => {
 
           {/* Project Details Section */}
           <div className="card-wrapper min-h-[800px] md:min-h-[600px] w-full">
-            <div className="card-content flex items-center justify-center text-lg bg-[rgba(217,217,217,0.1)] p-8 rounded-3xl border border-slate-400 shadow-lg backdrop-blur-sm">
+            <div className="card-content flex items-center justify-center text-lg bg-gray-800 p-8 rounded-lg border border-gray-700 shadow-md">
               <div className="w-full">
-                <h1 className="text-4xl font-bold mb-8 text-center">Project Details</h1>
+                <h1 className="text-4xl font-bold mb-8 text-center text-[#ed5a2d]">Project Details</h1>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   {/* Project Image */}
                   <div className="col-span-1">
-                    <div className="rounded-3xl overflow-hidden border-4 border-slate-400 shadow-lg">
+                    <div className="rounded-lg overflow-hidden border-4 border-gray-700 shadow-lg">
                       <img 
                         src={userData?.projectPhoto ? `${config.apiBaseUrl}/${userData.projectPhoto}` : config.defaultProjectImage} 
                         alt="Project" 
@@ -160,15 +160,15 @@ const Profile = () => {
                   {/* Project Info */}
                   <div className="col-span-2 space-y-6">
                     <div>
-                      <label className="block text-xl font-medium mb-3">Project Title</label>
-                      <p className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)]">
+                      <label className="block text-xl font-medium mb-3 text-gray-300">Project Title</label>
+                      <p className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700">
                         {userData?.projectTitle || 'No project title'}
                       </p>
                     </div>
 
                     <div>
-                      <label className="block text-xl font-medium mb-3">Project Description</label>
-                      <p className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] min-h-[100px]">
+                      <label className="block text-xl font-medium mb-3 text-gray-300">Project Description</label>
+                      <p className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 min-h-[100px]">
                         {userData?.projectDescription || 'No project description'}
                       </p>
                     </div>
@@ -179,7 +179,7 @@ const Profile = () => {
                           href={`${config.apiBaseUrl}/${userData.abstractDoc}`}
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-6 py-4 border border-slate-400 rounded-3xl text-xl font-semibold text-center transition shadow-md hover:scale-105 active:scale-95 cursor-pointer bg-[rgba(217,217,217,0.1)] hover:bg-[rgba(217,217,217,0.15)]"
+                          className="inline-flex items-center gap-2 px-6 py-4 bg-[#ed5a2d] rounded-lg text-xl font-semibold text-center transition shadow-md hover:bg-[#d54a1d] active:scale-95 cursor-pointer"
                         >
                           View Abstract Document
                         </a>

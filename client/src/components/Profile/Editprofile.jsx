@@ -14,23 +14,23 @@ const selectStyles = `
     background-size: 1em;
   }
   select option {
-    background-color: #272829 !important;
-    color: #f7ffff !important;
+    background-color: #1f2937 !important;
+    color: #e5e7eb !important;
     padding: 12px !important;
   }
   select option:hover,
   select option:focus,
   select option:active,
   select option:checked {
-    background-color: #1a1b1c !important;
-    color: #f7ffff !important;
+    background-color: #374151 !important;
+    color: #e5e7eb !important;
   }
   select::-ms-expand {
     display: none;
   }
   select:-moz-focusring {
     color: transparent;
-    text-shadow: 0 0 0 #f7ffff;
+    text-shadow: 0 0 0 #e5e7eb;
   }
 `;
 
@@ -79,7 +79,7 @@ const EditProfile = () => {
   }, []);
 
   if (!userData) {
-    return <div className="text-white text-center py-20">Loading...</div>;
+    return <div className="text-gray-200 text-center py-20 bg-gray-900">Loading...</div>;
   }
 
   const handleChange = (e) => {
@@ -140,25 +140,25 @@ const EditProfile = () => {
     <>
       <style>{selectStyles}</style>
       <Header />
-      <div className="min-h-screen bg-[#272829] text-[#f7ffff] py-12 px-4 mt-22">
+      <div className="min-h-screen bg-gray-900 text-gray-200 py-12 px-4 mt-22">
         <div className="max-w-[750px] mx-auto mb-8 card-wrapper min-h-[2000px] md:min-h-[1500px] w-full">
-          <div className="card-content flex items-center justify-center text-lg bg-[rgba(217,217,217,0.1)] p-8 rounded-3xl border border-slate-400 shadow-lg backdrop-blur-sm">
+          <div className="card-content flex items-center justify-center text-lg bg-gray-800 p-8 rounded-lg border border-gray-700 shadow-md">
             <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center px-6 space-y-8 w-full">
-              <h1 className="text-4xl font-bold mb-8">Edit Profile</h1>
+              <h1 className="text-4xl font-bold mb-8 text-[#ed5a2d]">Edit Profile</h1>
 
               {/* Profile Photo Section */}
               <div className="w-full">
-                <label className="block text-xl text-center font-medium mb-3">Profile Photo</label>
+                <label className="block text-xl text-center font-medium mb-3 text-gray-300">Profile Photo</label>
                 <div className="flex flex-col-reverse md:flex-row items-center gap-4">
                   <div className="flex-1 w-full">
                     <input
                       type="file"
                       accept="image/*"
                       onChange={(e) => handleFileChange(e, 'profilePhoto')}
-                      className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] outline-none transition shadow-md text-[#f7ffff] file:mr-4 file:py-2 file:px-4 file:rounded-3xl file:border-0 file:bg-[rgba(217,217,217,0.2)] file:text-white hover:file:bg-[rgba(217,217,217,0.3)] file:cursor-pointer"
+                      className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500 file:cursor-pointer"
                     />
                   </div>
-                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-400 shadow-lg">
+                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-700 shadow-lg">
                     <img
                       src={preview.profilePhoto || (userData.profilePhoto ? `${config.apiBaseUrl}/${userData.profilePhoto}` : config.defaultProfileImage)}
                       alt="Profile Preview"
@@ -172,17 +172,17 @@ const EditProfile = () => {
 
               {/* Project Photo Section */}
               <div className="w-full">
-                <label className="block text-xl text-center font-medium mb-3">Project Photo</label>
+                <label className="block text-xl text-center font-medium mb-3 text-gray-300">Project Photo</label>
                 <div className="flex flex-col-reverse md:flex-row items-center gap-4">
                   <div className="flex-1 w-full">
                     <input
                       type="file"
                       accept="image/*"
                       onChange={(e) => handleFileChange(e, 'projectPhoto')}
-                      className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] outline-none transition shadow-md text-[#f7ffff] file:mr-4 file:py-2 file:px-4 file:rounded-3xl file:border-0 file:bg-[rgba(217,217,217,0.2)] file:text-white hover:file:bg-[rgba(217,217,217,0.3)] file:cursor-pointer"
+                      className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500 file:cursor-pointer"
                     />
                   </div>
-                  <div className="w-32 h-32 rounded-3xl overflow-hidden border-4 border-slate-400 shadow-lg">
+                  <div className="w-32 h-32 rounded-lg overflow-hidden border-4 border-gray-700 shadow-lg">
                     <img
                       src={preview.projectPhoto || (userData.projectPhoto ? `${config.apiBaseUrl}/${userData.projectPhoto}` : config.defaultProjectImage)}
                       alt="Project Preview"
@@ -197,30 +197,30 @@ const EditProfile = () => {
               {/* Text Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
                 <div>
-                  <label className="block text-xl font-medium mb-3">Name</label>
+                  <label className="block text-xl font-medium mb-3 text-gray-300">Name</label>
                   <input
                     type="text"
                     name="name"
                     value={userData.name}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] outline-none transition shadow-md text-[#f7ffff] focus:border-slate-300 focus:bg-[rgba(217,217,217,0.15)]"
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xl font-medium mb-3">Designation</label>
+                  <label className="block text-xl font-medium mb-3 text-gray-300">Designation</label>
                   <select
                     name="designation"
                     value={userData.designation}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] outline-none transition shadow-md text-[#f7ffff] focus:border-slate-300 focus:bg-[rgba(217,217,217,0.15)] appearance-none"
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] appearance-none"
                   >
-                    <option value="" className="bg-[#272829] text-[#f7ffff]">Select Designation</option>
+                    <option value="" className="bg-gray-700 text-gray-200">Select Designation</option>
                     {designations.map((designation, index) => (
                       <option
                         key={index}
                         value={designation}
-                        className="bg-[#272829] text-[#f7ffff]"
+                        className="bg-gray-700 text-gray-200"
                       >
                         {designation}
                       </option>
@@ -229,91 +229,95 @@ const EditProfile = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xl font-medium mb-3">LinkedIn</label>
+                  <label className="block text-xl font-medium mb-3 text-gray-300">LinkedIn</label>
                   <input
                     type="url"
                     name="linkedin"
                     value={userData.linkedin}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] outline-none transition shadow-md text-[#f7ffff] focus:border-slate-300 focus:bg-[rgba(217,217,217,0.15)]"
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xl font-medium mb-3">GitHub</label>
+                  <label className="block text-xl font-medium mb-3 text-gray-300">GitHub</label>
                   <input
                     type="url"
                     name="github"
                     value={userData.github}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] outline-none transition shadow-md text-[#f7ffff] focus:border-slate-300 focus:bg-[rgba(217,217,217,0.15)]"
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xl font-medium mb-3">Instagram</label>
+                  <label className="block text-xl font-medium mb-3 text-gray-300">Instagram</label>
                   <input
                     type="text"
                     name="instagram"
                     value={userData.instagram}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] outline-none transition shadow-md text-[#f7ffff] focus:border-slate-300 focus:bg-[rgba(217,217,217,0.15)]"
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xl font-medium mb-3">Phone</label>
+                  <label className="block text-xl font-medium mb-3 text-gray-300">Phone</label>
                   <input
                     type="tel"
                     name="phone"
                     value={userData.phone}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] outline-none transition shadow-md text-[#f7ffff] focus:border-slate-300 focus:bg-[rgba(217,217,217,0.15)]"
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
                   />
                 </div>
-              </div>
 
-              {/* Project Details */}
-              <div className="w-full space-y-6">
-                <div>
-                  <label className="block text-xl font-medium mb-3">Project Title</label>
+                <div className="md:col-span-2">
+                  <label className="block text-xl font-medium mb-3 text-gray-300">Project Title</label>
                   <input
                     type="text"
                     name="projectTitle"
                     value={userData.projectTitle}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] outline-none transition shadow-md text-[#f7ffff] focus:border-slate-300 focus:bg-[rgba(217,217,217,0.15)]"
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xl font-medium mb-3">Project Description</label>
+                <div className="md:col-span-2">
+                  <label className="block text-xl font-medium mb-3 text-gray-300">Project Description</label>
                   <textarea
                     name="projectDescription"
                     value={userData.projectDescription}
                     onChange={handleChange}
                     rows="4"
-                    className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] outline-none transition shadow-md text-[#f7ffff] focus:border-slate-300 focus:bg-[rgba(217,217,217,0.15)] resize-none"
-                  />
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
+                  ></textarea>
                 </div>
 
-                <div>
-                  <label className="block text-xl font-medium mb-3">Abstract Document</label>
+                <div className="md:col-span-2">
+                  <label className="block text-xl font-medium mb-3 text-gray-300">Abstract Document</label>
                   <input
                     type="file"
                     accept=".pdf,.doc,.docx"
                     onChange={(e) => handleFileChange(e, 'abstractDoc')}
-                    className="w-full px-5 py-3 border rounded-3xl border-slate-400 text-lg bg-[rgba(217,217,217,0.1)] outline-none transition shadow-md text-[#f7ffff] file:mr-4 file:py-2 file:px-4 file:rounded-3xl file:border-0 file:bg-[rgba(217,217,217,0.2)] file:text-white hover:file:bg-[rgba(217,217,217,0.3)] file:cursor-pointer"
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500 file:cursor-pointer"
                   />
+                  {userData.abstractDoc && typeof userData.abstractDoc === 'string' && (
+                    <p className="mt-2 text-gray-400">
+                      Current document: <a href={`${config.apiBaseUrl}/${userData.abstractDoc}`} target="_blank" rel="noopener noreferrer" className="text-[#ed5a2d] hover:text-[#ff6b3d] underline">View document</a>
+                    </p>
+                  )}
                 </div>
               </div>
 
-              <button
-                type="submit"
-                className="w-full px-6 py-4 mt-6 border border-slate-400 rounded-3xl text-xl font-semibold text-center transition text-[#f7ffff] shadow-md hover:scale-105 active:scale-95 cursor-pointer bg-[rgba(217,217,217,0.1)] hover:bg-[rgba(217,217,217,0.15)]"
-              >
-                Save Changes
-              </button>
+              <div className="w-full flex justify-center mt-6">
+                <button
+                  type="submit"
+                  className="px-8 py-4 bg-[#ed5a2d] rounded-lg text-xl font-semibold text-center transition text-white shadow-md hover:bg-[#d54a1d] active:scale-95 cursor-pointer"
+                >
+                  Save Changes
+                </button>
+              </div>
             </form>
           </div>
         </div>

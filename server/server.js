@@ -38,6 +38,17 @@ const userSchema = new mongoose.Schema({
 });
 const User = mongoose.model("User", userSchema);
 
+// Workshop Registration Schema
+const workshopRegistrationSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    phone: { type: String, required: true },
+    usn: { type: String, required: true },
+    year: { type: String, required: true },
+    registeredAt: { type: Date, default: Date.now }
+});
+const WorkshopRegistration = mongoose.model("WorkshopRegistration", workshopRegistrationSchema);
+
 // Middleware for authentication
 const authMiddleware = async (req, res, next) => {
     const token = req.header("Authorization");
@@ -305,6 +316,60 @@ app.post('/signup', async (req, res) => {
     } catch (error) {
         console.error('Signup error:', error);
         res.status(500).json({ message: 'Error registering user' });
+    }
+});
+
+// Workshop Registration endpoint
+app.post('/workshop-register', async (req, res) => {
+    try {
+        const { name, email, phone, usn, year } = req.body;
+
+        // Validate required fields
+        if (!name || !email || !phone || !usn || !year) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        // Create new workshop registration
+        const registration = new WorkshopRegistration({
+            name,
+            email,
+            phone,
+            usn,
+            year
+        });
+
+        await registration.save();
+
+        res.status(201).json({ 
+            message: 'Registration successful',
+            registration: {
+                name,
+                email,
+                phone,
+                usn,
+                year
+            }
+        });
+    } catch (error) {
+        console.error('Workshop registration error:', error);
+        res.status(500).json({ message: 'Error registering for workshop' });
+    }
+});
+
+// Get Workshop Registrations for Admin
+app.get('/workshop-registrations', authMiddleware, async (req, res) => {
+    try {
+        // Check if user is admin
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        const registrations = await WorkshopRegistration.find().sort({ registeredAt: -1 });
+        res.json(registrations);
+    } catch (error) {
+        console.error('Error fetching workshop registrations:', error);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 

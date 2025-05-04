@@ -72,7 +72,7 @@ const Register = () => {
       setSuccessMessage('');
 
       try {
-        const response = await axios.post('http://localhost:3001/workshop-register', formData);
+        const response = await axios.post('http://localhost:5000/workshop-register', formData);
         setSuccessMessage(response.data.message || 'Registration successful!');
         // Reset form after successful submission
         setFormData({

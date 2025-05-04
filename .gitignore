@@ -7,7 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-
+# Build files
 dist
 dist-ssr
 *.local
@@ -23,7 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 
+# Server files
 /server/node_modules
 /server/.env
+node_modules
+.env
 
+# Client files
 /client/node_modules

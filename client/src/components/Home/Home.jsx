@@ -42,30 +42,45 @@ const Home = () => {
                 title: 'RoboCor',
                 description: 'The ultimate battleground for innovation, where robots clash and creativity thrives!',
                 location: '📍 SIT Campus',
+                status: 'closed'
               },
               {
-                date: 'Coming Soon',
+                date: '10 May 2025',
                 title: 'Robotics Workshop',
                 description: 'Learn the basics of robotics and automation in this hands-on workshop.',
                 location: '📍 Workshop Hall',
+                status: 'open'
               },
               {
                 date: 'Coming Soon',
                 title: 'RoboExpo',
                 description: 'A showcase of cutting-edge robotics, AI, and automation innovations.',
                 location: '📍 Birla Auditorium',
+                status: 'closed'
               },
             ].map((event, index) => (
-              <div key={index} className="relative h-[380px] w-full rounded-xl p-10 bg-gradient-to-br from-[#1a1a1a] to-[#222222] shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.05] border-4 border-[#ed5a2d40] flex flex-col items-center text-center justify-center backdrop-blur-md bg-opacity-80">
+              <div key={index} className="relative h-[400px] w-full rounded-xl p-10 bg-gradient-to-br from-[#1a1a1a] to-[#222222] shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.05] border-4 border-[#ed5a2d40] flex flex-col items-center text-center justify-center backdrop-blur-md bg-opacity-80">
                 <h3 className="text-4xl font-extrabold text-white mb-4">{event.title}</h3>
                 <p className="text-gray-300 text-lg">{event.description}</p>
                 <p className="text-[#ed5a2d] text-sm font-semibold tracking-widest mt-4">{event.date}</p>
                 <p className="text-gray-400 text-sm">{event.location}</p>
-                <NavLink to="/register" onClick={() => window.scrollTo(0, 0)}>
-                  <button className="mt-6 bg-gradient-to-r from-[#ed5a2d] to-orange-500 hover:from-orange-500 hover:to-[#ed5a2d] text-white font-bold py-2 px-6 rounded-full shadow-md transition-all duration-300 hover:scale-110">
-                    Register Now
-                  </button>
-                </NavLink>
+                
+                {event.status === 'open' ? (
+                  <NavLink to="/register" onClick={() => window.scrollTo(0, 0)}>
+                    <button className="mt-6 bg-gradient-to-r from-[#ed5a2d] to-orange-500 hover:from-orange-500 hover:to-[#ed5a2d] text-white font-bold py-2 px-6 rounded-full shadow-md transition-all duration-300 hover:scale-110">
+                      Register Now
+                    </button>
+                  </NavLink>
+                ) : (
+                  <div className="mt-6 bg-gray-700 text-gray-300 font-bold py-2 px-6 rounded-full shadow-md">
+                    <span className="flex items-center">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                      </svg>
+                      Registration Closed
+                    </span>
+                  </div>
+                )}
               </div>
             ))}
           </div>

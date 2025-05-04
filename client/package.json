@@ -29,6 +29,7 @@
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.1.5",
     "react-simple-typewriter": "^5.0.1",
+    "react-spinners": "^0.17.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

@@ -43,7 +43,7 @@ const Login = () => {
         <div className="card-wrapper h-[600px] w-[350px] md:min-w-[500px] mt-20">
           <div className="card-content flex items-center justify-center text-lg bg-gray-800 p-8 rounded-lg shadow-md border border-gray-700">
             <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center px-12 space-y-8 w-full max-w-lg">
-              <h1 className="text-4xl font-bold mb-20 text-[#ed5a2d]">SIGN IN</h1>
+              <h1 className="text-4xl font-bold mb-20 text-[#ed5a2d]">LOGIN</h1>
               {error && <p className="text-red-500 text-center bg-red-500/10 p-3 rounded-lg w-full">{error}</p>}
               <div className="w-full">
                 <label className="block text-2xl font-medium mb-3 text-gray-300">Email</label>

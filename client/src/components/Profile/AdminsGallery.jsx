@@ -399,7 +399,7 @@ const AdminsGallery = () => {
                                                             </span>
                                                             {registration.payment_screenshot && (
                                                                 <button 
-                                                                    onClick={() => window.open(`http://localhost:5000/${registration.payment_screenshot.replace(/\\/g, '/')}`, '_blank')}
+                                                                    onClick={() => window.open(`${config.apiBaseUrl}/${registration.payment_screenshot.replace(/\\/g, '/')}`, '_blank')}
                                                                     className="mt-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
                                                                 >
                                                                     View Receipt

@@ -8,7 +8,9 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Build files
-dist
+dist/*
+!dist/_redirects
+!dist/routes.json
 dist-ssr
 *.local
 

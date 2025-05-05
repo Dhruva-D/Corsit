@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { ClipLoader } from 'react-spinners';
 import QRImage from '../../assets/QR.jpg';
+import config from '../../config';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -118,7 +119,7 @@ const Register = () => {
           submitData.append('payment_screenshot', paymentScreenshot);
         }
 
-        const response = await axios.post('http://localhost:5000/workshop-register', submitData, {
+        const response = await axios.post(`${config.apiBaseUrl}/workshop-register`, submitData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

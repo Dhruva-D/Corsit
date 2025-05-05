@@ -5,8 +5,8 @@
 
 const config = {
   // API URLs
-  // apiBaseUrl: 'https://corsit-backend.onrender.com',
-  apiBaseUrl: 'http://localhost:5000',
+  apiBaseUrl: 'https://corsit-qahn.onrender.com',
+  // apiBaseUrl: 'http://localhost:5000',
   
   // Other global configuration values can be added here
   defaultProfileImage: '/default_profile.png',

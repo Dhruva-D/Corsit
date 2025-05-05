@@ -22,7 +22,7 @@ const Home = () => {
         <div className="absolute top-[28vh] right-[24vw] md:right-[24vw] text-[#ed5a2d] text-5xl md:text-7xl font-bold z-20">
           <div>CORSIT</div>
         </div>
-        <div className="absolute top-[36vh] left-1/2 -translate-x-1/2 md:left-[69vw] md:-translate-x-0 text-[#f7ffff] text-2xl md:text-4xl font-bold z-20 text-center md:text-left">
+        <div className="absolute top-[36vh] inset-x-0 mx-auto md:left-[69vw] md:mx-0 md:right-auto text-[#f7ffff] text-2xl md:text-4xl font-bold z-20 text-center md:text-left w-full md:w-auto px-4 md:px-0">
           <span>{text}</span>
           <Cursor />
         </div>

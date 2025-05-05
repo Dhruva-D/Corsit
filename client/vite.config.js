@@ -2,10 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-
-// https://vite.dev/config/
 export default defineConfig({
-  
+  publicDir: 'public', // ✅ explicitly tell Vite to copy from public/
   plugins: [
     react(),
     tailwindcss(),
@@ -14,18 +12,15 @@ export default defineConfig({
     watch: {
       usePolling: true,
     },
-    // Set up fallback to handle client-side routing during development
     historyApiFallback: true,
   },
   build: {
-    // Generate the _redirects file during build if it doesn't exist
+    outDir: 'dist',
+    assetsDir: 'assets',
     rollupOptions: {
       output: {
         manualChunks: undefined,
       },
     },
-    // Copy all the files from public directory to the output directory
-    outDir: 'dist',
-    assetsDir: 'assets',
   },
 })

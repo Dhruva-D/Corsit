@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTypewriter, Cursor } from 'react-simple-typewriter';
 import { NavLink } from 'react-router-dom';
 import lfr from '../../assets/home/lfr.jpg';
@@ -19,16 +19,28 @@ const Home = () => {
         <div className='relative w-[100vw] h-[100vh]'>
           <spline-viewer url="https://prod.spline.design/8Q-TXZHyF66OklDE/scene.splinecode"></spline-viewer>
         </div>
-        <div className="absolute top-[28vh] right-[24vw] md:right-[24vw] text-[#ed5a2d] text-5xl md:text-7xl font-bold z-20">
-          <div>CORSIT</div>
-        </div>
-        <div className="absolute top-[36vh] inset-x-0 mx-auto md:left-[69vw] md:mx-0 md:right-auto text-[#f7ffff] text-2xl md:text-4xl font-bold z-20 text-center md:text-left w-full md:w-auto px-4 md:px-0">
-          <span>{text}</span>
-          <Cursor />
+        
+        {/* Main Hero Content - Centered for all devices */}
+        <div className="absolute top-[28vh] inset-x-0 flex flex-col items-center justify-center text-center z-20">
+          {/* CORSIT Title - Centered on all devices */}
+          <div className="text-[#ed5a2d] text-5xl md:text-7xl font-bold mb-4">
+            CORSIT
+          </div>
+          
+          {/* "Learn With Us" Text */}
+          <div className="text-white text-xl md:text-2xl font-medium mb-4 tracking-wider">
+            Learn With Us
+          </div>
+          
+          {/* Typewriter Text - Centered on all devices */}
+          <div className="text-[#f7ffff] text-2xl md:text-4xl font-bold tracking-wide bg-black/30 backdrop-blur-sm px-6 py-3 rounded-lg border border-white/10">
+            <span>{text}</span>
+            <Cursor cursorStyle="_" />
+          </div>
         </div>
       </div>
 
-      <div id="one" className="relative z-10 py-20 md:py-36 bg-[#191a1a] text-white">
+      <div id="one" className="relative z-10 py-20 md:py-36 bg-opacity-80 bg-[#191a1a] backdrop-blur-md text-white">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center mb-16 md:mb-24">
             <h2 className="text-4xl md:text-6xl text-[#ed5a2d] font-bold mb-4">Our Events</h2>
@@ -59,7 +71,7 @@ const Home = () => {
                 status: 'closed'
               },
             ].map((event, index) => (
-              <div key={index} className="relative h-[400px] w-full rounded-xl p-10 bg-gradient-to-br from-[#1a1a1a] to-[#222222] shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.05] border-4 border-[#ed5a2d40] flex flex-col items-center text-center justify-center backdrop-blur-md bg-opacity-80">
+              <div key={index} className="relative h-[400px] w-full rounded-xl p-10 bg-gradient-to-br from-[#1a1a1a80] to-[#22222280] shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.05] border-4 border-[#ed5a2d40] flex flex-col items-center text-center justify-center backdrop-blur-md bg-opacity-80">
                 <h3 className="text-4xl font-extrabold text-white mb-4">{event.title}</h3>
                 <p className="text-gray-300 text-lg">{event.description}</p>
                 <p className="text-[#ed5a2d] text-sm font-semibold tracking-widest mt-4">{event.date}</p>
@@ -87,7 +99,7 @@ const Home = () => {
         </div>
       </div>
 
-      <div id="two" className="relative z-10 py-20 md:py-36 bg-[#272928] text-white">
+      <div id="two" className="relative z-10 py-20 md:py-36 bg-opacity-80 bg-[#272928] backdrop-blur-md text-white">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center mb-16 md:mb-24">
             <h2 className="text-4xl md:text-6xl text-[#ed5a2d] font-bold mb-4">Our Projects</h2>
@@ -115,7 +127,7 @@ const Home = () => {
                 image: smartHome,
               },
             ].map((project, index) => (
-              <div key={index} className="relative h-[500px] w-full rounded-xl bg-gradient-to-br from-[#1a1a1a] to-[#222222] shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.05] border-4 border-[#ed5a2d40] flex flex-col items-center text-center overflow-hidden">
+              <div key={index} className="relative h-[500px] w-full rounded-xl bg-gradient-to-br from-[#1a1a1a80] to-[#22222280] shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.05] border-4 border-[#ed5a2d40] flex flex-col items-center text-center overflow-hidden backdrop-blur-md">
                 <div className="p-4 w-full">
                   <img src={project.image} className="w-full h-56 object-cover rounded-lg" alt={project.title} />
                 </div>

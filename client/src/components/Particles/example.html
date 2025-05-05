@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space Background Example</title>
+  <style>
+    /* Reset CSS */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      height: 100%;
+      width: 100%;
+      font-family: 'Arial', sans-serif;
+      color: white;
+      overflow-x: hidden;
+    }
+    
+    /* Main container */
+    #space-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -10;
+    }
+    
+    /* Content styling */
+    .content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      text-align: center;
+    }
+    
+    /* Heading styling */
+    .title {
+      color: #ed5a2d;
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 10px rgba(237, 90, 45, 0.5);
+    }
+    
+    .subtitle {
+      color: white;
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      font-weight: 300;
+    }
+    
+    /* Typewriter effect */
+    .typewriter {
+      display: inline-block;
+      background-color: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(8px);
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 2rem;
+      font-weight: bold;
+      font-size: 1.75rem;
+      letter-spacing: 1px;
+    }
+    
+    /* Blinking cursor */
+    .cursor {
+      display: inline-block;
+      width: 0.5rem;
+      height: 1.5rem;
+      background-color: white;
+      margin-left: 2px;
+      vertical-align: middle;
+      animation: blink 1s infinite;
+    }
+    
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    
+    /* Button styling */
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 2rem;
+      background: linear-gradient(to right, #ed5a2d, #ff8c53);
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 4px 20px rgba(237, 90, 45, 0.4);
+    }
+    
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 30px rgba(237, 90, 45, 0.6);
+    }
+  </style>
+</head>
+<body>
+  <!-- Container for space background -->
+  <div id="space-container"></div>
+  
+  <!-- Main content -->
+  <main class="content">
+    <h1 class="title">CORSIT</h1>
+    <h2 class="subtitle">Learn With Us</h2>
+    
+    <div class="typewriter">
+      <span id="typewriter-text">Robotics</span><span class="cursor"></span>
+    </div>
+    
+    <a href="#" class="btn">Get Started</a>
+  </main>
+  
+  <!-- Scripts -->
+  <script type="module">
+    import { createCompleteSpaceBackground } from './vanilla-space-background.js';
+    
+    // Initialize space background when the DOM is loaded
+    document.addEventListener('DOMContentLoaded', async () => {
+      const container = document.getElementById('space-container');
+      const background = await createCompleteSpaceBackground(container);
+      
+      // Simple typewriter effect
+      const typewriterElement = document.getElementById('typewriter-text');
+      const words = ['Robotics', 'AI & ML', 'Embedded Systems', 'Arduino', 'Mechatronics'];
+      let wordIndex = 0;
+      let charIndex = 0;
+      let isDeleting = false;
+      let typingSpeed = 100;
+      
+      function typeEffect() {
+        const currentWord = words[wordIndex];
+        
+        if (isDeleting) {
+          // Deleting text
+          typewriterElement.textContent = currentWord.substring(0, charIndex - 1);
+          charIndex--;
+          typingSpeed = 70;
+        } else {
+          // Typing text
+          typewriterElement.textContent = currentWord.substring(0, charIndex + 1);
+          charIndex++;
+          typingSpeed = 100;
+        }
+        
+        // Handle word completion
+        if (!isDeleting && charIndex === currentWord.length) {
+          // Pause at the end of word
+          isDeleting = true;
+          typingSpeed = 1000; // Pause before deleting
+        } else if (isDeleting && charIndex === 0) {
+          // Move to next word
+          isDeleting = false;
+          wordIndex = (wordIndex + 1) % words.length;
+          typingSpeed = 500; // Pause before typing next word
+        }
+        
+        setTimeout(typeEffect, typingSpeed);
+      }
+      
+      // Start the typewriter animation
+      typeEffect();
+    });
+  </script>
+</body>
+</html> 

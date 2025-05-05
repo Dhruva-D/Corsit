@@ -26,6 +26,12 @@ const Register = () => {
     
     if (type === 'checkbox') {
       setFormData({ ...formData, [name]: checked });
+    } else if (name === 'phone') {
+      // Only allow digits for phone field
+      const digitsOnly = value.replace(/\D/g, '');
+      // Limit to 10 digits
+      const limitedDigits = digitsOnly.slice(0, 10);
+      setFormData({ ...formData, [name]: limitedDigits });
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -213,17 +219,27 @@ const Register = () => {
               Phone
             </label>
             <input
-              type="text"
+              type="tel"
               id="phone"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
+              onKeyPress={(e) => {
+                // Prevent non-numeric characters
+                if (!/[0-9]/.test(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              pattern="[0-9]{10}"
+              maxLength="10"
+              inputMode="numeric"
               className={`w-full px-4 py-3 rounded-md bg-gray-700 text-gray-200 border ${
                 errors.phone ? 'border-red-500' : 'border-gray-600'
               } focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent`}
-              placeholder="Enter your phone number"
+              placeholder="10-digit phone number"
             />
             {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
+            <p className="mt-1 text-xs text-gray-400">Enter a 10-digit number without spaces or special characters</p>
           </div>
 
           <div>
@@ -359,21 +375,19 @@ const Register = () => {
             <button
               type="submit"
               disabled={isLoading || !isRegisterButtonEnabled}
-              className={`px-8 py-3 rounded-full ${
-                isRegisterButtonEnabled 
-                  ? 'bg-[#ed5a2d] hover:bg-[#d54a1d]' 
-                  : 'bg-gray-600 cursor-not-allowed'
-              } text-white font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-opacity-50 disabled:opacity-70 w-full sm:w-auto flex items-center justify-center`}
+              className={`px-6 py-3 rounded-md text-white font-medium text-lg transition-colors duration-300 ${
+                isLoading || !isRegisterButtonEnabled
+                  ? 'bg-gray-500 cursor-not-allowed'
+                  : 'bg-[#ed5a2d] hover:bg-[#d54a1d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500'
+              }`}
             >
               {isLoading ? (
-                <>
-                  <ClipLoader size={20} color={"#ffffff"} loading={true} className="mr-2" />
-                  Submitting...
-                </>
-              ) : formData.payNow ? (
-                'Pay Now & Register'
+                <div className="flex items-center justify-center">
+                  <ClipLoader size={20} color="white" className="mr-2" />
+                  <span>Registering...</span>
+                </div>
               ) : (
-                'Pay Later & Register'
+                'Register Now'
               )}
             </button>
           </div>

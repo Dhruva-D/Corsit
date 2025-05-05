@@ -45,7 +45,7 @@ const Home = () => {
                 status: 'closed'
               },
               {
-                date: '10 May 2025',
+                date: '11 May 2025',
                 title: 'Robotics Workshop',
                 description: 'Learn the basics of robotics and automation in this hands-on workshop.',
                 location: '📍 Workshop Hall',

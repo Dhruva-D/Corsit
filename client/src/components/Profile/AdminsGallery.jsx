@@ -142,7 +142,7 @@ const AdminsGallery = () => {
             doc.line(14, 62, 196, 62);
             
             // Add table with registrations
-            const tableColumn = ["Name", "Email", "Phone", "USN", "Year", "Date"];
+            const tableColumn = ["Name", "Email", "Phone", "USN", "Year", "Date", "Payment Status"];
             const tableRows = [];
             
             filteredRegistrations.forEach(registration => {
@@ -153,7 +153,8 @@ const AdminsGallery = () => {
                     registration.phone,
                     registration.usn,
                     registration.year,
-                    registeredDate
+                    registeredDate,
+                    registration.payment_status || 'Unpaid'
                 ];
                 tableRows.push(registrationData);
             });
@@ -201,7 +202,9 @@ const AdminsGallery = () => {
             Phone: registration.phone,
             USN: registration.usn,
             Year: registration.year,
-            "Registration Date": new Date(registration.registeredAt).toLocaleDateString()
+            "Registration Date": new Date(registration.registeredAt).toLocaleDateString(),
+            "Payment Status": registration.payment_status || 'Unpaid',
+            "UTR Number": registration.utr_number || '-'
         }));
         
         const worksheet = XLSX.utils.json_to_sheet(worksheetData);
@@ -347,6 +350,18 @@ const AdminsGallery = () => {
                                                     )}
                                                 </div>
                                             </th>
+                                            <th 
+                                                className="px-6 py-3 text-gray-300 font-medium text-sm cursor-pointer hover:bg-gray-600 transition-colors"
+                                                onClick={() => requestSort('payment_status')}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    Payment Status
+                                                    {sortConfig.key === 'payment_status' && (
+                                                        <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                                                    )}
+                                                </div>
+                                            </th>
+                                            <th className="px-6 py-3 text-gray-300 font-medium text-sm">Payment Details</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -367,6 +382,34 @@ const AdminsGallery = () => {
                                                         year: 'numeric'
                                                     })}
                                                 </td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                                        registration.payment_status === 'Paid' 
+                                                            ? 'bg-green-500/20 text-green-400' 
+                                                            : 'bg-yellow-500/20 text-yellow-400'
+                                                    }`}>
+                                                        {registration.payment_status || 'Unpaid'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    {registration.payment_status === 'Paid' ? (
+                                                        <div className="flex flex-col">
+                                                            <span className="text-gray-300 text-sm">
+                                                                <span className="font-semibold">UTR:</span> {registration.utr_number}
+                                                            </span>
+                                                            {registration.payment_screenshot && (
+                                                                <button 
+                                                                    onClick={() => window.open(`http://localhost:5000/${registration.payment_screenshot.replace(/\\/g, '/')}`, '_blank')}
+                                                                    className="mt-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                                                                >
+                                                                    View Receipt
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-gray-400 text-sm">No payment made</span>
+                                                    )}
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -384,6 +427,26 @@ const AdminsGallery = () => {
                                 icon={
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                }
+                            />
+                            
+                            <StatCard 
+                                title="Paid Registrations" 
+                                value={registrations.filter(r => r.payment_status === 'Paid').length} 
+                                icon={
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                }
+                            />
+                            
+                            <StatCard 
+                                title="Unpaid Registrations" 
+                                value={registrations.filter(r => r.payment_status !== 'Paid').length} 
+                                icon={
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 }
                             />

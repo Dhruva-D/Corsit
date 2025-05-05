@@ -45,6 +45,9 @@ const workshopRegistrationSchema = new mongoose.Schema({
     phone: { type: String, required: true },
     usn: { type: String, required: true },
     year: { type: String, required: true },
+    utr_number: { type: String },
+    payment_screenshot: { type: String },
+    payment_status: { type: String, default: 'Unpaid', enum: ['Paid', 'Unpaid'] },
     registeredAt: { type: Date, default: Date.now }
 });
 const WorkshopRegistration = mongoose.model("WorkshopRegistration", workshopRegistrationSchema);
@@ -320,13 +323,18 @@ app.post('/signup', async (req, res) => {
 });
 
 // Workshop Registration endpoint
-app.post('/workshop-register', async (req, res) => {
+app.post('/workshop-register', upload.single('payment_screenshot'), async (req, res) => {
     try {
-        const { name, email, phone, usn, year } = req.body;
+        const { name, email, phone, usn, year, utr_number, payment_status } = req.body;
 
         // Validate required fields
         if (!name || !email || !phone || !usn || !year) {
             return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        // Validate payment details if payment_status is Paid
+        if (payment_status === 'Paid' && (!utr_number || !req.file)) {
+            return res.status(400).json({ message: 'UTR number and payment screenshot are required for payment' });
         }
 
         // Create new workshop registration
@@ -335,7 +343,10 @@ app.post('/workshop-register', async (req, res) => {
             email,
             phone,
             usn,
-            year
+            year,
+            payment_status,
+            utr_number: utr_number || null,
+            payment_screenshot: req.file ? req.file.path : null
         });
 
         await registration.save();
@@ -347,7 +358,8 @@ app.post('/workshop-register', async (req, res) => {
                 email,
                 phone,
                 usn,
-                year
+                year,
+                payment_status
             }
         });
     } catch (error) {

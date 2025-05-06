@@ -333,6 +333,11 @@ const Register = () => {
                     <img src={QRImage} alt="Payment QR Code" className="max-w-full max-h-full" />
                   </div>
                   
+                  <div className="text-center mb-4">
+                    <p className="text-lg font-semibold text-gray-200 mb-1">Component Price: ₹1,600/-</p>
+                    <p className="text-sm text-gray-400">Please transfer the above amount to proceed with registration</p>
+                  </div>
+                  
                   <p className="text-xs text-gray-400 text-center">
                     Please save a screenshot of your payment for verification
                   </p>

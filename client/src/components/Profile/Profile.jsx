@@ -72,7 +72,7 @@ const Profile = () => {
                   <div className="w-full md:w-1/3 flex flex-col items-center">
                     <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-gray-700 shadow-lg mb-4">
                       <img 
-                        src={userData?.profilePhoto ? `${config.apiBaseUrl}/${userData.profilePhoto}` : config.defaultProfileImage} 
+                        src={userData?.profilePhoto || config.defaultProfileImage} 
                         alt="Profile" 
                         className="w-full h-full object-cover"
                         onError={(e) => e.target.src = config.defaultProfileImage}
@@ -149,7 +149,7 @@ const Profile = () => {
                   <div className="col-span-1">
                     <div className="rounded-lg overflow-hidden border-4 border-gray-700 shadow-lg">
                       <img 
-                        src={userData?.projectPhoto ? `${config.apiBaseUrl}/${userData.projectPhoto}` : config.defaultProjectImage} 
+                        src={userData?.projectPhoto || config.defaultProjectImage} 
                         alt="Project" 
                         className="w-full h-64 object-cover"
                         onError={(e) => e.target.src = config.defaultProjectImage}
@@ -176,7 +176,7 @@ const Profile = () => {
                     {userData?.abstractDoc && (
                       <div className="pt-4">
                         <a 
-                          href={`${config.apiBaseUrl}/${userData.abstractDoc}`}
+                          href={userData.abstractDoc}
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 px-6 py-4 bg-[#ed5a2d] rounded-lg text-xl font-semibold text-center transition shadow-md hover:bg-[#d54a1d] active:scale-95 cursor-pointer"

@@ -52,7 +52,7 @@ const ProfileCard = ({ person }) => {
         <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-[3px] shadow-md border-[rgba(237,90,45,0.8)]">
           <img 
             className="w-full h-full object-cover" 
-            src={person.profilePhoto ? `${config.apiBaseUrl}/${person.profilePhoto}` : config.defaultProfileImage} 
+            src={person.profilePhoto || config.defaultProfileImage} 
             alt={person.name}
             onError={(e) => e.target.src = "/default_profile.png"}
           />

@@ -118,7 +118,7 @@ const HeaderProfile = () => {
 
                 <div className='relative'>
                     <button onClick={() => setDropdownOpen(!dropdownOpen)}>
-                        <img src={userData?.profilePhoto ? `${config.apiBaseUrl}/${userData.profilePhoto}` : '/default_profile.png'} alt='Profile' className='w-12 h-12 rounded-full border-2 border-[#ed5a2d] cursor-pointer' />
+                        <img src={userData?.profilePhoto || '/default_profile.png'} alt='Profile' className='w-12 h-12 rounded-full border-2 border-[#ed5a2d] cursor-pointer' />
                     </button>
                     {dropdownOpen && (
                         <div className='absolute right-0 mt-2 w-52 shadow-lg bg-gradient-to-b from-slate-700 to-slate-800 rounded-lg overflow-hidden z-50'>

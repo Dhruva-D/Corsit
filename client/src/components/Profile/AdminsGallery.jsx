@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -9,6 +9,26 @@ import config from '../../config';
 import AdminAuth from './AdminAuth';
 // Import the logo directly from assets folder - this is the most reliable way
 import corsitLogo from '../../assets/logo.png';
+
+// Helper function for ordinal suffixes
+const getYearSuffix = (year) => {
+    const yearNum = parseInt(year);
+    if (yearNum === 1) return "st";
+    if (yearNum === 2) return "nd";
+    if (yearNum === 3) return "rd";
+    return "th";
+};
+
+// Function to get day suffix (1st, 2nd, 3rd, etc.)
+const getDaySuffix = (day) => {
+    if (day > 3 && day < 21) return 'th';
+    switch (day % 10) {
+        case 1: return 'st';
+        case 2: return 'nd';
+        case 3: return 'rd';
+        default: return 'th';
+    }
+};
 
 const AdminsGallery = () => {
     const navigate = useNavigate();
@@ -18,6 +38,11 @@ const AdminsGallery = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState({ key: 'registeredAt', direction: 'desc' });
+    const [showImageModal, setShowImageModal] = useState(false);
+    const [currentImage, setCurrentImage] = useState('');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [registrationToDelete, setRegistrationToDelete] = useState(null);
+    const [actionLoading, setActionLoading] = useState(false);
 
     useEffect(() => {
         const isAdmin = localStorage.getItem('isAdmin');
@@ -47,6 +72,73 @@ const AdminsGallery = () => {
             console.error('Error fetching registrations:', error);
             setLoading(false);
         }
+    };
+
+    const handleVerifyPayment = async (registrationId, currentStatus) => {
+        setActionLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.put(
+                `${config.apiBaseUrl}/workshop-registrations/${registrationId}/verify`, 
+                { payment_verified: !currentStatus },
+                {
+                    headers: {
+                        Authorization: token,
+                        isAdmin: 'true'
+                    }
+                }
+            );
+            
+            // Update the local state
+            setRegistrations(prev => 
+                prev.map(reg => 
+                    reg._id === registrationId 
+                        ? { ...reg, payment_verified: !currentStatus }
+                        : reg
+                )
+            );
+        } catch (error) {
+            console.error('Error updating payment verification:', error);
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const openDeleteModal = (registration) => {
+        setRegistrationToDelete(registration);
+        setShowDeleteModal(true);
+    };
+
+    const handleDeleteRegistration = async () => {
+        if (!registrationToDelete) return;
+        
+        setActionLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            await axios.delete(
+                `${config.apiBaseUrl}/workshop-registrations/${registrationToDelete._id}`,
+                {
+                    headers: {
+                        Authorization: token,
+                        isAdmin: 'true'
+                    }
+                }
+            );
+            
+            // Remove from local state
+            setRegistrations(prev => prev.filter(reg => reg._id !== registrationToDelete._id));
+            setShowDeleteModal(false);
+            setRegistrationToDelete(null);
+        } catch (error) {
+            console.error('Error deleting registration:', error);
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const openImageModal = (imageUrl) => {
+        setCurrentImage(imageUrl);
+        setShowImageModal(true);
     };
 
     const requestSort = (key) => {
@@ -88,6 +180,9 @@ const AdminsGallery = () => {
             const primaryMaroon = [145, 25, 33]; // Darker maroon from the logo (#912119)
             const secondaryPurple = [70, 45, 70]; // Dark purple from the logo (#462D46)
             const accentMaroon = [170, 40, 45]; // Lighter maroon (#AA282D)
+            const green = [39, 174, 96]; // Success green
+            const orange = [230, 126, 34]; // Warning orange
+            const red = [231, 76, 60]; // Error red
             
             // Add maroon border around page
             doc.setDrawColor(primaryMaroon[0], primaryMaroon[1], primaryMaroon[2]);
@@ -134,47 +229,238 @@ const AdminsGallery = () => {
             doc.setFontSize(10);
             doc.setTextColor(accentMaroon[0], accentMaroon[1], accentMaroon[2]); // Accent maroon for date
             doc.setFont(undefined, 'normal'); // Reset to normal font for the date
-            doc.text(`Generated on: ${today.toLocaleDateString()}`, 14, 60);
+            
+            // Format date to show in words (e.g., "6th May, 2025")
+            const formattedDate = today.toLocaleDateString('en-US', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+            
+            // Add ordinal suffix to day
+            const day = today.getDate();
+            const daySuffix = getDaySuffix(day);
+            const dateWithOrdinal = formattedDate.replace(
+                day.toString(), 
+                `${day}${daySuffix}`
+            );
+            
+            doc.text(`Generated on: ${dateWithOrdinal}`, 14, 60);
+            
+            // Add dashboard summary statistics
+            doc.setFontSize(14);
+            doc.setTextColor(secondaryPurple[0], secondaryPurple[1], secondaryPurple[2]); 
+            doc.setFont(undefined, 'bold');
+            doc.text("Registration Summary", 14, 75);
+            
+            // Stats summary - create a simple table for statistics
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            
+            // Create two columns of stats for better layout
+            const leftColumnStats = [
+                [
+                    { content: 'Total Registrations:', styles: { fontStyle: 'bold' } }, 
+                    { content: `${registrations.length}`, styles: {} }
+                ],
+                [
+                    { content: 'Paid Registrations:', styles: { fontStyle: 'bold' } }, 
+                    { content: `${registrations.filter(r => r.payment_status === 'Paid').length}`, styles: {} }
+                ],
+                [
+                    { content: 'Verified Payments:', styles: { fontStyle: 'bold' } }, 
+                    { content: `${registrations.filter(r => r.payment_verified).length}`, styles: {} }
+                ],
+                [
+                    { content: 'Unpaid Registrations:', styles: { fontStyle: 'bold' } }, 
+                    { content: `${registrations.filter(r => r.payment_status !== 'Paid').length}`, styles: {} }
+                ]
+            ];
+            
+            const rightColumnStats = [
+                [
+                    { content: 'First Year Students:', styles: { fontStyle: 'bold' } }, 
+                    { content: `${registrations.filter(r => r.year === '1').length}`, styles: {} }
+                ],
+                [
+                    { content: 'Second Year Students:', styles: { fontStyle: 'bold' } }, 
+                    { content: `${registrations.filter(r => r.year === '2').length}`, styles: {} }
+                ],
+                [
+                    { content: 'Third Year Students:', styles: { fontStyle: 'bold' } }, 
+                    { content: `${registrations.filter(r => r.year === '3').length}`, styles: {} }
+                ],
+                [
+                    { content: 'Fourth Year Students:', styles: { fontStyle: 'bold' } }, 
+                    { content: `${registrations.filter(r => r.year === '4').length}`, styles: {} }
+                ],
+                [
+                    { content: 'Latest Registration:', styles: { fontStyle: 'bold' } }, 
+                    { content: registrations.length > 0 
+                        ? (() => {
+                            const latestDate = new Date(Math.max(...registrations.map(r => new Date(r.registeredAt).getTime())));
+                            const day = latestDate.getDate();
+                            const daySuffix = getDaySuffix(day);
+                            return latestDate.toLocaleDateString('en-US', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric'
+                            }).replace(
+                                day.toString(),
+                                `${day}${daySuffix}`
+                            );
+                        })()
+                        : 'N/A', 
+                        styles: {} 
+                    }
+                ]
+            ];
+            
+            // Set stats columns width
+            const statsWidth = 75;
+            
+            // Custom stats table rendering - left column
+            autoTable(doc, {
+                startY: 80,
+                body: leftColumnStats,
+                theme: 'plain',
+                tableWidth: statsWidth,
+                margin: { left: 14 },
+                styles: { 
+                    fontSize: 9,
+                    cellPadding: 1
+                },
+                columnStyles: {
+                    0: { 
+                        cellWidth: 50,
+                        textColor: [70, 45, 70]
+                    },
+                    1: { 
+                        cellWidth: 25, 
+                        halign: 'right',
+                        textColor: [85, 85, 85]
+                    }
+                }
+            });
+            
+            // Custom stats table rendering - right column (positioned to the right of left column)
+            autoTable(doc, {
+                startY: 80,
+                body: rightColumnStats,
+                theme: 'plain',
+                tableWidth: statsWidth,
+                margin: { left: 110 }, // Position to the right of the first column
+                styles: { 
+                    fontSize: 9,
+                    cellPadding: 1
+                },
+                columnStyles: {
+                    0: { 
+                        cellWidth: 50,
+                        textColor: [70, 45, 70]
+                    },
+                    1: { 
+                        cellWidth: 25, 
+                        halign: 'right',
+                        textColor: [85, 85, 85]
+                    }
+                }
+            });
             
             // Add decorative element - maroon line
+            // Determine the max Y position from both tables to ensure the line is below both
+            const leftColumnEndY = doc.previousAutoTable ? doc.previousAutoTable.finalY : 110;
             doc.setDrawColor(accentMaroon[0], accentMaroon[1], accentMaroon[2]);
             doc.setLineWidth(1.5);
-            doc.line(14, 62, 196, 62);
+            const statsEndY = leftColumnEndY + 10;
+            doc.line(14, statsEndY, 196, statsEndY);
             
-            // Add table with registrations
-            const tableColumn = ["Name", "Email", "Phone", "USN", "Year", "Date", "Payment Status"];
-            const tableRows = [];
+            // Process registrations to create a table that includes receipt indicators
+            // First, create a formatted array for the table
+            const tableData = [];
             
+            // Create table rows
             filteredRegistrations.forEach(registration => {
                 const registeredDate = new Date(registration.registeredAt).toLocaleDateString();
-                const registrationData = [
+                
+                // Create a styled payment status cell
+                const paymentStatus = registration.payment_status || 'Unpaid';
+                const paymentStatusCell = {
+                    content: paymentStatus,
+                    styles: {
+                        fillColor: paymentStatus === 'Paid' ? [200, 250, 200] : [255, 240, 200],
+                        textColor: paymentStatus === 'Paid' ? [39, 174, 96] : [230, 126, 34],
+                        fontStyle: 'bold'
+                    }
+                };
+                
+                // Create a styled verification status cell
+                const verificationStatus = registration.payment_verified ? 'Yes' : 'No';
+                const verificationStatusCell = {
+                    content: verificationStatus,
+                    styles: {
+                        fillColor: registration.payment_verified ? [200, 250, 200] : [250, 220, 220],
+                        textColor: registration.payment_verified ? [39, 174, 96] : [231, 76, 60],
+                        fontStyle: 'bold'
+                    }
+                };
+                
+                // Format registration date to show in words
+                const regDate = new Date(registration.registeredAt);
+                const regDay = regDate.getDate();
+                const regDaySuffix = getDaySuffix(regDay);
+                const formattedRegDate = regDate.toLocaleDateString('en-US', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                }).replace(
+                    regDay.toString(),
+                    `${regDay}${regDaySuffix}`
+                );
+                
+                const tableRow = [
                     registration.name,
                     registration.email,
                     registration.phone,
                     registration.usn,
-                    registration.year,
-                    registeredDate,
-                    registration.payment_status || 'Unpaid'
+                    `${registration.year}${getYearSuffix(registration.year)} Year`,
+                    formattedRegDate,
+                    paymentStatusCell,
+                    verificationStatusCell,
+                    registration.utr_number || '-'
                 ];
-                tableRows.push(registrationData);
+                
+                tableData.push(tableRow);
             });
             
+            // Configure the main table with adjusted column widths - now optimized without images
             autoTable(doc, {
-                head: [tableColumn],
-                body: tableRows,
-                startY: 70,
+                startY: statsEndY + 10,
+                head: [['Name', 'Email', 'Phone', 'USN', 'Year', 'Date', 'Status', 'Verified', 'UTR']],
+                body: tableData,
                 styles: { 
-                    fontSize: 10,
-                    cellPadding: 3,
-                    lineColor: [220, 220, 220]
+                    fontSize: 8,
+                    cellPadding: 2
                 },
+                columnStyles: {
+                    0: { cellWidth: 32 }, // Name - slightly wider
+                    1: { cellWidth: 38 }, // Email - slightly wider
+                    2: { cellWidth: 20 }, // Phone
+                    3: { cellWidth: 22 }, // USN - slightly wider
+                    4: { cellWidth: 15 }, // Year - slightly wider
+                    5: { cellWidth: 22 }, // Date - wider for word format
+                    6: { cellWidth: 15 }, // Status
+                    7: { cellWidth: 12 }, // Verified
+                    8: { cellWidth: 18 }  // UTR - slightly wider
+                },
+                margin: { left: 10, right: 10 },
                 headStyles: {
-                    fillColor: primaryMaroon, // Maroon header
+                    fillColor: primaryMaroon,
                     textColor: [255, 255, 255],
                     fontStyle: 'bold'
                 },
                 alternateRowStyles: {
-                    fillColor: [250, 245, 245] // Very light pink/beige for alternate rows
+                    fillColor: [250, 245, 245]
                 }
             });
             
@@ -203,7 +489,9 @@ const AdminsGallery = () => {
             USN: registration.usn,
             Year: registration.year,
             "Registration Date": new Date(registration.registeredAt).toLocaleDateString(),
+            "Registration Time": new Date(registration.registeredAt).toLocaleTimeString(),
             "Payment Status": registration.payment_status || 'Unpaid',
+            "Payment Verified": registration.payment_verified ? 'Yes' : 'No',
             "UTR Number": registration.utr_number || '-'
         }));
         
@@ -255,19 +543,50 @@ const AdminsGallery = () => {
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-                        {/* Search bar */}
-                        <div className="relative flex-grow max-w-md">
-                            <input
-                                type="text"
-                                placeholder="Search by name, email or USN..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="bg-gray-700 border border-gray-600 text-gray-100 w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed5a2d] transition-all"
-                            />
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
+                        {/* Search and Sort Controls */}
+                        <div className="flex flex-wrap items-center gap-3 flex-grow max-w-2xl">
+                            {/* Search bar */}
+                            <div className="relative flex-grow">
+                                <input
+                                    type="text"
+                                    placeholder="Search by name, email or USN..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="bg-gray-700 border border-gray-600 text-gray-100 w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed5a2d] transition-all"
+                                />
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            
+                            {/* Sort dropdown */}
+                            <div className="relative">
+                                <select
+                                    value={`${sortConfig.key}-${sortConfig.direction}`}
+                                    onChange={(e) => {
+                                        const [key, direction] = e.target.value.split('-');
+                                        setSortConfig({ key, direction });
+                                    }}
+                                    className="bg-gray-700 border border-gray-600 text-gray-100 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed5a2d] transition-all appearance-none pr-8"
+                                >
+                                    <option value="registeredAt-desc">Newest First</option>
+                                    <option value="registeredAt-asc">Oldest First</option>
+                                    <option value="name-asc">Name (A-Z)</option>
+                                    <option value="name-desc">Name (Z-A)</option>
+                                    <option value="year-asc">Year (1-4)</option>
+                                    <option value="year-desc">Year (4-1)</option>
+                                    <option value="payment_status-asc">Paid First</option>
+                                    <option value="payment_status-desc">UnPaid First</option>
+                                    <option value="payment_verified-desc">Verified First</option>
+                                    <option value="payment_verified-asc">Unverified First</option>
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
 
@@ -315,7 +634,7 @@ const AdminsGallery = () => {
                                     <thead>
                                         <tr className="bg-gray-700 text-left">
                                             <th 
-                                                className="px-6 py-3 text-gray-300 font-medium text-sm cursor-pointer hover:bg-gray-600 transition-colors"
+                                                className="px-4 py-3 text-gray-300 font-medium text-sm cursor-pointer hover:bg-gray-600 transition-colors"
                                                 onClick={() => requestSort('name')}
                                             >
                                                 <div className="flex items-center gap-2">
@@ -325,11 +644,11 @@ const AdminsGallery = () => {
                                                     )}
                                                 </div>
                                             </th>
-                                            <th className="px-6 py-3 text-gray-300 font-medium text-sm">Email</th>
-                                            <th className="px-6 py-3 text-gray-300 font-medium text-sm">Phone</th>
-                                            <th className="px-6 py-3 text-gray-300 font-medium text-sm">USN</th>
+                                            <th className="px-4 py-3 text-gray-300 font-medium text-sm">Email</th>
+                                            <th className="px-4 py-3 text-gray-300 font-medium text-sm">Phone</th>
+                                            <th className="px-4 py-3 text-gray-300 font-medium text-sm">USN</th>
                                             <th 
-                                                className="px-6 py-3 text-gray-300 font-medium text-sm cursor-pointer hover:bg-gray-600 transition-colors"
+                                                className="px-4 py-3 text-gray-300 font-medium text-sm cursor-pointer hover:bg-gray-600 transition-colors"
                                                 onClick={() => requestSort('year')}
                                             >
                                                 <div className="flex items-center gap-2">
@@ -340,7 +659,7 @@ const AdminsGallery = () => {
                                                 </div>
                                             </th>
                                             <th 
-                                                className="px-6 py-3 text-gray-300 font-medium text-sm cursor-pointer hover:bg-gray-600 transition-colors"
+                                                className="px-4 py-3 text-gray-300 font-medium text-sm cursor-pointer hover:bg-gray-600 transition-colors"
                                                 onClick={() => requestSort('registeredAt')}
                                             >
                                                 <div className="flex items-center gap-2">
@@ -351,7 +670,7 @@ const AdminsGallery = () => {
                                                 </div>
                                             </th>
                                             <th 
-                                                className="px-6 py-3 text-gray-300 font-medium text-sm cursor-pointer hover:bg-gray-600 transition-colors"
+                                                className="px-4 py-3 text-gray-300 font-medium text-sm cursor-pointer hover:bg-gray-600 transition-colors"
                                                 onClick={() => requestSort('payment_status')}
                                             >
                                                 <div className="flex items-center gap-2">
@@ -361,7 +680,20 @@ const AdminsGallery = () => {
                                                     )}
                                                 </div>
                                             </th>
-                                            <th className="px-6 py-3 text-gray-300 font-medium text-sm">Payment Details</th>
+                                            <th className="px-4 py-3 text-gray-300 font-medium text-sm">UTR Number</th>
+                                            <th className="px-4 py-3 text-gray-300 font-medium text-sm">Receipt</th>
+                                            <th 
+                                                className="px-4 py-3 text-gray-300 font-medium text-sm cursor-pointer hover:bg-gray-600 transition-colors"
+                                                onClick={() => requestSort('payment_verified')}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    Verified
+                                                    {sortConfig.key === 'payment_verified' && (
+                                                        <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                                                    )}
+                                                </div>
+                                            </th>
+                                            <th className="px-4 py-3 text-gray-300 font-medium text-sm">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -370,19 +702,29 @@ const AdminsGallery = () => {
                                                 key={registration._id || index}
                                                 className="border-b border-gray-700 hover:bg-gray-700 transition-colors"
                                             >
-                                                <td className="px-6 py-4 font-medium text-gray-100">{registration.name}</td>
-                                                <td className="px-6 py-4 text-gray-300">{registration.email}</td>
-                                                <td className="px-6 py-4 text-gray-300">{registration.phone}</td>
-                                                <td className="px-6 py-4 font-mono text-gray-300">{registration.usn}</td>
-                                                <td className="px-6 py-4 text-gray-300">{`${registration.year}${getYearSuffix(registration.year)} Year`}</td>
-                                                <td className="px-6 py-4 text-gray-400">
-                                                    {new Date(registration.registeredAt).toLocaleDateString('en-GB', { 
-                                                        day: '2-digit', 
-                                                        month: 'short', 
-                                                        year: 'numeric'
-                                                    })}
+                                                <td className="px-4 py-4 font-medium text-gray-100">{registration.name}</td>
+                                                <td className="px-4 py-4 text-gray-300">{registration.email}</td>
+                                                <td className="px-4 py-4 text-gray-300">{registration.phone}</td>
+                                                <td className="px-4 py-4 font-mono text-gray-300">{registration.usn}</td>
+                                                <td className="px-4 py-4 text-gray-300">{`${registration.year}${getYearSuffix(registration.year)} Year`}</td>
+                                                <td className="px-4 py-4 text-gray-400">
+                                                    <div className="flex flex-col">
+                                                        <span>
+                                                            {new Date(registration.registeredAt).toLocaleDateString('en-GB', { 
+                                                                day: '2-digit', 
+                                                                month: 'short', 
+                                                                year: 'numeric'
+                                                            })}
+                                                        </span>
+                                                        <span className="text-xs text-gray-500">
+                                                            {new Date(registration.registeredAt).toLocaleTimeString('en-GB', {
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })}
+                                                        </span>
+                                                    </div>
                                                 </td>
-                                                <td className="px-6 py-4">
+                                                <td className="px-4 py-4">
                                                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                                                         registration.payment_status === 'Paid' 
                                                             ? 'bg-green-500/20 text-green-400' 
@@ -391,24 +733,82 @@ const AdminsGallery = () => {
                                                         {registration.payment_status || 'Unpaid'}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4">
-                                                    {registration.payment_status === 'Paid' ? (
-                                                        <div className="flex flex-col">
-                                                            <span className="text-gray-300 text-sm">
-                                                                <span className="font-semibold">UTR:</span> {registration.utr_number}
-                                                            </span>
-                                                            {registration.payment_screenshot && (
-                                                                <button 
-                                                                    onClick={() => window.open(`${config.apiBaseUrl}/${registration.payment_screenshot.replace(/\\/g, '/')}`, '_blank')}
-                                                                    className="mt-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
-                                                                >
-                                                                    View Receipt
-                                                                </button>
-                                                            )}
+                                                <td className="px-4 py-4 text-gray-300 font-mono text-sm">
+                                                    {registration.utr_number || '-'}
+                                                    {registration.payment_screenshot && (
+                                                        <a 
+                                                            href={registration.payment_screenshot}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="block mt-1 text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
+                                                        >
+                                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                            </svg>
+                                                            View Receipt
+                                                        </a>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    {registration.payment_screenshot ? (
+                                                        <div 
+                                                            className="w-12 h-12 rounded border border-gray-600 bg-gray-700 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                                                            onClick={() => openImageModal(registration.payment_screenshot)}
+                                                        >
+                                                            <img 
+                                                                src={registration.payment_screenshot} 
+                                                                alt="Payment Receipt" 
+                                                                className="w-full h-full object-cover"
+                                                            />
                                                         </div>
                                                     ) : (
-                                                        <span className="text-gray-400 text-sm">No payment made</span>
+                                                        <span className="text-gray-500 text-sm">No receipt</span>
                                                     )}
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <div className="flex justify-center">
+                                                        <button 
+                                                            className="relative flex items-center justify-center"
+                                                            onClick={() => handleVerifyPayment(registration._id, registration.payment_verified)}
+                                                            disabled={actionLoading}
+                                                            aria-label={registration.payment_verified ? "Unverify payment" : "Verify payment"}
+                                                        >
+                                                            <div className={`w-6 h-6 rounded-md border transition-all duration-300 ${
+                                                                registration.payment_verified 
+                                                                    ? 'bg-green-500 border-green-600' 
+                                                                    : 'bg-gray-700 border-gray-600 hover:border-green-400'
+                                                            }`}>
+                                                                {registration.payment_verified && (
+                                                                    <motion.svg
+                                                                        className="w-6 h-6 text-white"
+                                                                        initial={{ scale: 0 }}
+                                                                        animate={{ scale: 1 }}
+                                                                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                                                        viewBox="0 0 24 24"
+                                                                        fill="none"
+                                                                        stroke="currentColor"
+                                                                        strokeWidth="3"
+                                                                        strokeLinecap="round"
+                                                                        strokeLinejoin="round"
+                                                                    >
+                                                                        <polyline points="20 6 9 17 4 12" />
+                                                                    </motion.svg>
+                                                                )}
+                                                            </div>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <button
+                                                        onClick={() => openDeleteModal(registration)}
+                                                        className="bg-red-500/20 hover:bg-red-500/40 text-red-400 p-2 rounded transition-colors"
+                                                        aria-label="Delete registration"
+                                                        disabled={actionLoading}
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -420,7 +820,7 @@ const AdminsGallery = () => {
                     
                     {/* Stats summary */}
                     {!loading && filteredRegistrations.length > 0 && (
-                        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             <StatCard 
                                 title="Total Registrations" 
                                 value={registrations.length} 
@@ -437,6 +837,16 @@ const AdminsGallery = () => {
                                 icon={
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                }
+                            />
+                            
+                            <StatCard 
+                                title="Verified Payments" 
+                                value={registrations.filter(r => r.payment_verified).length} 
+                                icon={
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 }
                             />
@@ -495,11 +905,19 @@ const AdminsGallery = () => {
                                 title="Latest Registration" 
                                 value={
                                     registrations.length > 0 
-                                        ? new Date(
-                                            Math.max(
-                                                ...registrations.map(r => new Date(r.registeredAt).getTime())
-                                            )
-                                          ).toLocaleDateString() 
+                                        ? (() => {
+                                            const latestDate = new Date(Math.max(...registrations.map(r => new Date(r.registeredAt).getTime())));
+                                            const day = latestDate.getDate();
+                                            const daySuffix = getDaySuffix(day);
+                                            return latestDate.toLocaleDateString('en-US', {
+                                                day: 'numeric',
+                                                month: 'short',
+                                                year: 'numeric'
+                                            }).replace(
+                                                day.toString(),
+                                                `${day}${daySuffix}`
+                                            );
+                                        })()
                                         : 'N/A'
                                 } 
                                 icon={
@@ -512,6 +930,101 @@ const AdminsGallery = () => {
                     )}
                 </div>
             </div>
+
+            {/* Image Preview Modal */}
+            <AnimatePresence>
+                {showImageModal && (
+                    <motion.div 
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowImageModal(false)}
+                    >
+                        <motion.div 
+                            className="relative max-w-4xl max-h-[90vh] rounded-lg overflow-hidden shadow-2xl"
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <img 
+                                src={currentImage} 
+                                alt="Payment Receipt" 
+                                className="max-h-[90vh] max-w-full object-contain"
+                            />
+                            <button 
+                                className="absolute top-4 right-4 bg-gray-800 bg-opacity-70 text-white p-2 rounded-full hover:bg-opacity-100 transition-all"
+                                onClick={() => setShowImageModal(false)}
+                                aria-label="Close image preview"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Delete Confirmation Modal */}
+            <AnimatePresence>
+                {showDeleteModal && (
+                    <motion.div 
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div 
+                            className="bg-gray-800 border border-gray-700 rounded-lg p-6 shadow-2xl max-w-lg w-full mx-4"
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: 20, opacity: 0 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                        >
+                            <div className="flex items-center mb-4 text-[#ed5a2d]">
+                                <svg className="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <h3 className="text-xl font-semibold">Confirm Deletion</h3>
+                            </div>
+                            
+                            <p className="mb-6 text-gray-300">
+                                Are you sure you want to delete the registration for <span className="font-semibold text-white">{registrationToDelete?.name}</span>? This action cannot be undone.
+                            </p>
+                            
+                            <div className="flex flex-wrap gap-3 justify-end">
+                                <button
+                                    onClick={() => setShowDeleteModal(false)}
+                                    className="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition-colors"
+                                    disabled={actionLoading}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDeleteRegistration}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center"
+                                    disabled={actionLoading}
+                                >
+                                    {actionLoading ? (
+                                        <>
+                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Deleting...
+                                        </>
+                                    ) : (
+                                        'Delete Registration'
+                                    )}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
@@ -531,15 +1044,6 @@ const StatCard = ({ title, value, icon }) => {
             </div>
         </div>
     );
-};
-
-// Helper function for ordinal suffixes
-const getYearSuffix = (year) => {
-    const yearNum = parseInt(year);
-    if (yearNum === 1) return "st";
-    if (yearNum === 2) return "nd";
-    if (yearNum === 3) return "rd";
-    return "th";
 };
 
 export default AdminsGallery;

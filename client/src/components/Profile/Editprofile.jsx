@@ -52,6 +52,7 @@ const EditProfile = () => {
   });
 
   const [preview, setPreview] = useState({ profilePhoto: '', projectPhoto: '' });
+  const [loading, setLoading] = useState(false);
 
   const designations = [
     "First Year", "Second Year", "Third Year", "Fourth Year",
@@ -68,8 +69,8 @@ const EditProfile = () => {
         });
         setUserData(response.data);
         setPreview({
-          profilePhoto: response.data.profilePhoto ? `${config.apiBaseUrl}/${response.data.profilePhoto}` : '',
-          projectPhoto: response.data.projectPhoto ? `${config.apiBaseUrl}/${response.data.projectPhoto}` : ''
+          profilePhoto: response.data.profilePhoto || '',
+          projectPhoto: response.data.projectPhoto || ''
         });
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -86,46 +87,67 @@ const EditProfile = () => {
     setUserData({ ...userData, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e, field) => {
+  const handleFileChange = async (e, field) => {
     const file = e.target.files[0];
-    if (file) {
-      setUserData({ ...userData, [field]: file });
-      setPreview({ ...preview, [field]: URL.createObjectURL(file) });
+    if (!file) return;
+
+    // Set local preview
+    setPreview({ ...preview, [field]: URL.createObjectURL(file) });
+    setLoading(true);
+
+    // Create form data for this specific file
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      // Determine upload endpoint based on field type
+      let uploadEndpoint = 'profile';
+      if (field === 'projectPhoto') uploadEndpoint = 'project';
+      if (field === 'abstractDoc') uploadEndpoint = 'abstract';
+
+      // Upload file to Cloudinary through our API
+      const response = await axios.post(
+        `${config.apiBaseUrl}/api/upload/${uploadEndpoint}`, 
+        formData, 
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+
+      // Update user data with the Cloudinary URL
+      setUserData({ ...userData, [field]: response.data.imageUrl });
+    } catch (error) {
+      console.error(`Error uploading ${field}:`, error);
+      alert(`Failed to upload ${field}. Please try again.`);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-
-    // Append text fields
-    formData.append('name', userData.name);
-    formData.append('designation', userData.designation);
-    formData.append('linkedin', userData.linkedin);
-    formData.append('github', userData.github);
-    formData.append('instagram', userData.instagram);
-    formData.append('phone', userData.phone);
-    formData.append('projectTitle', userData.projectTitle);
-    formData.append('projectDescription', userData.projectDescription);
-
-    // Append files if they exist
-    if (userData.profilePhoto instanceof File) {
-      formData.append('profilePhoto', userData.profilePhoto);
-    }
-    if (userData.projectPhoto instanceof File) {
-      formData.append('projectPhoto', userData.projectPhoto);
-    }
-    if (userData.abstractDoc instanceof File) {
-      formData.append('abstractDoc', userData.abstractDoc);
-    }
+    setLoading(true);
 
     try {
-      await axios.post(`${config.apiBaseUrl}/edit-profile`, formData, {
+      // We're now sending only the form data, as images are already uploaded to Cloudinary
+      const updateData = {
+        name: userData.name,
+        designation: userData.designation,
+        linkedin: userData.linkedin,
+        github: userData.github,
+        instagram: userData.instagram,
+        phone: userData.phone,
+        projectTitle: userData.projectTitle,
+        projectDescription: userData.projectDescription,
+        profilePhoto: userData.profilePhoto,
+        projectPhoto: userData.projectPhoto,
+        abstractDoc: userData.abstractDoc
+      };
+
+      await axios.post(`${config.apiBaseUrl}/edit-profile`, updateData, {
         headers: {
-          Authorization: localStorage.getItem('token'),
-          'Content-Type': 'multipart/form-data'
+          Authorization: localStorage.getItem('token')
         }
       });
+      
       // Clear the session storage cache to force fresh data load
       sessionStorage.removeItem('userData');
       alert('Profile updated successfully!');
@@ -133,6 +155,8 @@ const EditProfile = () => {
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('Failed to update profile');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -156,11 +180,12 @@ const EditProfile = () => {
                       accept="image/*"
                       onChange={(e) => handleFileChange(e, 'profilePhoto')}
                       className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500 file:cursor-pointer"
+                      disabled={loading}
                     />
                   </div>
                   <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-700 shadow-lg">
                     <img
-                      src={preview.profilePhoto || (userData.profilePhoto ? `${config.apiBaseUrl}/${userData.profilePhoto}` : config.defaultProfileImage)}
+                      src={preview.profilePhoto || config.defaultProfileImage}
                       alt="Profile Preview"
                       className="w-full h-full object-cover"
                       onError={(e) => (e.target.src = config.defaultProfileImage)}
@@ -168,7 +193,6 @@ const EditProfile = () => {
                   </div>
                 </div>
               </div>
-
 
               {/* Project Photo Section */}
               <div className="w-full">
@@ -180,11 +204,12 @@ const EditProfile = () => {
                       accept="image/*"
                       onChange={(e) => handleFileChange(e, 'projectPhoto')}
                       className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500 file:cursor-pointer"
+                      disabled={loading}
                     />
                   </div>
                   <div className="w-32 h-32 rounded-lg overflow-hidden border-4 border-gray-700 shadow-lg">
                     <img
-                      src={preview.projectPhoto || (userData.projectPhoto ? `${config.apiBaseUrl}/${userData.projectPhoto}` : config.defaultProjectImage)}
+                      src={preview.projectPhoto || config.defaultProjectImage}
                       alt="Project Preview"
                       className="w-full h-full object-cover"
                       onError={(e) => (e.target.src = config.defaultProjectImage)}
@@ -193,6 +218,22 @@ const EditProfile = () => {
                 </div>
               </div>
 
+              {/* Abstract Document Upload */}
+              <div className="w-full">
+                <label className="block text-xl text-center font-medium mb-3 text-gray-300">Abstract Document</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,image/*"
+                    onChange={(e) => handleFileChange(e, 'abstractDoc')}
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500 file:cursor-pointer"
+                    disabled={loading}
+                  />
+                </div>
+                {userData.abstractDoc && (
+                  <p className="mt-2 text-sm text-green-400">Abstract document uploaded successfully</p>
+                )}
+              </div>
 
               {/* Text Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
@@ -293,27 +334,13 @@ const EditProfile = () => {
                     className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
                   ></textarea>
                 </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-xl font-medium mb-3 text-gray-300">Abstract Document</label>
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={(e) => handleFileChange(e, 'abstractDoc')}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500 file:cursor-pointer"
-                  />
-                  {userData.abstractDoc && typeof userData.abstractDoc === 'string' && (
-                    <p className="mt-2 text-gray-400">
-                      Current document: <a href={`${config.apiBaseUrl}/${userData.abstractDoc}`} target="_blank" rel="noopener noreferrer" className="text-[#ed5a2d] hover:text-[#ff6b3d] underline">View document</a>
-                    </p>
-                  )}
-                </div>
               </div>
 
               <div className="w-full flex justify-center mt-6">
                 <button
                   type="submit"
                   className="px-8 py-4 bg-[#ed5a2d] rounded-lg text-xl font-semibold text-center transition text-white shadow-md hover:bg-[#d54a1d] active:scale-95 cursor-pointer"
+                  disabled={loading}
                 >
                   Save Changes
                 </button>

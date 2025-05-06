@@ -6,10 +6,18 @@ const multer = require("multer");
 const cors = require("cors");
 require("dotenv").config();
 
+// Import Cloudinary configuration and upload routes
+const cloudinary = require('./config/cloudinary');
+const uploadRoutes = require('./config/routes');
+const { uploadProfile, uploadPayment, uploadProject, uploadAbstract } = require('./config/storage');
+
 const app = express();
 app.use(express.json());
 app.use(cors());
 app.use("/uploads", express.static("uploads"));
+
+// Register upload routes
+app.use('/api', uploadRoutes);
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
@@ -48,6 +56,7 @@ const workshopRegistrationSchema = new mongoose.Schema({
     utr_number: { type: String },
     payment_screenshot: { type: String },
     payment_status: { type: String, default: 'Unpaid', enum: ['Paid', 'Unpaid'] },
+    payment_verified: { type: Boolean, default: false },
     registeredAt: { type: Date, default: Date.now }
 });
 const WorkshopRegistration = mongoose.model("WorkshopRegistration", workshopRegistrationSchema);
@@ -119,20 +128,11 @@ app.post("/change-password", authMiddleware, async (req, res) => {
     res.json({ message: "Password updated successfully" });
 });
 
-// Multer Setup
-const storage = multer.diskStorage({
-    destination: "uploads/",
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + "-" + file.originalname);
-    },
-});
-const upload = multer({ storage });
-
-// Update Profile
-app.post("/edit-profile", authMiddleware, upload.fields([
-    { name: "profilePhoto" }, 
-    { name: "projectPhoto" }, 
-    { name: "abstractDoc" }
+// Update Profile - Now using Cloudinary
+app.post("/edit-profile", authMiddleware, uploadProfile.fields([
+    { name: "profilePhoto", maxCount: 1 }, 
+    { name: "projectPhoto", maxCount: 1 }, 
+    { name: "abstractDoc", maxCount: 1 }
 ]), async (req, res) => {
     const { name, designation, linkedin, github, projectTitle, projectDescription, phone, instagram } = req.body;
     const updateData = { 
@@ -146,9 +146,9 @@ app.post("/edit-profile", authMiddleware, upload.fields([
         instagram
     };
 
-    if (req.files.profilePhoto) updateData.profilePhoto = req.files.profilePhoto[0].path;
-    if (req.files.projectPhoto) updateData.projectPhoto = req.files.projectPhoto[0].path;
-    if (req.files.abstractDoc) updateData.abstractDoc = req.files.abstractDoc[0].path;
+    if (req.files && req.files.profilePhoto) updateData.profilePhoto = req.files.profilePhoto[0].path;
+    if (req.files && req.files.projectPhoto) updateData.projectPhoto = req.files.projectPhoto[0].path;
+    if (req.files && req.files.abstractDoc) updateData.abstractDoc = req.files.abstractDoc[0].path;
 
     await User.findByIdAndUpdate(req.user.id, updateData);
     res.json({ message: "Profile and project details updated" });
@@ -212,11 +212,11 @@ app.get("/admin/users", authMiddleware, async (req, res) => {
     }
 });
 
-// Update User by Admin
-app.put("/admin/users/:userId", authMiddleware, upload.fields([
-    { name: "profilePhoto" },
-    { name: "projectPhoto" },
-    { name: "abstractDoc" }
+// Update User by Admin - Now using Cloudinary
+app.put("/admin/users/:userId", authMiddleware, uploadProfile.fields([
+    { name: "profilePhoto", maxCount: 1 },
+    { name: "projectPhoto", maxCount: 1 },
+    { name: "abstractDoc", maxCount: 1 }
 ]), async (req, res) => {
     try {
         // Check if user is admin
@@ -309,8 +309,8 @@ app.post('/signup', async (req, res) => {
             email,
             password: hashedPassword,
             adminAuthenticated: 'no',
-            profilePhoto: 'uploads/default-profile.png',
-            projectPhoto: 'uploads/default-project.png',
+            profilePhoto: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/v1/profile_uploads/default-profile.png`,
+            projectPhoto: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/v1/project_uploads/default-project.png`,
         });
 
         await user.save();
@@ -322,10 +322,10 @@ app.post('/signup', async (req, res) => {
     }
 });
 
-// Workshop Registration endpoint
-app.post('/workshop-register', upload.single('payment_screenshot'), async (req, res) => {
+// Workshop Registration endpoint - Now using Cloudinary
+app.post('/workshop-register', async (req, res) => {
     try {
-        const { name, email, phone, usn, year, utr_number, payment_status } = req.body;
+        const { name, email, phone, usn, year, utr_number, payment_status, payment_screenshot } = req.body;
 
         // Validate required fields
         if (!name || !email || !phone || !usn || !year) {
@@ -333,7 +333,7 @@ app.post('/workshop-register', upload.single('payment_screenshot'), async (req, 
         }
 
         // Validate payment details if payment_status is Paid
-        if (payment_status === 'Paid' && (!utr_number || !req.file)) {
+        if (payment_status === 'Paid' && (!utr_number || !payment_screenshot)) {
             return res.status(400).json({ message: 'UTR number and payment screenshot are required for payment' });
         }
 
@@ -346,7 +346,7 @@ app.post('/workshop-register', upload.single('payment_screenshot'), async (req, 
             year,
             payment_status,
             utr_number: utr_number || null,
-            payment_screenshot: req.file ? req.file.path : null
+            payment_screenshot: payment_screenshot || null
         });
 
         await registration.save();
@@ -381,6 +381,61 @@ app.get('/workshop-registrations', authMiddleware, async (req, res) => {
         res.json(registrations);
     } catch (error) {
         console.error('Error fetching workshop registrations:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Update payment verification status
+app.put('/workshop-registrations/:registrationId/verify', authMiddleware, async (req, res) => {
+    try {
+        // Check if user is admin
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        const { registrationId } = req.params;
+        const { payment_verified } = req.body;
+        
+        const updatedRegistration = await WorkshopRegistration.findByIdAndUpdate(
+            registrationId,
+            { payment_verified },
+            { new: true }
+        );
+        
+        if (!updatedRegistration) {
+            return res.status(404).json({ message: "Registration not found" });
+        }
+        
+        res.json({ 
+            message: `Payment verification ${payment_verified ? 'confirmed' : 'removed'}`,
+            registration: updatedRegistration
+        });
+    } catch (error) {
+        console.error('Error updating payment verification:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Delete workshop registration
+app.delete('/workshop-registrations/:registrationId', authMiddleware, async (req, res) => {
+    try {
+        // Check if user is admin
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        const { registrationId } = req.params;
+        const deletedRegistration = await WorkshopRegistration.findByIdAndDelete(registrationId);
+        
+        if (!deletedRegistration) {
+            return res.status(404).json({ message: "Registration not found" });
+        }
+        
+        res.json({ message: "Registration deleted successfully" });
+    } catch (error) {
+        console.error('Error deleting registration:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

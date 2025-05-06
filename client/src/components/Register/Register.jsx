@@ -14,12 +14,14 @@ const Register = () => {
     utr_number: '',
     payment_status: 'Unpaid',
     payNow: false,
+    payment_screenshot: ''
   });
 
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [paymentScreenshot, setPaymentScreenshot] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -42,11 +44,42 @@ const Register = () => {
     }
   };
 
-  const handleFileChange = (e) => {
-    setPaymentScreenshot(e.target.files[0]);
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Set local file reference for validation
+    setPaymentScreenshot(file);
+    // Create preview URL
+    setPreviewUrl(URL.createObjectURL(file));
+
     // Clear error for payment screenshot when user uploads a file
     if (errors.payment_screenshot) {
       setErrors({ ...errors, payment_screenshot: '' });
+    }
+
+    // Upload to Cloudinary immediately
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('image', file);
+
+      setIsLoading(true);
+      const response = await axios.post(
+        `${config.apiBaseUrl}/api/upload/payment`, 
+        uploadFormData, 
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+
+      // Store the Cloudinary URL
+      setFormData({ ...formData, payment_screenshot: response.data.imageUrl });
+    } catch (error) {
+      console.error('Error uploading payment screenshot:', error);
+      setErrors({
+        ...errors,
+        payment_screenshot: 'Failed to upload image. Please try again.'
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -93,7 +126,7 @@ const Register = () => {
         isValid = false;
       }
       
-      if (!paymentScreenshot) {
+      if (!formData.payment_screenshot) {
         newErrors.payment_screenshot = 'Payment screenshot is required';
         isValid = false;
       }
@@ -111,25 +144,19 @@ const Register = () => {
       setSuccessMessage('');
 
       try {
-        // Create form data for file upload
-        const submitData = new FormData();
-        submitData.append('name', formData.name);
-        submitData.append('email', formData.email);
-        submitData.append('phone', formData.phone);
-        submitData.append('usn', formData.usn);
-        submitData.append('year', formData.year);
-        submitData.append('payment_status', formData.payNow ? 'Paid' : 'Unpaid');
-        
-        if (formData.payNow) {
-          submitData.append('utr_number', formData.utr_number);
-          submitData.append('payment_screenshot', paymentScreenshot);
-        }
+        // We already have the Cloudinary URL, no need to upload the file again
+        const submitData = {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          usn: formData.usn,
+          year: formData.year,
+          payment_status: formData.payNow ? 'Paid' : 'Unpaid',
+          utr_number: formData.payNow ? formData.utr_number : '',
+          payment_screenshot: formData.payNow ? formData.payment_screenshot : ''
+        };
 
-        const response = await axios.post(`${config.apiBaseUrl}/workshop-register`, submitData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
+        const response = await axios.post(`${config.apiBaseUrl}/workshop-register`, submitData);
         
         setSuccessMessage(response.data.message || 'Registration successful!');
         // Reset form after successful submission
@@ -142,8 +169,10 @@ const Register = () => {
           utr_number: '',
           payment_status: 'Unpaid',
           payNow: false,
+          payment_screenshot: ''
         });
         setPaymentScreenshot(null);
+        setPreviewUrl('');
       } catch (error) {
         setErrors({
           submit: error.response?.data?.message || 'Registration failed. Please try again.',
@@ -155,7 +184,7 @@ const Register = () => {
   };
 
   // Check if register button should be enabled
-  const isRegisterButtonEnabled = !formData.payNow || (formData.utr_number && paymentScreenshot);
+  const isRegisterButtonEnabled = !formData.payNow || (formData.utr_number && formData.payment_screenshot);
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4 py-30 sm:px-6 lg:px-8">
@@ -224,12 +253,6 @@ const Register = () => {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              onKeyPress={(e) => {
-                // Prevent non-numeric characters
-                if (!/[0-9]/.test(e.key)) {
-                  e.preventDefault();
-                }
-              }}
               pattern="[0-9]{10}"
               maxLength="10"
               inputMode="numeric"
@@ -282,8 +305,8 @@ const Register = () => {
             {errors.year && <p className="mt-1 text-sm text-red-500">{errors.year}</p>}
           </div>
 
-          {/* Payment Toggle Switch */}
-          <div className="flex items-center mt-6">
+          {/* Payment section - Conditionally displayed */}
+          <div className="mt-6">
             <label htmlFor="payNow" className="flex items-center cursor-pointer">
               <div className="relative">
                 <input
@@ -301,93 +324,101 @@ const Register = () => {
                 Proceed to Payment Now?
               </div>
             </label>
-          </div>
 
-          {/* Payment Section (conditional) */}
-          {formData.payNow && (
-            <div className="mt-6 p-5 bg-gray-700 rounded-lg border border-gray-600">
-              <h3 className="text-xl font-semibold text-[#ed5a2d] mb-4">Payment Details</h3>
-              
-              <div className="flex flex-col md:flex-row gap-6 mb-4">
-                <div className="flex-1">
-                  <p className="text-gray-300 mb-4">Please scan the QR to complete the payment.</p>
-                  
-                  <div className="bg-white p-3 rounded-lg shadow-md inline-block mb-4">
-                    <img 
-                      src={QRImage} 
-                      alt="Payment QR Code" 
-                      className="w-48 h-48 object-contain"
-                    />
+            {formData.payNow && (
+              <div className="mt-4 p-5 bg-gray-700 rounded-lg border border-gray-600 space-y-6">
+                <div className="flex flex-col items-center mb-4">
+                  <h3 className="text-xl font-semibold text-[#ed5a2d] mb-4">Payment Details</h3>
+                  <div className="p-4 bg-white rounded-md w-56 h-56 flex items-center justify-center mb-3">
+                    <img src={QRImage} alt="Payment QR Code" className="max-w-full max-h-full" />
                   </div>
+                  
+                  <p className="text-xs text-gray-400 text-center">
+                    Please save a screenshot of your payment for verification
+                  </p>
                 </div>
-                
-                <div className="flex-1 space-y-4">
-                  <div>
-                    <label htmlFor="utr_number" className="block text-gray-300 text-sm font-medium mb-2">
-                      UTR Number
-                    </label>
-                    <input
-                      type="text"
-                      id="utr_number"
-                      name="utr_number"
-                      value={formData.utr_number}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-md bg-gray-800 text-gray-200 border ${
-                        errors.utr_number ? 'border-red-500' : 'border-gray-600'
-                      } focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent`}
-                      placeholder="Enter UTR number"
-                    />
-                    {errors.utr_number && <p className="mt-1 text-sm text-red-500">{errors.utr_number}</p>}
-                  </div>
+
+                <div>
+                  <label htmlFor="utr_number" className="block text-gray-300 text-sm font-medium mb-2">
+                    UTR Number / Transaction ID
+                  </label>
+                  <input
+                    type="text"
+                    id="utr_number"
+                    name="utr_number"
+                    value={formData.utr_number}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 rounded-md bg-gray-800 text-gray-200 border ${
+                      errors.utr_number ? 'border-red-500' : 'border-gray-600'
+                    } focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent`}
+                    placeholder="Enter transaction reference number"
+                  />
+                  {errors.utr_number && (
+                    <p className="mt-1 text-sm text-red-500">{errors.utr_number}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="payment_screenshot" className="block text-gray-300 text-sm font-medium mb-2">
+                    Upload Payment Screenshot
+                  </label>
+                  <input
+                    type="file"
+                    id="payment_screenshot"
+                    name="payment_screenshot"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    disabled={isLoading}
+                    className={`w-full px-4 py-3 rounded-md bg-gray-800 text-gray-200 border ${
+                      errors.payment_screenshot ? 'border-red-500' : 'border-gray-600'
+                    } focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0 file:text-sm file:font-semibold
+                    file:bg-[#ed5a2d] file:text-white
+                    hover:file:bg-[#d54a1d]`}
+                  />
+                  {errors.payment_screenshot && (
+                    <p className="mt-1 text-sm text-red-500">{errors.payment_screenshot}</p>
+                  )}
                   
-                  <div>
-                    <label htmlFor="payment_screenshot" className="block text-gray-300 text-sm font-medium mb-2">
-                      Upload Payment Screenshot
-                    </label>
-                    <input
-                      type="file"
-                      id="payment_screenshot"
-                      name="payment_screenshot"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className={`w-full px-4 py-3 rounded-md bg-gray-800 text-gray-200 border ${
-                        errors.payment_screenshot ? 'border-red-500' : 'border-gray-600'
-                      } focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent file:mr-4 file:py-2 file:px-4
-                      file:rounded-md file:border-0 file:text-sm file:font-semibold
-                      file:bg-[#ed5a2d] file:text-white
-                      hover:file:bg-[#d54a1d]`}
-                    />
-                    {errors.payment_screenshot && (
-                      <p className="mt-1 text-sm text-red-500">{errors.payment_screenshot}</p>
-                    )}
-                    {paymentScreenshot && (
-                      <p className="mt-1 text-sm text-green-500">
-                        File selected: {paymentScreenshot.name}
+                  {isLoading && (
+                    <div className="mt-2 flex items-center">
+                      <ClipLoader size={16} color="#ed5a2d" />
+                      <span className="ml-2 text-sm text-gray-400">Uploading image...</span>
+                    </div>
+                  )}
+                  
+                  {previewUrl && (
+                    <div className="mt-2">
+                      <p className="text-sm text-green-500">
+                        Payment screenshot uploaded successfully
                       </p>
-                    )}
-                  </div>
+                      <div className="mt-2 w-full max-h-40 overflow-hidden rounded-md border border-gray-600">
+                        <img src={previewUrl} alt="Payment screenshot preview" className="w-full object-contain" />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          <div className="flex justify-center pt-4">
+          <div className="flex justify-center mt-8">
             <button
               type="submit"
               disabled={isLoading || !isRegisterButtonEnabled}
-              className={`px-6 py-3 rounded-md text-white font-medium text-lg transition-colors duration-300 ${
+              className={`w-full py-3 px-6 rounded-md text-white font-semibold transition-all ${
                 isLoading || !isRegisterButtonEnabled
-                  ? 'bg-gray-500 cursor-not-allowed'
-                  : 'bg-[#ed5a2d] hover:bg-[#d54a1d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500'
+                  ? 'bg-gray-600 cursor-not-allowed'
+                  : 'bg-[#ed5a2d] hover:bg-[#d54a1d] active:transform active:scale-95'
               }`}
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
-                  <ClipLoader size={20} color="white" className="mr-2" />
-                  <span>Registering...</span>
+                  <ClipLoader size={18} color="#ffffff" />
+                  <span className="ml-2">Registering...</span>
                 </div>
               ) : (
-                'Register Now'
+                'Register for Workshop'
               )}
             </button>
           </div>

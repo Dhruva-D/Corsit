@@ -134,24 +134,38 @@ app.post("/edit-profile", authMiddleware, uploadProfile.fields([
     { name: "projectPhoto", maxCount: 1 }, 
     { name: "abstractDoc", maxCount: 1 }
 ]), async (req, res) => {
-    const { name, designation, linkedin, github, projectTitle, projectDescription, phone, instagram } = req.body;
-    const updateData = { 
-        name, 
-        designation, 
-        linkedin, 
-        github, 
-        projectTitle, 
-        projectDescription,
-        phone,
-        instagram
-    };
+    try {
+        const { name, designation, linkedin, github, projectTitle, projectDescription, phone, instagram } = req.body;
+        const updateData = { 
+            name, 
+            designation, 
+            linkedin, 
+            github, 
+            projectTitle, 
+            projectDescription,
+            phone,
+            instagram
+        };
 
-    if (req.files && req.files.profilePhoto) updateData.profilePhoto = req.files.profilePhoto[0].path;
-    if (req.files && req.files.projectPhoto) updateData.projectPhoto = req.files.projectPhoto[0].path;
-    if (req.files && req.files.abstractDoc) updateData.abstractDoc = req.files.abstractDoc[0].path;
+        // Handle file uploads through Cloudinary and use the full URLs
+        if (req.files) {
+            if (req.files.profilePhoto) {
+                updateData.profilePhoto = req.files.profilePhoto[0].path;
+            }
+            if (req.files.projectPhoto) {
+                updateData.projectPhoto = req.files.projectPhoto[0].path;
+            }
+            if (req.files.abstractDoc) {
+                updateData.abstractDoc = req.files.abstractDoc[0].path;
+            }
+        }
 
-    await User.findByIdAndUpdate(req.user.id, updateData);
-    res.json({ message: "Profile and project details updated" });
+        await User.findByIdAndUpdate(req.user.id, updateData);
+        res.json({ message: "Profile and project details updated" });
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        res.status(500).json({ message: "Server error" });
+    }
 });
 
 // Get Profile
@@ -228,7 +242,7 @@ app.put("/admin/users/:userId", authMiddleware, uploadProfile.fields([
         const { userId } = req.params;
         const updateData = req.body;
         
-        // Handle file uploads
+        // Handle file uploads through Cloudinary
         if (req.files) {
             if (req.files.profilePhoto) {
                 updateData.profilePhoto = req.files.profilePhoto[0].path;
@@ -303,12 +317,17 @@ app.post('/signup', async (req, res) => {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create new user
+        // Create new user with default values
         const user = new User({
             name,
             email,
             password: hashedPassword,
             adminAuthenticated: 'no',
+            // Default social media URLs
+            linkedin: 'https://linkedin.com',
+            github: 'https://github.com',
+            instagram: 'https://instagram.com',
+            // Use Cloudinary default images
             profilePhoto: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/v1/profile_uploads/default-profile.png`,
             projectPhoto: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/v1/project_uploads/default-project.png`,
         });

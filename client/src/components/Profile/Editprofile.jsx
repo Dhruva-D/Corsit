@@ -188,7 +188,11 @@ const EditProfile = () => {
                       src={preview.profilePhoto || config.defaultProfileImage}
                       alt="Profile Preview"
                       className="w-full h-full object-cover"
-                      onError={(e) => (e.target.src = config.defaultProfileImage)}
+                      onError={(e) => {
+                        console.log("Profile preview image failed to load, using default");
+                        e.target.src = config.defaultProfileImage;
+                        e.target.onerror = null; // Prevents infinite loop
+                      }}
                     />
                   </div>
                 </div>
@@ -212,7 +216,11 @@ const EditProfile = () => {
                       src={preview.projectPhoto || config.defaultProjectImage}
                       alt="Project Preview"
                       className="w-full h-full object-cover"
-                      onError={(e) => (e.target.src = config.defaultProjectImage)}
+                      onError={(e) => {
+                        console.log("Project preview image failed to load, using default");
+                        e.target.src = config.defaultProjectImage;
+                        e.target.onerror = null; // Prevents infinite loop
+                      }}
                     />
                   </div>
                 </div>

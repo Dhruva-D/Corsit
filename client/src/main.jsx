@@ -20,6 +20,31 @@ import Admin from "./components/Profile/Admin.jsx";
 import AdminsGallery from "./components/Profile/AdminsGallery.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
+// Global image error handler to ensure default images are shown when loading fails
+import defaultProfileImage from './assets/default-profile.svg';
+import defaultProjectImage from './assets/default-project.svg';
+
+// Set up global error handler for images
+window.addEventListener('error', (e) => {
+  // Check if the error is from an image
+  if (e.target.tagName === 'IMG') {
+    console.log(`Image failed to load: ${e.target.src}`);
+    
+    // Set appropriate default based on context clues
+    if (e.target.alt && e.target.alt.toLowerCase().includes('profile')) {
+      e.target.src = defaultProfileImage;
+    } else if (e.target.alt && e.target.alt.toLowerCase().includes('project')) {
+      e.target.src = defaultProjectImage;
+    } else {
+      // Default to profile image if context is unclear
+      e.target.src = defaultProfileImage;
+    }
+    
+    // Prevent the same error from occurring again
+    e.target.onerror = null;
+  }
+}, true);
+
 // Error Component
 const ErrorPage = () => {
   return (

@@ -3,14 +3,23 @@
  * Change values here to update throughout the application
  */
 
+// Import default images as modules
+import defaultProfileImage from './assets/default-profile.svg';
+import defaultProjectImage from './assets/default-project.svg';
+
 const config = {
   // API URLs
-  // apiBaseUrl: 'https://corsit-qahn.onrender.com',
-  apiBaseUrl: 'http://localhost:5000',
+  apiBaseUrl: 'https://corsit-qahn.onrender.com',
+  // apiBaseUrl: 'http://localhost:5000',
   
-  // Other global configuration values can be added here
-  defaultProfileImage: '/default_profile.png',
-  defaultProjectImage: '/default_project.jpeg',
+  // Default images
+  defaultProfileImage: defaultProfileImage,
+  defaultProjectImage: defaultProjectImage,
+  
+  // Default social media URLs
+  defaultLinkedin: 'https://linkedin.com',
+  defaultGithub: 'https://github.com',
+  defaultInstagram: 'https://instagram.com',
   
   // Theme colors
   colors: {

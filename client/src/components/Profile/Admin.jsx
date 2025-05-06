@@ -81,9 +81,9 @@ const Admin = () => {
             projectDescription: user.projectDescription || '',
         });
         setPreviewImages({
-            profilePhoto: user.profilePhoto ? `${config.apiBaseUrl}/${user.profilePhoto}` : null,
-            projectPhoto: user.projectPhoto ? `${config.apiBaseUrl}/${user.projectPhoto}` : null,
-            abstractDoc: user.abstractDoc ? `${config.apiBaseUrl}/${user.abstractDoc}` : null
+            profilePhoto: user.profilePhoto || null,
+            projectPhoto: user.projectPhoto || null,
+            abstractDoc: user.abstractDoc || null
         });
     };
 
@@ -95,42 +95,58 @@ const Admin = () => {
         }));
     };
 
-    const handleFileChange = (e, type) => {
+    const handleFileChange = async (e, type) => {
         const file = e.target.files[0];
-        if (file) {
-            setPreviewImages(prev => ({
+        if (!file) return;
+        
+        // Set local preview
+        setPreviewImages(prev => ({
+            ...prev,
+            [type]: URL.createObjectURL(file)
+        }));
+        
+        // Create form data for this specific file
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        try {
+            // Determine upload endpoint based on field type
+            let uploadEndpoint = 'profile';
+            if (type === 'projectPhoto') uploadEndpoint = 'project';
+            if (type === 'abstractDoc') uploadEndpoint = 'abstract';
+            
+            // Upload file to Cloudinary through our API
+            const response = await axios.post(
+                `${config.apiBaseUrl}/api/upload/${uploadEndpoint}`, 
+                formData, 
+                { headers: { 'Content-Type': 'multipart/form-data' } }
+            );
+            
+            // Store the Cloudinary URL
+            setFormData(prev => ({
                 ...prev,
-                [type]: URL.createObjectURL(file)
+                [type]: response.data.imageUrl
             }));
+        } catch (error) {
+            console.error(`Error uploading ${type}:`, error);
+            setError(`Failed to upload ${type}. Please try again.`);
+            setTimeout(() => setError(''), 3000);
         }
     };
 
     const handleSave = async () => {
         try {
             setLoading(true);
-            const formDataToSend = new FormData();
             
-            // Append text data
-            Object.keys(formData).forEach(key => {
-                formDataToSend.append(key, formData[key]);
-            });
-            
-            // Append files
-            ['profilePhoto', 'projectPhoto', 'abstractDoc'].forEach(type => {
-                const fileInput = fileInputRefs[type].current;
-                if (fileInput && fileInput.files[0]) {
-                    formDataToSend.append(type, fileInput.files[0]);
-                }
-            });
-            
+            // We're using formData object directly as we've already uploaded images to Cloudinary
             const response = await axios.put(
                 `${config.apiBaseUrl}/admin/users/${editingUser._id}`,
-                formDataToSend,
+                formData,
                 {
                     headers: {
                         Authorization: localStorage.getItem('token'),
                         isAdmin: 'true',
-                        'Content-Type': 'multipart/form-data'
+                        'Content-Type': 'application/json'
                     }
                 }
             );
@@ -294,10 +310,14 @@ const Admin = () => {
                                         <div className="p-5">
                                             <div className="flex items-center mb-4">
                                                 <img 
-                                                    src={user.profilePhoto ? `${config.apiBaseUrl}/${user.profilePhoto}` : config.defaultProfileImage} 
+                                                    src={user.profilePhoto || config.defaultProfileImage} 
                                                     alt={user.name} 
                                                     className="w-16 h-16 rounded-full border-2 border-[#ed5a2d] mr-4 object-cover"
-                                                    onError={(e) => e.target.src = "/default_profile.png"} 
+                                                    onError={(e) => {
+                                                        console.log("Profile image failed to load in Admin panel, using default");
+                                                        e.target.src = config.defaultProfileImage;
+                                                        e.target.onerror = null; // Prevents infinite loop
+                                                    }} 
                                                 />
                                                 <div>
                                                     <h3 className="text-xl font-bold text-white">{user.name}</h3>
@@ -316,9 +336,14 @@ const Admin = () => {
                                                         <p className="text-gray-300 text-sm mt-1">{user.projectDescription}</p>
                                                         {user.projectPhoto && (
                                                             <img 
-                                                                src={`${config.apiBaseUrl}/${user.projectPhoto}`}
+                                                                src={user.projectPhoto || config.defaultProjectImage}
                                                                 alt="Project"
                                                                 className="mt-2 rounded-lg w-full h-32 object-cover"
+                                                                onError={(e) => {
+                                                                    console.log("Project image failed to load in Admin panel, using default");
+                                                                    e.target.src = config.defaultProjectImage;
+                                                                    e.target.onerror = null; // Prevents infinite loop
+                                                                }}
                                                             />
                                                         )}
                                                     </div>

@@ -54,7 +54,11 @@ const ProfileCard = ({ person }) => {
             className="w-full h-full object-cover" 
             src={person.profilePhoto || config.defaultProfileImage} 
             alt={person.name}
-            onError={(e) => e.target.src = "/default_profile.png"}
+            onError={(e) => {
+              console.log("Profile image failed to load in Team component, using default");
+              e.target.src = config.defaultProfileImage;
+              e.target.onerror = null; // Prevents infinite loop
+            }}
           />
         </div>
         <h1 className="mt-4 text-center text-xl md:text-2xl font-semibold text-white leading-7 tracking-tight">{person.name}</h1>

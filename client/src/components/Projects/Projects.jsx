@@ -35,9 +35,14 @@ const Projects = () => {
 
                   <div className="w-full rounded-lg overflow-hidden border-2 border-orange-500">
                     <img
-                      src={project.projectPhoto ? `${config.apiBaseUrl}/${project.projectPhoto}` : config.defaultProjectImage}
+                      src={project.projectPhoto || config.defaultProjectImage}
                       alt={project.name}
                       className="w-full h-40 sm:h-60 object-cover rounded-lg transition-transform duration-500 hover:scale-105"
+                      onError={(e) => {
+                        console.log("Project image failed to load in Projects component, using default");
+                        e.target.src = config.defaultProjectImage;
+                        e.target.onerror = null; // Prevents infinite loop
+                      }}
                     />
                   </div>
 
@@ -49,7 +54,7 @@ const Projects = () => {
                     <div className="mt-auto">
                       {project.abstractDoc ? (
                         <a
-                          href={project.abstractDoc ? `${config.apiBaseUrl}/${project.abstractDoc}` : '#'}
+                          href={project.abstractDoc || '#'}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="w-full block text-center mt-4 px-4 sm:px-6 py-2 bg-orange-500 text-black font-bold rounded-lg transition-all transform hover:scale-105 hover:bg-orange-600 shadow-lg shadow-orange-500/50"

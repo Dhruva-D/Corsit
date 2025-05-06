@@ -75,7 +75,11 @@ const Profile = () => {
                         src={userData?.profilePhoto || config.defaultProfileImage} 
                         alt="Profile" 
                         className="w-full h-full object-cover"
-                        onError={(e) => e.target.src = config.defaultProfileImage}
+                        onError={(e) => {
+                          console.log("Profile image failed to load, using default");
+                          e.target.src = config.defaultProfileImage;
+                          e.target.onerror = null; // Prevents infinite loop
+                        }}
                       />
                     </div>
                     <h2 className="text-3xl font-bold text-center mb-2">{userData?.name}</h2>
@@ -104,7 +108,7 @@ const Profile = () => {
                       <label className="block text-xl font-medium mb-3 text-gray-300">Social Links</label>
                       <div className="flex flex-wrap gap-4">
                         <a 
-                          href={userData?.linkedin} 
+                          href={userData?.linkedin || config.defaultLinkedin} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 hover:bg-gray-600 transition-all"
@@ -113,7 +117,7 @@ const Profile = () => {
                           <span>LinkedIn</span>
                         </a>
                         <a 
-                          href={userData?.github} 
+                          href={userData?.github || config.defaultGithub} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 hover:bg-gray-600 transition-all"
@@ -122,7 +126,7 @@ const Profile = () => {
                           <span>GitHub</span>
                         </a>
                         <a 
-                          href={`https://instagram.com/${userData?.instagram}`} 
+                          href={userData?.instagram ? `https://instagram.com/${userData.instagram}` : config.defaultInstagram} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 hover:bg-gray-600 transition-all"
@@ -152,7 +156,11 @@ const Profile = () => {
                         src={userData?.projectPhoto || config.defaultProjectImage} 
                         alt="Project" 
                         className="w-full h-64 object-cover"
-                        onError={(e) => e.target.src = config.defaultProjectImage}
+                        onError={(e) => {
+                          console.log("Project image failed to load, using default");
+                          e.target.src = config.defaultProjectImage;
+                          e.target.onerror = null; // Prevents infinite loop
+                        }}
                       />
                     </div>
                   </div>
@@ -180,6 +188,14 @@ const Profile = () => {
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 px-6 py-4 bg-[#ed5a2d] rounded-lg text-xl font-semibold text-center transition shadow-md hover:bg-[#d54a1d] active:scale-95 cursor-pointer"
+                          onClick={(e) => {
+                            // Validate URL before opening
+                            if (!userData.abstractDoc.startsWith('http')) {
+                              e.preventDefault();
+                              console.error("Invalid abstract document URL");
+                              alert("Abstract document URL is invalid");
+                            }
+                          }}
                         >
                           View Abstract Document
                         </a>

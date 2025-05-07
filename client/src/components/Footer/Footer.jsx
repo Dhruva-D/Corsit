@@ -1,9 +1,45 @@
-import React from "react";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faInstagram, faFacebook, faYoutube, faLinkedin, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
-import { faEnvelope, faMapMarkerAlt } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faMapMarkerAlt, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
+import config from "../../config";
 
 const Footer = () => {
+  const [email, setEmail] = useState("");
+  const [subscribeStatus, setSubscribeStatus] = useState({ message: "", type: "" });
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    
+    // Email validation using regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setSubscribeStatus({ message: "Please enter a valid email address", type: "error" });
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${config.apiBaseUrl}/api/subscribe`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setSubscribeStatus({ message: "Subscribed successfully!", type: "success" });
+        setEmail("");
+      } else {
+        setSubscribeStatus({ message: data.message || "Subscription failed", type: "error" });
+      }
+    } catch (error) {
+      setSubscribeStatus({ message: "Something went wrong. Please try again.", type: "error" });
+    }
+  };
+
   return (
     <footer className="bg-[#272928] text-[#f7ffff] pt-16 pb-5 px-8 md:px-16">
       <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -24,6 +60,45 @@ const Footer = () => {
               </a>
             ))}
           </div>
+          
+          {/* Subscription Form */}
+          <div className="mt-8 border-2 border-[#ed5a2d] rounded-lg p-6 bg-gradient-to-br from-[#292a2a] to-[#1e1f1f] backdrop-blur-sm shadow-xl">
+            <h3 className="text-2xl text-[#ed5a2d] font-bold mb-4 flex items-center">
+              <FontAwesomeIcon icon={faPaperPlane} className="mr-2" />
+              Subscribe for Upcoming Events
+            </h3>
+            <form onSubmit={handleSubscribe} className="flex flex-col space-y-4">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-grow">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Your Email Address"
+                    className="p-4 pl-4 w-full rounded-md bg-white text-gray-800 focus:outline-none focus:ring-3 focus:ring-[#ed5a2d] border-2 border-transparent placeholder-gray-500 text-base"
+                    required
+                  />
+                </div>
+                <button 
+                  type="submit" 
+                  className="bg-gradient-to-r from-[#ed5a2d] to-[#ff7742] text-white p-4 px-8 rounded-md hover:from-[#ff7742] hover:to-[#ed5a2d] transition-all duration-300 flex items-center justify-center sm:w-auto w-full shadow-md font-bold text-base"
+                >
+                  <span>Subscribe</span>
+                </button>
+              </div>
+              {subscribeStatus.message && (
+                <div className={`rounded-md p-3 ${subscribeStatus.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                  <p className="text-sm font-medium">
+                    {subscribeStatus.message}
+                  </p>
+                </div>
+              )}
+              <p className="text-sm text-gray-300 flex items-center">
+                <FontAwesomeIcon icon={faEnvelope} className="mr-2 text-[#ed5a2d]" />
+                Stay updated with our latest events, workshops, and robotics competitions.
+              </p>
+            </form>
+          </div>
         </div>
         
         <div>
@@ -31,7 +106,7 @@ const Footer = () => {
           <ul className="mt-4 space-y-3">
             {["RoboExpo", "Workshop", "Robocor"].map((item, index) => (
               <li key={index}>
-                <a href="/" className="text-[#f7ffff] hover:text-white text-lg block">
+                <a href={item === "Workshop" ? "/register" : "/"} className="text-[#f7ffff] hover:text-white text-lg block">
                   {item}
                 </a>
               </li>

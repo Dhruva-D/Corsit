@@ -29,6 +29,13 @@ mongoose.connect(process.env.MONGO_URI, {
 }).then(() => console.log("MongoDB Connected"))
 .catch(err => console.log(err));
 
+// SubscribedUsers Schema
+const subscribedUsersSchema = new mongoose.Schema({
+    email: { type: String, required: true, unique: true },
+    subscribedAt: { type: Date, default: Date.now }
+});
+const SubscribedUsers = mongoose.model("SubscribedUsers", subscribedUsersSchema);
+
 // User Schema
 const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -773,6 +780,33 @@ app.get('/workshop-registrations/export-all', authMiddleware, async (req, res) =
     } catch (error) {
         console.error('Error exporting registrations:', error);
         res.status(500).json({ message: 'Error exporting registrations' });
+    }
+});
+
+// API endpoint for user subscriptions
+app.post("/api/subscribe", async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        // Simple validation
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+        
+        // Check if already subscribed
+        const existingSubscription = await SubscribedUsers.findOne({ email });
+        if (existingSubscription) {
+            return res.status(400).json({ message: "Email already subscribed" });
+        }
+        
+        // Create new subscription
+        const newSubscription = new SubscribedUsers({ email });
+        await newSubscription.save();
+        
+        res.status(201).json({ message: "Subscribed successfully" });
+    } catch (error) {
+        console.error("Subscription error:", error);
+        res.status(500).json({ message: "Server error" });
     }
 });
 

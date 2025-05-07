@@ -1,9 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTypewriter, Cursor } from 'react-simple-typewriter';
 import { NavLink } from 'react-router-dom';
 import lfr from '../../assets/home/lfr.jpg';
 import gesture from '../../assets/home/gcr.jpg';
 import smartHome from '../../assets/home/sha.webp';
+
+// Import RoboExpo images
+import re1 from '../../assets/events/roboexpo/1.jpg';
+import re2 from '../../assets/events/roboexpo/2.jpg';
+import re3 from '../../assets/events/roboexpo/3.jpg';
 
 const Home = () => {
   const [text] = useTypewriter({
@@ -13,8 +18,50 @@ const Home = () => {
     typeSpeed: 100,
   });
 
+  const [showGallery, setShowGallery] = useState(false);
+
+  const roboExpoData = {
+    title: 'RoboExpo',
+    images: [re1, re2, re3]
+  };
+
+  const openGallery = () => {
+    setShowGallery(true);
+  };
+
+  const closeGallery = () => {
+    setShowGallery(false);
+  };
+
   return (
     <div className="relative text-[#f7ffff] flex flex-col overflow-x-hidden pt-28">
+      {/* Gallery Modal */}
+      {showGallery && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
+          <div className="bg-[#272928] rounded-xl max-w-5xl w-full max-h-[90vh] overflow-auto p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-3xl font-semibold text-[#ed5a2d]">{roboExpoData.title} Gallery</h3>
+              <button 
+                onClick={closeGallery}
+                className="text-white hover:text-[#ed5a2d] text-3xl"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {roboExpoData.images.map((img, index) => (
+                <img 
+                  key={index} 
+                  src={img} 
+                  alt={`${roboExpoData.title} ${index + 1}`}
+                  className="w-full h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="zero h-screen mb-20 mt-[-40px] relative z-10 flex items-center justify-center">
         <div className='relative w-[100vw] h-[100vh]'>
           <spline-viewer url="https://prod.spline.design/8Q-TXZHyF66OklDE/scene.splinecode"></spline-viewer>
@@ -68,7 +115,7 @@ const Home = () => {
                 title: 'RoboExpo',
                 description: 'A showcase of cutting-edge robotics, AI, and automation innovations.',
                 location: '📍 Birla Auditorium',
-                status: 'closed'
+                status: 'roboexpo'
               },
             ].map((event, index) => (
               <div key={index} className="relative h-[400px] w-full rounded-xl p-10 bg-gradient-to-br from-[#1a1a1a80] to-[#22222280] shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.05] border-4 border-[#ed5a2d40] flex flex-col items-center text-center justify-center backdrop-blur-md bg-opacity-80">
@@ -83,6 +130,13 @@ const Home = () => {
                       Register Now
                     </button>
                   </NavLink>
+                ) : event.status === 'roboexpo' ? (
+                  <button 
+                    onClick={openGallery}
+                    className="mt-6 bg-gradient-to-r from-[#ed5a2d] to-orange-500 hover:from-orange-500 hover:to-[#ed5a2d] text-white font-bold py-2 px-6 rounded-full shadow-md transition-all duration-300 hover:scale-110"
+                  >
+                    View Gallery
+                  </button>
                 ) : (
                   <div className="mt-6 bg-gray-700 text-gray-300 font-bold py-2 px-6 rounded-full shadow-md">
                     <span className="flex items-center">

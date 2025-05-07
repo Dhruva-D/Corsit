@@ -27,8 +27,8 @@ const Header = () => {
 
     const navLinks = [
         { path: '/', label: 'HOME' },
-        { path: '/events', label: 'EVENTS' },
         { path: '/about', label: 'ABOUT' },
+        { path: '/events', label: 'EVENTS' },
         // { path: '/projects', label: 'PROJECTS' }, // Hidden for now - will be used later
         { path: '/team', label: 'TEAM' },
         { path: '/alumni', label: 'ALUMNI' },

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 
 import rc1 from '../../assets/events/robocor/1.png';
@@ -59,8 +59,46 @@ const eventsData = [
 ];
 
 const Events = () => {
+  const [showGallery, setShowGallery] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+
+  const openGallery = (event) => {
+    setSelectedEvent(event);
+    setShowGallery(true);
+  };
+
+  const closeGallery = () => {
+    setShowGallery(false);
+  };
+
   return (
     <div className='min-h-screen bg-[#272928] py-24 px-4 sm:px-6 md:py-36'>
+      {showGallery && selectedEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
+          <div className="bg-[#272928] rounded-xl max-w-5xl w-full max-h-[90vh] overflow-auto p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-3xl font-semibold text-[#ed5a2d]">{selectedEvent.title} Gallery</h3>
+              <button 
+                onClick={closeGallery}
+                className="text-white hover:text-[#ed5a2d] text-3xl"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {selectedEvent.images.map((img, index) => (
+                <img 
+                  key={index} 
+                  src={img} 
+                  alt={`${selectedEvent.title} ${index + 1}`}
+                  className="w-full h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className='text-center mb-12 sm:mb-16'>
         <h2 className='text-5xl sm:text-7xl font-bold text-[#ed5a2d] tracking-tight'>Our Events</h2>
       </div>
@@ -82,6 +120,14 @@ const Events = () => {
                 >
                   Register
                 </NavLink>
+              )}
+              {event.title === 'RoboExpo' && (
+                <button
+                  onClick={() => openGallery(event)}
+                  className='mt-6 inline-block border-2 border-[#ed5a2d] text-[#ed5a2d] px-10 sm:px-14 py-3 sm:py-4 rounded-3xl text-lg sm:text-xl font-semibold transition duration-300 hover:bg-[#ed5a2d] hover:text-white hover:border-4 hover:shadow-lg'
+                >
+                  View Gallery
+                </button>
               )}
             </div>
 
@@ -105,7 +151,5 @@ const Events = () => {
     </div>
   );
 };
-
-
 
 export default Events;

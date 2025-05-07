@@ -43,6 +43,20 @@ const AdminsGallery = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [registrationToDelete, setRegistrationToDelete] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
+    // State to track which teams are expanded
+    const [expandedTeams, setExpandedTeams] = useState({});
+
+    // Toggle team expansion
+    const toggleTeamExpansion = (teamNo) => {
+        setExpandedTeams(prev => {
+            const newState = {
+                ...prev,
+                [teamNo]: !prev[teamNo]
+            };
+            console.log("Toggled team expansion for team", teamNo, "New expanded state:", newState);
+            return newState;
+        });
+    };
 
     useEffect(() => {
         const isAdmin = localStorage.getItem('isAdmin');
@@ -66,6 +80,7 @@ const AdminsGallery = () => {
                     isAdmin: 'true'
                 }
             });
+            console.log("API Response:", response.data);
             setRegistrations(response.data);
             setLoading(false);
         } catch (error) {
@@ -89,14 +104,35 @@ const AdminsGallery = () => {
                 }
             );
             
-            // Update the local state
-            setRegistrations(prev => 
-                prev.map(reg => 
-                    reg._id === registrationId 
-                        ? { ...reg, payment_verified: !currentStatus }
-                        : reg
-                )
-            );
+            console.log("Payment verification updated for:", registrationId, "New status:", !currentStatus);
+            
+            // Update the local state with the new processed structure
+            setRegistrations(prev => {
+                // Create a deep copy of the previous state
+                const updatedRegistrations = { ...prev };
+                
+                // Check if it's in individual registrations
+                const individualIndex = updatedRegistrations.individual.findIndex(reg => reg._id === registrationId);
+                if (individualIndex !== -1) {
+                    updatedRegistrations.individual[individualIndex].payment_verified = !currentStatus;
+                    return updatedRegistrations;
+                }
+                
+                // If not in individuals, check in teams
+                if (updatedRegistrations.teams) {
+                    // Look through each team
+                    Object.keys(updatedRegistrations.teams).forEach(teamNo => {
+                        const teamMembers = updatedRegistrations.teams[teamNo];
+                        const memberIndex = teamMembers.findIndex(reg => reg._id === registrationId);
+                        
+                        if (memberIndex !== -1) {
+                            updatedRegistrations.teams[teamNo][memberIndex].payment_verified = !currentStatus;
+                        }
+                    });
+                }
+                
+                return updatedRegistrations;
+            });
         } catch (error) {
             console.error('Error updating payment verification:', error);
         } finally {
@@ -125,8 +161,34 @@ const AdminsGallery = () => {
                 }
             );
             
-            // Remove from local state
-            setRegistrations(prev => prev.filter(reg => reg._id !== registrationToDelete._id));
+            // Remove from local state - handle structured data
+            setRegistrations(prev => {
+                // Create a deep copy of the previous state
+                const updatedRegistrations = { ...prev };
+                
+                // Check if it's in individual registrations
+                updatedRegistrations.individual = updatedRegistrations.individual.filter(
+                    reg => reg._id !== registrationToDelete._id
+                );
+                
+                // If it could be in teams, filter there too
+                if (updatedRegistrations.teams) {
+                    // Look through each team
+                    Object.keys(updatedRegistrations.teams).forEach(teamNo => {
+                        updatedRegistrations.teams[teamNo] = updatedRegistrations.teams[teamNo].filter(
+                            reg => reg._id !== registrationToDelete._id
+                        );
+                        
+                        // If team is now empty, remove the team entry
+                        if (updatedRegistrations.teams[teamNo].length === 0) {
+                            delete updatedRegistrations.teams[teamNo];
+                        }
+                    });
+                }
+                
+                return updatedRegistrations;
+            });
+            
             setShowDeleteModal(false);
             setRegistrationToDelete(null);
         } catch (error) {
@@ -149,10 +211,119 @@ const AdminsGallery = () => {
         setSortConfig({ key, direction });
     };
 
-    const sortedRegistrations = React.useMemo(() => {
-        let sortableItems = [...registrations];
+    // Function to group registrations by team for new collapsed display
+    const processRegistrationsByTeams = React.useMemo(() => {
+        // Structure to hold the result
+        const result = {
+            teams: {},
+            individuals: []
+        };
+        
+        if (!registrations || !registrations.teams) {
+            return result;
+        }
+        
+        console.log("Raw registrations data:", registrations);
+        
+        // Process individual registrations if they exist
+        if (registrations.individual && Array.isArray(registrations.individual)) {
+            registrations.individual.forEach(reg => {
+                result.individuals.push({
+                    ...reg,
+                    isTeamHeader: false,
+                    isTeamMember: false
+                });
+            });
+        }
+        
+        // Process team registrations
+        if (registrations.teams) {
+            Object.entries(registrations.teams).forEach(([teamNo, members]) => {
+                // Check if it's a valid team number (starts with a number other than 0)
+                const isValidTeamNumber = /^[1-9]\d*$/.test(teamNo);
+                
+                if (Array.isArray(members) && members.length > 0) {
+                    if (isValidTeamNumber) {
+                        // Handle valid team numbers (01, 02, etc.)
+                        const teamLead = members[0];
+                        result.teams[teamNo] = {
+                            teamLead: {
+                                ...teamLead,
+                                isTeamHeader: true,
+                                isTeamMember: false,
+                                teamNo: teamNo,
+                                membersCount: members.length
+                            },
+                            members: members.slice(1).map(member => ({
+                                ...member,
+                                isTeamHeader: false,
+                                isTeamMember: true,
+                                teamNo: teamNo
+                            }))
+                        };
+                    } else {
+                        // For team "00", "undefined", or any other invalid team numbers,
+                        // treat all members as individual registrations
+                        members.forEach(member => {
+                            result.individuals.push({
+                                ...member,
+                                isTeamHeader: false,
+                                isTeamMember: false
+                            });
+                        });
+                    }
+                }
+            });
+        }
+        
+        console.log("Processed team data:", result);
+        console.log("Teams structure:", result.teams);
+        return result;
+    }, [registrations]);
+
+    // Get flattened registrations for the table with collapsed teams
+    const processedRegistrations = React.useMemo(() => {
+        const result = [];
+        
+        // Add all individual registrations if they exist
+        if (processRegistrationsByTeams.individuals && processRegistrationsByTeams.individuals.length > 0) {
+            result.push(...processRegistrationsByTeams.individuals);
+        }
+        
+        // Process team registrations (now each team is an array instead of {teamLead, members})
+        if (processRegistrationsByTeams.teams) {
+            Object.entries(processRegistrationsByTeams.teams).forEach(([teamNo, teamData]) => {
+                if (!teamData || !teamData.teamLead) return;
+                
+                // Only process as a team if it's a valid team number
+                const isValidTeamNumber = /^[1-9]\d*$/.test(teamNo);
+                if (isValidTeamNumber) {
+                    result.push(teamData.teamLead);
+                    if (teamData.members) {
+                        result.push(...teamData.members);
+                    }
+                }
+            });
+        }
+        
+        return result;
+    }, [processRegistrationsByTeams]);
+
+    // Apply sorting and filtering on the processed data
+    const filteredAndSortedRegistrations = React.useMemo(() => {
+        // Filter first
+        const filtered = processedRegistrations.filter(registration => 
+            registration.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            registration.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            registration.usn.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        
+        // Sort by the selected criteria
         if (sortConfig.key) {
-            sortableItems.sort((a, b) => {
+            const sortedItems = [...filtered];
+            
+            sortedItems.sort((a, b) => {
+                // Sort by the specified key
                 if (a[sortConfig.key] < b[sortConfig.key]) {
                     return sortConfig.direction === 'asc' ? -1 : 1;
                 }
@@ -161,16 +332,76 @@ const AdminsGallery = () => {
                 }
                 return 0;
             });
+            
+            return sortedItems;
         }
-        return sortableItems;
-    }, [registrations, sortConfig]);
+        
+        return filtered;
+    }, [processedRegistrations, searchTerm, sortConfig]);
 
-    const filteredRegistrations = sortedRegistrations.filter(
-        (registration) =>
-            registration.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            registration.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            registration.usn.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Helper function to count all registrations
+    const getTotalRegistrationsCount = () => {
+        if (!registrations || !registrations.individual) {
+            return 0;
+        }
+        
+        let count = registrations.individual.length;
+        
+        // Add team registrations if they exist
+        if (registrations.teams) {
+            Object.values(registrations.teams).forEach(teamMembers => {
+                if (Array.isArray(teamMembers)) {
+                    count += teamMembers.length;
+                }
+            });
+        }
+        
+        return count;
+    };
+    
+    // Helper to get all registrations as a flat array
+    const getAllRegistrationsFlat = React.useMemo(() => {
+        if (!registrations || !registrations.individual) {
+            return [];
+        }
+        
+        let allRegistrations = [...registrations.individual];
+        
+        // Add team registrations if they exist
+        if (registrations.teams) {
+            Object.values(registrations.teams).forEach(teamMembers => {
+                if (Array.isArray(teamMembers)) {
+                    allRegistrations = [...allRegistrations, ...teamMembers];
+                }
+            });
+        }
+        
+        return allRegistrations;
+    }, [registrations]);
+    
+    // Helper to count registrations by criteria
+    const countRegistrationsBy = (criteria, value) => {
+        return getAllRegistrationsFlat.filter(r => r[criteria] === value).length;
+    };
+    
+    // Helper to get the latest registration date
+    const getLatestRegistrationDate = () => {
+        if (getAllRegistrationsFlat.length === 0) {
+            return 'N/A';
+        }
+        
+        const latestDate = new Date(Math.max(...getAllRegistrationsFlat.map(r => new Date(r.registeredAt).getTime())));
+        const day = latestDate.getDate();
+        const daySuffix = getDaySuffix(day);
+        return latestDate.toLocaleDateString('en-US', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        }).replace(
+            day.toString(),
+            `${day}${daySuffix}`
+        );
+    };
 
     const exportToPDF = () => {
         try {
@@ -183,6 +414,7 @@ const AdminsGallery = () => {
             const green = [39, 174, 96]; // Success green
             const orange = [230, 126, 34]; // Warning orange
             const red = [231, 76, 60]; // Error red
+            const blue = [41, 128, 185]; // Team blue
             
             // Add maroon border around page
             doc.setDrawColor(primaryMaroon[0], primaryMaroon[1], primaryMaroon[2]);
@@ -257,62 +489,58 @@ const AdminsGallery = () => {
             doc.setFontSize(10);
             doc.setFont(undefined, 'normal');
             
+            // Count team registrations
+            const teamCount = Object.keys(processRegistrationsByTeams.teams).length;
+            const individualCount = processRegistrationsByTeams.individuals.length;
+            
             // Create two columns of stats for better layout
             const leftColumnStats = [
                 [
                     { content: 'Total Registrations:', styles: { fontStyle: 'bold' } }, 
-                    { content: `${registrations.length}`, styles: {} }
+                    { content: `${getTotalRegistrationsCount()}`, styles: {} }
+                ],
+                [
+                    { content: 'Individual Registrations:', styles: { fontStyle: 'bold' } }, 
+                    { content: `${individualCount}`, styles: {} }
+                ],
+                [
+                    { content: 'Team Registrations:', styles: { fontStyle: 'bold' } }, 
+                    { content: `${teamCount} teams`, styles: {} }
                 ],
                 [
                     { content: 'Paid Registrations:', styles: { fontStyle: 'bold' } }, 
-                    { content: `${registrations.filter(r => r.payment_status === 'Paid').length}`, styles: {} }
+                    { content: `${countRegistrationsBy('payment_status', 'Paid')}`, styles: {} }
                 ],
                 [
                     { content: 'Verified Payments:', styles: { fontStyle: 'bold' } }, 
-                    { content: `${registrations.filter(r => r.payment_verified).length}`, styles: {} }
+                    { content: `${countRegistrationsBy('payment_verified', true)}`, styles: {} }
                 ],
                 [
                     { content: 'Unpaid Registrations:', styles: { fontStyle: 'bold' } }, 
-                    { content: `${registrations.filter(r => r.payment_status !== 'Paid').length}`, styles: {} }
+                    { content: `${countRegistrationsBy('payment_status', 'Unpaid')}`, styles: {} }
                 ]
             ];
             
             const rightColumnStats = [
                 [
                     { content: 'First Year Students:', styles: { fontStyle: 'bold' } }, 
-                    { content: `${registrations.filter(r => r.year === '1').length}`, styles: {} }
+                    { content: `${countRegistrationsBy('year', '1')}`, styles: {} }
                 ],
                 [
                     { content: 'Second Year Students:', styles: { fontStyle: 'bold' } }, 
-                    { content: `${registrations.filter(r => r.year === '2').length}`, styles: {} }
+                    { content: `${countRegistrationsBy('year', '2')}`, styles: {} }
                 ],
                 [
                     { content: 'Third Year Students:', styles: { fontStyle: 'bold' } }, 
-                    { content: `${registrations.filter(r => r.year === '3').length}`, styles: {} }
+                    { content: `${countRegistrationsBy('year', '3')}`, styles: {} }
                 ],
                 [
                     { content: 'Fourth Year Students:', styles: { fontStyle: 'bold' } }, 
-                    { content: `${registrations.filter(r => r.year === '4').length}`, styles: {} }
+                    { content: `${countRegistrationsBy('year', '4')}`, styles: {} }
                 ],
                 [
                     { content: 'Latest Registration:', styles: { fontStyle: 'bold' } }, 
-                    { content: registrations.length > 0 
-                        ? (() => {
-                            const latestDate = new Date(Math.max(...registrations.map(r => new Date(r.registeredAt).getTime())));
-                            const day = latestDate.getDate();
-                            const daySuffix = getDaySuffix(day);
-                            return latestDate.toLocaleDateString('en-US', {
-                                day: 'numeric',
-                                month: 'short',
-                                year: 'numeric'
-                            }).replace(
-                                day.toString(),
-                                `${day}${daySuffix}`
-                            );
-                        })()
-                        : 'N/A', 
-                        styles: {} 
-                    }
+                    { content: getLatestRegistrationDate(), styles: {} }
                 ]
             ];
             
@@ -375,13 +603,24 @@ const AdminsGallery = () => {
             const statsEndY = leftColumnEndY + 10;
             doc.line(14, statsEndY, 196, statsEndY);
             
-            // Process registrations to create a table that includes receipt indicators
+            // Process registrations to create a table that includes team information
             // First, create a formatted array for the table
             const tableData = [];
             
-            // Create table rows
-            filteredRegistrations.forEach(registration => {
-                const registeredDate = new Date(registration.registeredAt).toLocaleDateString();
+            // Add individual registrations
+            processRegistrationsByTeams.individuals.forEach(registration => {
+                // Format registration date
+                const regDate = new Date(registration.registeredAt);
+                const regDay = regDate.getDate();
+                const regDaySuffix = getDaySuffix(regDay);
+                const formattedRegDate = regDate.toLocaleDateString('en-US', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                }).replace(
+                    regDay.toString(),
+                    `${regDay}${regDaySuffix}`
+                );
                 
                 // Create a styled payment status cell
                 const paymentStatus = registration.payment_status || 'Unpaid';
@@ -405,20 +644,8 @@ const AdminsGallery = () => {
                     }
                 };
                 
-                // Format registration date to show in words
-                const regDate = new Date(registration.registeredAt);
-                const regDay = regDate.getDate();
-                const regDaySuffix = getDaySuffix(regDay);
-                const formattedRegDate = regDate.toLocaleDateString('en-US', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric'
-                }).replace(
-                    regDay.toString(),
-                    `${regDay}${regDaySuffix}`
-                );
-                
                 const tableRow = [
+                    { content: "Individual", styles: {} },
                     registration.name,
                     registration.email,
                     registration.phone,
@@ -433,27 +660,165 @@ const AdminsGallery = () => {
                 tableData.push(tableRow);
             });
             
-            // Configure the main table with adjusted column widths - now optimized without images
+            // Add team registrations - grouped by team with leader first, then members
+            Object.entries(processRegistrationsByTeams.teams).forEach(([teamNo, team]) => {
+                // First add team leader
+                const leader = team.teamLead;
+                
+                // Format leader registration date
+                const leaderRegDate = new Date(leader.registeredAt);
+                const leaderRegDay = leaderRegDate.getDate();
+                const leaderRegDaySuffix = getDaySuffix(leaderRegDay);
+                const formattedLeaderRegDate = leaderRegDate.toLocaleDateString('en-US', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                }).replace(
+                    leaderRegDay.toString(),
+                    `${leaderRegDay}${leaderRegDaySuffix}`
+                );
+                
+                // Create leader payment status cell
+                const leaderPaymentStatus = leader.payment_status || 'Unpaid';
+                const leaderPaymentStatusCell = {
+                    content: leaderPaymentStatus,
+                    styles: {
+                        fillColor: leaderPaymentStatus === 'Paid' ? [200, 250, 200] : [255, 240, 200],
+                        textColor: leaderPaymentStatus === 'Paid' ? [39, 174, 96] : [230, 126, 34],
+                        fontStyle: 'bold'
+                    }
+                };
+                
+                // Create leader verification status cell
+                const leaderVerificationStatus = leader.payment_verified ? 'Yes' : 'No';
+                const leaderVerificationStatusCell = {
+                    content: leaderVerificationStatus,
+                    styles: {
+                        fillColor: leader.payment_verified ? [200, 250, 200] : [250, 220, 220],
+                        textColor: leader.payment_verified ? [39, 174, 96] : [231, 76, 60],
+                        fontStyle: 'bold'
+                    }
+                };
+                
+                // Add leader row with team styling
+                const leaderRow = [
+                    { 
+                        content: `Team ${teamNo} (Leader)`, 
+                        styles: { 
+                            fillColor: [230, 240, 255],
+                            textColor: [30, 64, 175],
+                            fontStyle: 'bold'
+                        } 
+                    },
+                    { 
+                        content: leader.name, 
+                        styles: { 
+                            fillColor: [230, 240, 255],
+                            textColor: [30, 64, 175],
+                            fontStyle: 'bold'
+                        } 
+                    },
+                    leader.email,
+                    leader.phone,
+                    leader.usn,
+                    `${leader.year}${getYearSuffix(leader.year)} Year`,
+                    formattedLeaderRegDate,
+                    leaderPaymentStatusCell,
+                    leaderVerificationStatusCell,
+                    leader.utr_number || '-'
+                ];
+                
+                tableData.push(leaderRow);
+                
+                // Add team members with slightly different styling
+                team.members.forEach(member => {
+                    // Format member registration date
+                    const memberRegDate = new Date(member.registeredAt);
+                    const memberRegDay = memberRegDate.getDate();
+                    const memberRegDaySuffix = getDaySuffix(memberRegDay);
+                    const formattedMemberRegDate = memberRegDate.toLocaleDateString('en-US', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    }).replace(
+                        memberRegDay.toString(),
+                        `${memberRegDay}${memberRegDaySuffix}`
+                    );
+                    
+                    // Create member payment status cell
+                    const memberPaymentStatus = member.payment_status || 'Unpaid';
+                    const memberPaymentStatusCell = {
+                        content: memberPaymentStatus,
+                        styles: {
+                            fillColor: memberPaymentStatus === 'Paid' ? [200, 250, 200] : [255, 240, 200],
+                            textColor: memberPaymentStatus === 'Paid' ? [39, 174, 96] : [230, 126, 34],
+                            fontStyle: 'bold'
+                        }
+                    };
+                    
+                    // Create member verification status cell
+                    const memberVerificationStatus = member.payment_verified ? 'Yes' : 'No';
+                    const memberVerificationStatusCell = {
+                        content: memberVerificationStatus,
+                        styles: {
+                            fillColor: member.payment_verified ? [200, 250, 200] : [250, 220, 220],
+                            textColor: member.payment_verified ? [39, 174, 96] : [231, 76, 60],
+                            fontStyle: 'bold'
+                        }
+                    };
+                    
+                    // Add member row with member styling
+                    const memberRow = [
+                        { 
+                            content: `Team ${teamNo} (Member)`, 
+                            styles: { 
+                                fillColor: [245, 247, 250],
+                                textColor: [100, 116, 139]
+                            } 
+                        },
+                        { 
+                            content: member.name, 
+                            styles: { 
+                                fillColor: [245, 247, 250],
+                                textColor: [100, 116, 139]
+                            } 
+                        },
+                        member.email,
+                        member.phone,
+                        member.usn,
+                        `${member.year}${getYearSuffix(member.year)} Year`,
+                        formattedMemberRegDate,
+                        memberPaymentStatusCell,
+                        memberVerificationStatusCell,
+                        member.utr_number || '-'
+                    ];
+                    
+                    tableData.push(memberRow);
+                });
+            });
+            
+            // Configure the main table with adjusted column widths - now including team column
             autoTable(doc, {
                 startY: statsEndY + 10,
-                head: [['Name', 'Email', 'Phone', 'USN', 'Year', 'Date', 'Status', 'Verified', 'UTR']],
+                head: [['Team', 'Name', 'Email', 'Phone', 'USN', 'Year', 'Date', 'Status', 'Verified', 'UTR']],
                 body: tableData,
                 styles: { 
                     fontSize: 8,
                     cellPadding: 2
                 },
                 columnStyles: {
-                    0: { cellWidth: 32 }, // Name - slightly wider
-                    1: { cellWidth: 38 }, // Email - slightly wider
-                    2: { cellWidth: 20 }, // Phone
-                    3: { cellWidth: 22 }, // USN - slightly wider
-                    4: { cellWidth: 15 }, // Year - slightly wider
-                    5: { cellWidth: 22 }, // Date - wider for word format
-                    6: { cellWidth: 15 }, // Status
-                    7: { cellWidth: 12 }, // Verified
-                    8: { cellWidth: 18 }  // UTR - slightly wider
+                    0: { cellWidth: 22 }, // Team - new column
+                    1: { cellWidth: 28 }, // Name - slightly narrower
+                    2: { cellWidth: 35 }, // Email - slightly narrower
+                    3: { cellWidth: 18 }, // Phone - slightly narrower
+                    4: { cellWidth: 18 }, // USN - slightly narrower
+                    5: { cellWidth: 15 }, // Year
+                    6: { cellWidth: 22 }, // Date
+                    7: { cellWidth: 15 }, // Status
+                    8: { cellWidth: 12 }, // Verified
+                    9: { cellWidth: 15 }  // UTR - slightly narrower
                 },
-                margin: { left: 10, right: 10 },
+                margin: { left: 5, right: 5 },
                 headStyles: {
                     fillColor: primaryMaroon,
                     textColor: [255, 255, 255],
@@ -482,34 +847,107 @@ const AdminsGallery = () => {
     };
 
     const exportToExcel = () => {
-        const worksheetData = filteredRegistrations.map(registration => ({
-            Name: registration.name,
-            Email: registration.email,
-            Phone: registration.phone,
-            USN: registration.usn,
-            Year: registration.year,
-            "Registration Date": new Date(registration.registeredAt).toLocaleDateString(),
-            "Registration Time": new Date(registration.registeredAt).toLocaleTimeString(),
-            "Payment Status": registration.payment_status || 'Unpaid',
-            "Payment Verified": registration.payment_verified ? 'Yes' : 'No',
-            "UTR Number": registration.utr_number || '-'
-        }));
+        const workbook = XLSX.utils.book_new();
         
-        const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+        // Prepare data - create a more structured export that shows team relationships
+        const rows = [];
         
-        // Add header rows for title
-        XLSX.utils.sheet_add_aoa(worksheet, [
-            ["CORSIT - Club of Robotics"],
-            ["Workshop Registrations 2025"],
-            [""],  // Empty row
-        ], { origin: "A1" });
+        // Add individual registrations
+        processRegistrationsByTeams.individuals.forEach(reg => {
+            rows.push({
+                "Registration Type": "Individual",
+                "Team Number": "N/A",
+                "Team Role": "N/A",
+                "Name": reg.name,
+                "Email": reg.email,
+                "Phone": reg.phone,
+                "USN": reg.usn,
+                "Year": `${reg.year}${getYearSuffix(reg.year)} Year`,
+                "Payment Status": reg.payment_status,
+                "Payment Verified": reg.payment_verified ? 'Yes' : 'No',
+                "UTR Number": reg.utr_number || 'N/A',
+                "Registered On": new Date(reg.registeredAt).toLocaleDateString('en-US', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
+            });
+        });
         
-        // Apply styles for header (this only affects cell contents, not styling)
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, worksheet, "Registrations");
+        // Add team registrations
+        Object.entries(processRegistrationsByTeams.teams).forEach(([teamNo, team]) => {
+            // First add team leader
+            rows.push({
+                "Registration Type": "Team",
+                "Team Number": teamNo,
+                "Team Role": "Leader",
+                "Name": team.teamLead.name,
+                "Email": team.teamLead.email,
+                "Phone": team.teamLead.phone,
+                "USN": team.teamLead.usn,
+                "Year": `${team.teamLead.year}${getYearSuffix(team.teamLead.year)} Year`,
+                "Payment Status": team.teamLead.payment_status,
+                "Payment Verified": team.teamLead.payment_verified ? 'Yes' : 'No',
+                "UTR Number": team.teamLead.utr_number || 'N/A',
+                "Registered On": new Date(team.teamLead.registeredAt).toLocaleDateString('en-US', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
+            });
+            
+            // Add team members
+            team.members.forEach(member => {
+                rows.push({
+                    "Registration Type": "Team",
+                    "Team Number": teamNo,
+                    "Team Role": "Member",
+                    "Name": member.name,
+                    "Email": member.email,
+                    "Phone": member.phone,
+                    "USN": member.usn,
+                    "Year": `${member.year}${getYearSuffix(member.year)} Year`,
+                    "Payment Status": member.payment_status,
+                    "Payment Verified": member.payment_verified ? 'Yes' : 'No',
+                    "UTR Number": member.utr_number || 'N/A',
+                    "Registered On": new Date(member.registeredAt).toLocaleDateString('en-US', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })
+                });
+            });
+        });
         
-        // Generate Excel file
-        XLSX.writeFile(wb, "corsit_workshop_registrations.xlsx");
+        // Convert to worksheet
+        const worksheet = XLSX.utils.json_to_sheet(rows);
+        
+        // Set column widths for better readability
+        const columnWidths = [
+            { wch: 15 }, // Registration Type
+            { wch: 12 }, // Team Number
+            { wch: 10 }, // Team Role
+            { wch: 20 }, // Name
+            { wch: 30 }, // Email
+            { wch: 15 }, // Phone
+            { wch: 12 }, // USN
+            { wch: 12 }, // Year
+            { wch: 15 }, // Payment Status
+            { wch: 15 }, // Payment Verified
+            { wch: 20 }, // UTR Number
+            { wch: 20 }, // Registered On
+        ];
+        worksheet['!cols'] = columnWidths;
+        
+        // Add to workbook and download
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Workshop Registrations');
+        XLSX.writeFile(workbook, 'workshop-registrations.xlsx');
     };
 
     if (!isAuthenticated) {
@@ -619,7 +1057,7 @@ const AdminsGallery = () => {
                             <div className="flex items-center justify-center h-64">
                                 <div className="w-12 h-12 border-t-4 border-[#ed5a2d] border-solid rounded-full animate-spin"></div>
                             </div>
-                        ) : filteredRegistrations.length === 0 ? (
+                        ) : filteredAndSortedRegistrations.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-64 px-4 text-center">
                                 <svg className="w-16 h-16 text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -630,188 +1068,124 @@ const AdminsGallery = () => {
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
-                                <table className="w-full table-auto">
+                                <table className="w-full table-auto border-collapse">
                                     <thead>
                                         <tr className="bg-gray-700 text-left">
-                                            <th 
-                                                className="px-4 py-3 text-gray-300 font-medium text-sm cursor-pointer hover:bg-gray-600 transition-colors"
-                                                onClick={() => requestSort('name')}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    Name
-                                                    {sortConfig.key === 'name' && (
-                                                        <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-                                                    )}
-                                                </div>
-                                            </th>
+                                            <th className="px-4 py-3 text-gray-300 font-medium text-sm">Team Number</th>
+                                            <th className="px-4 py-3 text-gray-300 font-medium text-sm">Name</th>
                                             <th className="px-4 py-3 text-gray-300 font-medium text-sm">Email</th>
                                             <th className="px-4 py-3 text-gray-300 font-medium text-sm">Phone</th>
                                             <th className="px-4 py-3 text-gray-300 font-medium text-sm">USN</th>
-                                            <th 
-                                                className="px-4 py-3 text-gray-300 font-medium text-sm cursor-pointer hover:bg-gray-600 transition-colors"
-                                                onClick={() => requestSort('year')}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    Year
-                                                    {sortConfig.key === 'year' && (
-                                                        <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-                                                    )}
-                                                </div>
-                                            </th>
-                                            <th 
-                                                className="px-4 py-3 text-gray-300 font-medium text-sm cursor-pointer hover:bg-gray-600 transition-colors"
-                                                onClick={() => requestSort('registeredAt')}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    Registered On
-                                                    {sortConfig.key === 'registeredAt' && (
-                                                        <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-                                                    )}
-                                                </div>
-                                            </th>
-                                            <th 
-                                                className="px-4 py-3 text-gray-300 font-medium text-sm cursor-pointer hover:bg-gray-600 transition-colors"
-                                                onClick={() => requestSort('payment_status')}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    Payment Status
-                                                    {sortConfig.key === 'payment_status' && (
-                                                        <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-                                                    )}
-                                                </div>
-                                            </th>
-                                            <th className="px-4 py-3 text-gray-300 font-medium text-sm">UTR Number</th>
+                                            <th className="px-4 py-3 text-gray-300 font-medium text-sm">Year</th>
+                                            <th className="px-4 py-3 text-gray-300 font-medium text-sm">Registration Date</th>
+                                            <th className="px-4 py-3 text-gray-300 font-medium text-sm">Payment Status</th>
+                                            <th className="px-4 py-3 text-gray-300 font-medium text-sm">UTN Number</th>
                                             <th className="px-4 py-3 text-gray-300 font-medium text-sm">Receipt</th>
-                                            <th 
-                                                className="px-4 py-3 text-gray-300 font-medium text-sm cursor-pointer hover:bg-gray-600 transition-colors"
-                                                onClick={() => requestSort('payment_verified')}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    Verified
-                                                    {sortConfig.key === 'payment_verified' && (
-                                                        <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-                                                    )}
-                                                </div>
-                                            </th>
+                                            <th className="px-4 py-3 text-gray-300 font-medium text-sm">Verified</th>
                                             <th className="px-4 py-3 text-gray-300 font-medium text-sm">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filteredRegistrations.map((registration, index) => (
-                                            <tr 
-                                                key={registration._id || index}
-                                                className="border-b border-gray-700 hover:bg-gray-700 transition-colors"
-                                            >
-                                                <td className="px-4 py-4 font-medium text-gray-100">{registration.name}</td>
-                                                <td className="px-4 py-4 text-gray-300">{registration.email}</td>
-                                                <td className="px-4 py-4 text-gray-300">{registration.phone}</td>
-                                                <td className="px-4 py-4 font-mono text-gray-300">{registration.usn}</td>
-                                                <td className="px-4 py-4 text-gray-300">{`${registration.year}${getYearSuffix(registration.year)} Year`}</td>
-                                                <td className="px-4 py-4 text-gray-400">
-                                                    <div className="flex flex-col">
-                                                        <span>
-                                                            {new Date(registration.registeredAt).toLocaleDateString('en-GB', { 
-                                                                day: '2-digit', 
-                                                                month: 'short', 
-                                                                year: 'numeric'
-                                                            })}
-                                                        </span>
-                                                        <span className="text-xs text-gray-500">
-                                                            {new Date(registration.registeredAt).toLocaleTimeString('en-GB', {
-                                                                hour: '2-digit',
-                                                                minute: '2-digit'
-                                                            })}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-4 py-4">
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                        registration.payment_status === 'Paid' 
-                                                            ? 'bg-green-500/20 text-green-400' 
-                                                            : 'bg-yellow-500/20 text-yellow-400'
-                                                    }`}>
-                                                        {registration.payment_status || 'Unpaid'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-4 text-gray-300 font-mono text-sm">
-                                                    {registration.utr_number || '-'}
-                                                    {registration.payment_screenshot && (
-                                                        <a 
-                                                            href={registration.payment_screenshot}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="block mt-1 text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
-                                                        >
-                                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                                            </svg>
-                                                            View Receipt
-                                                        </a>
-                                                    )}
-                                                </td>
-                                                <td className="px-4 py-4">
-                                                    {registration.payment_screenshot ? (
-                                                        <div 
-                                                            className="w-12 h-12 rounded border border-gray-600 bg-gray-700 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                                                            onClick={() => openImageModal(registration.payment_screenshot)}
-                                                        >
-                                                            <img 
-                                                                src={registration.payment_screenshot} 
-                                                                alt="Payment Receipt" 
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-gray-500 text-sm">No receipt</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-4 py-4">
-                                                    <div className="flex justify-center">
-                                                        <button 
-                                                            className="relative flex items-center justify-center"
-                                                            onClick={() => handleVerifyPayment(registration._id, registration.payment_verified)}
-                                                            disabled={actionLoading}
-                                                            aria-label={registration.payment_verified ? "Unverify payment" : "Verify payment"}
-                                                        >
-                                                            <div className={`w-6 h-6 rounded-md border transition-all duration-300 ${
-                                                                registration.payment_verified 
-                                                                    ? 'bg-green-500 border-green-600' 
-                                                                    : 'bg-gray-700 border-gray-600 hover:border-green-400'
-                                                            }`}>
-                                                                {registration.payment_verified && (
-                                                                    <motion.svg
-                                                                        className="w-6 h-6 text-white"
-                                                                        initial={{ scale: 0 }}
-                                                                        animate={{ scale: 1 }}
-                                                                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                                                                        viewBox="0 0 24 24"
-                                                                        fill="none"
-                                                                        stroke="currentColor"
-                                                                        strokeWidth="3"
-                                                                        strokeLinecap="round"
-                                                                        strokeLinejoin="round"
-                                                                    >
-                                                                        <polyline points="20 6 9 17 4 12" />
-                                                                    </motion.svg>
-                                                                )}
-                                                            </div>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                                <td className="px-4 py-4">
-                                                    <button
-                                                        onClick={() => openDeleteModal(registration)}
-                                                        className="bg-red-500/20 hover:bg-red-500/40 text-red-400 p-2 rounded transition-colors"
-                                                        aria-label="Delete registration"
-                                                        disabled={actionLoading}
-                                                    >
-                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {processedRegistrations.map((registration, index) => {
+                                            const dateFormatted = new Date(registration.registeredAt).toLocaleDateString('en-GB', {
+                                                day: '2-digit',
+                                                month: 'short',
+                                                year: 'numeric'
+                                            });
+                                            const timeFormatted = new Date(registration.registeredAt).toLocaleTimeString('en-GB', {
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            });
+
+                                            // For team entries
+                                            if (registration.isTeamHeader) {
+                                                return (
+                                                    <tr key={registration._id} className="border-t border-gray-200 bg-white hover:bg-gray-50">
+                                                        <td className="px-4 py-3" rowSpan={registration.membersCount}>Team {registration.teamNo}</td>
+                                                        <td className="px-4 py-3">{registration.name}</td>
+                                                        <td className="px-4 py-3">{registration.email}</td>
+                                                        <td className="px-4 py-3">{registration.phone}</td>
+                                                        <td className="px-4 py-3">{registration.usn}</td>
+                                                        <td className="px-4 py-3">{registration.year}</td>
+                                                        <td className="px-4 py-3" rowSpan={registration.membersCount}>{`${dateFormatted} ${timeFormatted}`}</td>
+                                                        <td className="px-4 py-3" rowSpan={registration.membersCount}>{registration.payment_status || 'Pending'}</td>
+                                                        <td className="px-4 py-3" rowSpan={registration.membersCount}>{registration.utn || 'N/A'}</td>
+                                                        <td className="px-4 py-3" rowSpan={registration.membersCount}>
+                                                            {registration.receipt ? (
+                                                                <a href={registration.receipt} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                                                                    View Receipt
+                                                                </a>
+                                                            ) : 'No Receipt'}
+                                                        </td>
+                                                        <td className="px-4 py-3" rowSpan={registration.membersCount}>
+                                                            {registration.payment_verified ? (
+                                                                <span className="text-green-600">✓ Verified</span>
+                                                            ) : (
+                                                                <span className="text-red-600">✗ Not Verified</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-4 py-3" rowSpan={registration.membersCount}>
+                                                            <button
+                                                                onClick={() => handleDelete(registration._id)}
+                                                                className="text-red-600 hover:text-red-800"
+                                                            >
+                                                                Delete Team
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            }
+                                            // For team members
+                                            else if (registration.isTeamMember) {
+                                                return (
+                                                    <tr key={registration._id} className="border-t border-gray-200 bg-white hover:bg-gray-50">
+                                                        <td className="px-4 py-3">{registration.name}</td>
+                                                        <td className="px-4 py-3">{registration.email}</td>
+                                                        <td className="px-4 py-3">{registration.phone}</td>
+                                                        <td className="px-4 py-3">{registration.usn}</td>
+                                                        <td className="px-4 py-3">{registration.year}</td>
+                                                    </tr>
+                                                );
+                                            }
+                                            // For individual entries (no team or invalid team numbers)
+                                            else {
+                                                return (
+                                                    <tr key={registration._id} className="border-t border-gray-200 bg-white hover:bg-gray-50">
+                                                        <td className="px-4 py-3"></td>
+                                                        <td className="px-4 py-3">{registration.name}</td>
+                                                        <td className="px-4 py-3">{registration.email}</td>
+                                                        <td className="px-4 py-3">{registration.phone}</td>
+                                                        <td className="px-4 py-3">{registration.usn}</td>
+                                                        <td className="px-4 py-3">{registration.year}</td>
+                                                        <td className="px-4 py-3">{`${dateFormatted} ${timeFormatted}`}</td>
+                                                        <td className="px-4 py-3">{registration.payment_status || 'Pending'}</td>
+                                                        <td className="px-4 py-3">{registration.utn || 'N/A'}</td>
+                                                        <td className="px-4 py-3">
+                                                            {registration.receipt ? (
+                                                                <a href={registration.receipt} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                                                                    View Receipt
+                                                                </a>
+                                                            ) : 'No Receipt'}
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            {registration.payment_verified ? (
+                                                                <span className="text-green-600">✓ Verified</span>
+                                                            ) : (
+                                                                <span className="text-red-600">✗ Not Verified</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <button
+                                                                onClick={() => handleDelete(registration._id)}
+                                                                className="text-red-600 hover:text-red-800"
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            }
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
@@ -819,11 +1193,11 @@ const AdminsGallery = () => {
                     </div>
                     
                     {/* Stats summary */}
-                    {!loading && filteredRegistrations.length > 0 && (
+                    {!loading && filteredAndSortedRegistrations.length > 0 && (
                         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             <StatCard 
                                 title="Total Registrations" 
-                                value={registrations.length} 
+                                value={getTotalRegistrationsCount()} 
                                 icon={
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -833,7 +1207,7 @@ const AdminsGallery = () => {
                             
                             <StatCard 
                                 title="Paid Registrations" 
-                                value={registrations.filter(r => r.payment_status === 'Paid').length} 
+                                value={countRegistrationsBy('payment_status', 'Paid')} 
                                 icon={
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -843,7 +1217,7 @@ const AdminsGallery = () => {
                             
                             <StatCard 
                                 title="Verified Payments" 
-                                value={registrations.filter(r => r.payment_verified).length} 
+                                value={countRegistrationsBy('payment_verified', true)} 
                                 icon={
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -853,7 +1227,7 @@ const AdminsGallery = () => {
                             
                             <StatCard 
                                 title="Unpaid Registrations" 
-                                value={registrations.filter(r => r.payment_status !== 'Paid').length} 
+                                value={countRegistrationsBy('payment_status', 'Unpaid')} 
                                 icon={
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -863,7 +1237,7 @@ const AdminsGallery = () => {
                             
                             <StatCard 
                                 title="First Years" 
-                                value={registrations.filter(r => r.year === '1').length} 
+                                value={countRegistrationsBy('year', '1')} 
                                 icon={
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 4v12l-4-2-4 2V4M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -873,17 +1247,17 @@ const AdminsGallery = () => {
                             
                             <StatCard 
                                 title="Second Years" 
-                                value={registrations.filter(r => r.year === '2').length} 
+                                value={countRegistrationsBy('year', '2')} 
                                 icon={
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2M7 7h10" />
                                     </svg>
                                 }
                             />
                             
                             <StatCard 
                                 title="Third Years" 
-                                value={registrations.filter(r => r.year === '3').length} 
+                                value={countRegistrationsBy('year', '3')} 
                                 icon={
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -893,7 +1267,7 @@ const AdminsGallery = () => {
                             
                             <StatCard 
                                 title="Fourth Years" 
-                                value={registrations.filter(r => r.year === '4').length} 
+                                value={countRegistrationsBy('year', '4')} 
                                 icon={
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
@@ -903,23 +1277,7 @@ const AdminsGallery = () => {
                             
                             <StatCard 
                                 title="Latest Registration" 
-                                value={
-                                    registrations.length > 0 
-                                        ? (() => {
-                                            const latestDate = new Date(Math.max(...registrations.map(r => new Date(r.registeredAt).getTime())));
-                                            const day = latestDate.getDate();
-                                            const daySuffix = getDaySuffix(day);
-                                            return latestDate.toLocaleDateString('en-US', {
-                                                day: 'numeric',
-                                                month: 'short',
-                                                year: 'numeric'
-                                            }).replace(
-                                                day.toString(),
-                                                `${day}${daySuffix}`
-                                            );
-                                        })()
-                                        : 'N/A'
-                                } 
+                                value={getLatestRegistrationDate()} 
                                 icon={
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

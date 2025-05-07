@@ -5,6 +5,9 @@ const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const cors = require("cors");
 require("dotenv").config();
+const fs = require('fs');
+const path = require('path');
+const PDFDocument = require('pdfkit');
 
 // Import Cloudinary configuration and upload routes
 const cloudinary = require('./config/cloudinary');
@@ -57,6 +60,32 @@ const workshopRegistrationSchema = new mongoose.Schema({
     payment_screenshot: { type: String },
     payment_status: { type: String, default: 'Unpaid', enum: ['Paid', 'Unpaid'] },
     payment_verified: { type: Boolean, default: false },
+    
+    // Team number (2-digit identifier starting from 01)
+    team_number: { type: String, required: true },
+    
+    // Fields for team members
+    member2_name: { type: String, default: "None" },
+    member2_email: { type: String, default: "None" },
+    member2_phone: { type: String, default: "None" },
+    member2_usn: { type: String, default: "None" },
+    member2_year: { type: String, default: "None" },
+    
+    member3_name: { type: String, default: "None" },
+    member3_email: { type: String, default: "None" },
+    member3_phone: { type: String, default: "None" },
+    member3_usn: { type: String, default: "None" },
+    member3_year: { type: String, default: "None" },
+    
+    member4_name: { type: String, default: "None" },
+    member4_email: { type: String, default: "None" },
+    member4_phone: { type: String, default: "None" },
+    member4_usn: { type: String, default: "None" },
+    member4_year: { type: String, default: "None" },
+    
+    // Track the number of team members (1-4)
+    members_count: { type: Number, default: 1, min: 1, max: 4 },
+    
     registeredAt: { type: Date, default: Date.now }
 });
 const WorkshopRegistration = mongoose.model("WorkshopRegistration", workshopRegistrationSchema);
@@ -341,44 +370,94 @@ app.post('/signup', async (req, res) => {
     }
 });
 
-// Workshop Registration endpoint - Now using Cloudinary
-app.post('/workshop-register', async (req, res) => {
+// Workshop Registration
+app.post("/workshop-register", async (req, res) => {
     try {
-        const { name, email, phone, usn, year, utr_number, payment_status, payment_screenshot } = req.body;
+        const { 
+            name, email, phone, usn, year, 
+            payment_status, utr_number, payment_screenshot,
+            member2_name, member2_email, member2_phone, member2_usn, member2_year,
+            member3_name, member3_email, member3_phone, member3_usn, member3_year,
+            member4_name, member4_email, member4_phone, member4_usn, member4_year
+        } = req.body;
 
-        // Validate required fields
+        // Validate primary registrant's information
         if (!name || !email || !phone || !usn || !year) {
-            return res.status(400).json({ message: 'All fields are required' });
+            return res.status(400).json({ message: 'All primary team member fields are required' });
         }
 
-        // Validate payment details if payment_status is Paid
-        if (payment_status === 'Paid' && (!utr_number || !payment_screenshot)) {
-            return res.status(400).json({ message: 'UTR number and payment screenshot are required for payment' });
+        // Calculate the number of members
+        let members_count = 1; // Start with primary member
+        if (member2_name && member2_email && member2_phone && member2_usn && member2_year) {
+            members_count++;
         }
+        if (member3_name && member3_email && member3_phone && member3_usn && member3_year) {
+            members_count++;
+        }
+        if (member4_name && member4_email && member4_phone && member4_usn && member4_year) {
+            members_count++;
+        }
+        
+        // Get the last registration to determine the next team number
+        const lastRegistration = await WorkshopRegistration.findOne().sort({ team_number: -1 });
+        
+        // Determine team number (starting from "01" and incrementing)
+        let nextTeamNumber = 1; // Default start if no previous registrations
+        
+        if (lastRegistration && lastRegistration.team_number) {
+            // Parse the last team number and increment
+            nextTeamNumber = parseInt(lastRegistration.team_number, 10) + 1;
+        }
+        
+        // Format as 2-digit string (e.g., "01", "02", ... "99")
+        const team_number = nextTeamNumber.toString().padStart(2, "0");
 
-        // Create new workshop registration
+        // Create a new registration
         const registration = new WorkshopRegistration({
-            name,
-            email,
-            phone,
-            usn,
-            year,
+            name, email, phone, usn, year,
             payment_status,
             utr_number: utr_number || null,
-            payment_screenshot: payment_screenshot || null
+            payment_screenshot: payment_screenshot || null,
+            
+            // Team number
+            team_number,
+            
+            // Team member fields
+            member2_name: member2_name || "None",
+            member2_email: member2_email || "None",
+            member2_phone: member2_phone || "None",
+            member2_usn: member2_usn || "None",
+            member2_year: member2_year || "None",
+            
+            member3_name: member3_name || "None",
+            member3_email: member3_email || "None",
+            member3_phone: member3_phone || "None",
+            member3_usn: member3_usn || "None",
+            member3_year: member3_year || "None",
+            
+            member4_name: member4_name || "None",
+            member4_email: member4_email || "None",
+            member4_phone: member4_phone || "None",
+            member4_usn: member4_usn || "None",
+            member4_year: member4_year || "None",
+            
+            // Set the members count
+            members_count
         });
 
         await registration.save();
 
         res.status(201).json({ 
-            message: 'Registration successful',
+            message: 'Team registration successful! Your team number is ' + team_number,
             registration: {
                 name,
                 email,
                 phone,
                 usn,
                 year,
-                payment_status
+                team_number,
+                payment_status,
+                members_count
             }
         });
     } catch (error) {
@@ -396,8 +475,109 @@ app.get('/workshop-registrations', authMiddleware, async (req, res) => {
             return res.status(403).json({ message: "Access denied. Admin privileges required." });
         }
         
-        const registrations = await WorkshopRegistration.find().sort({ registeredAt: -1 });
-        res.json(registrations);
+        // Get workshop registrations (team-based)
+        const workshopRegistrations = await WorkshopRegistration.find().sort({ registeredAt: -1 });
+        
+        // Get regular users (existing individual users)
+        const regularUsers = await User.find().sort({ createdAt: -1 });
+        
+        // Structure registrations with teams based on members_count
+        const structuredRegistrations = {
+            teams: {},
+            individual: [] // Add this to maintain compatibility
+        };
+        
+        // Process workshop registrations and use the team_number from the database
+        workshopRegistrations.forEach(registration => {
+            const teamNumber = registration.team_number;
+            
+            // Create an entry for this team if it doesn't exist
+            if (!structuredRegistrations.teams[teamNumber]) {
+                structuredRegistrations.teams[teamNumber] = [];
+            }
+            
+            // Add the team lead
+            structuredRegistrations.teams[teamNumber].push({
+                _id: registration._id,
+                name: registration.name,
+                email: registration.email,
+                phone: registration.phone,
+                usn: registration.usn,
+                year: registration.year,
+                payment_status: registration.payment_status,
+                payment_verified: registration.payment_verified,
+                utr_number: registration.utr_number,
+                payment_screenshot: registration.payment_screenshot,
+                registeredAt: registration.registeredAt,
+                isTeamHeader: true,
+                teamNo: teamNumber,
+                membersCount: registration.members_count
+            });
+            
+            // Add member 2 if exists
+            if (registration.member2_name && registration.member2_name !== "None") {
+                structuredRegistrations.teams[teamNumber].push({
+                    name: registration.member2_name,
+                    email: registration.member2_email,
+                    phone: registration.member2_phone,
+                    usn: registration.member2_usn,
+                    year: registration.member2_year,
+                    isTeamMember: true,
+                    teamNo: teamNumber
+                });
+            }
+            
+            // Add member 3 if exists
+            if (registration.member3_name && registration.member3_name !== "None") {
+                structuredRegistrations.teams[teamNumber].push({
+                    name: registration.member3_name,
+                    email: registration.member3_email,
+                    phone: registration.member3_phone,
+                    usn: registration.member3_usn,
+                    year: registration.member3_year,
+                    isTeamMember: true,
+                    teamNo: teamNumber
+                });
+            }
+            
+            // Add member 4 if exists
+            if (registration.member4_name && registration.member4_name !== "None") {
+                structuredRegistrations.teams[teamNumber].push({
+                    name: registration.member4_name,
+                    email: registration.member4_email,
+                    phone: registration.member4_phone,
+                    usn: registration.member4_usn,
+                    year: registration.member4_year,
+                    isTeamMember: true,
+                    teamNo: teamNumber
+                });
+            }
+        });
+        
+        // Process regular users and assign team_number "00"
+        if (!structuredRegistrations.teams["00"]) {
+            structuredRegistrations.teams["00"] = [];
+        }
+        
+        regularUsers.forEach(user => {
+            structuredRegistrations.teams["00"].push({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                phone: user.phone || "N/A",
+                usn: "N/A", // Regular users don't have USN
+                year: "N/A", // Regular users don't have year
+                payment_status: "N/A", // No payment status for regular users
+                payment_verified: false,
+                registeredAt: user.createdAt,
+                isTeamHeader: true, // Mark as team header for display purposes
+                teamNo: "00", // Assign team number "00" to distinguish existing users
+                membersCount: 1, // Individual user
+                isExistingUser: true // Flag to identify existing users
+            });
+        });
+        
+        res.json(structuredRegistrations);
     } catch (error) {
         console.error('Error fetching workshop registrations:', error);
         res.status(500).json({ message: 'Server error' });
@@ -456,6 +636,164 @@ app.delete('/workshop-registrations/:registrationId', authMiddleware, async (req
     } catch (error) {
         console.error('Error deleting registration:', error);
         res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Generate registration PDF for admin
+app.get('/workshop-registrations/export/:registrationId', authMiddleware, async (req, res) => {
+    try {
+        // Check if user is admin
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        const { registrationId } = req.params;
+        const registration = await WorkshopRegistration.findById(registrationId);
+        
+        if (!registration) {
+            return res.status(404).json({ message: "Registration not found" });
+        }
+        
+        // Create a PDF document
+        const doc = new PDFDocument();
+        const filename = `registration-${registration._id}.pdf`;
+        
+        // Set response headers
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        
+        // Pipe the PDF to the response
+        doc.pipe(res);
+        
+        // Add content to the PDF
+        doc.fontSize(20).text('Workshop Registration Details', { align: 'center' });
+        doc.moveDown();
+        
+        // Team information
+        doc.fontSize(14).fillColor('#E74C3C').text(`Team Information:`);
+        doc.fontSize(12).fillColor('#34495E').text(`Team Size: ${registration.members_count} members`);
+        doc.moveDown();
+        
+        // Primary registrant information (Team Leader)
+        doc.fontSize(16).fillColor('#2C3E50').text('Team Leader:');
+        doc.fontSize(12).fillColor('#34495E');
+        doc.text(`Name: ${registration.name}`);
+        doc.text(`Email: ${registration.email}`);
+        doc.text(`Phone: ${registration.phone}`);
+        doc.text(`USN: ${registration.usn}`);
+        doc.text(`Year: ${registration.year}`);
+        doc.moveDown();
+        
+        // Payment information
+        doc.fontSize(14).fillColor('#E74C3C').text('Payment Information:');
+        doc.fontSize(12).fillColor('#34495E');
+        doc.text(`Payment Status: ${registration.payment_status}`);
+        doc.text(`Payment Verified: ${registration.payment_verified ? 'Yes' : 'No'}`);
+        if (registration.payment_status === 'Paid') {
+            doc.text(`UTR Number: ${registration.utr_number}`);
+        }
+        doc.moveDown();
+        
+        // Team members information
+        if (registration.members_count > 1) {
+            doc.fontSize(16).fillColor('#2C3E50').text('Team Members:');
+            
+            // Member 2
+            if (registration.member2_name) {
+                doc.fontSize(14).fillColor('#2980B9').text(`Member 2:`);
+                doc.fontSize(12).fillColor('#34495E');
+                doc.text(`Name: ${registration.member2_name}`);
+                doc.text(`Email: ${registration.member2_email}`);
+                doc.text(`Phone: ${registration.member2_phone}`);
+                doc.text(`USN: ${registration.member2_usn}`);
+                doc.text(`Year: ${registration.member2_year}`);
+                doc.moveDown();
+            }
+            
+            // Member 3
+            if (registration.member3_name) {
+                doc.fontSize(14).fillColor('#2980B9').text(`Member 3:`);
+                doc.fontSize(12).fillColor('#34495E');
+                doc.text(`Name: ${registration.member3_name}`);
+                doc.text(`Email: ${registration.member3_email}`);
+                doc.text(`Phone: ${registration.member3_phone}`);
+                doc.text(`USN: ${registration.member3_usn}`);
+                doc.text(`Year: ${registration.member3_year}`);
+                doc.moveDown();
+            }
+            
+            // Member 4
+            if (registration.member4_name) {
+                doc.fontSize(14).fillColor('#2980B9').text(`Member 4:`);
+                doc.fontSize(12).fillColor('#34495E');
+                doc.text(`Name: ${registration.member4_name}`);
+                doc.text(`Email: ${registration.member4_email}`);
+                doc.text(`Phone: ${registration.member4_phone}`);
+                doc.text(`USN: ${registration.member4_usn}`);
+                doc.text(`Year: ${registration.member4_year}`);
+                doc.moveDown();
+            }
+        }
+        
+        // Registration date
+        doc.fontSize(12).fillColor('#7F8C8D');
+        doc.text(`Registered on: ${new Date(registration.registeredAt).toLocaleDateString()}`);
+        
+        // Finalize the PDF
+        doc.end();
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        res.status(500).json({ message: 'Error generating PDF' });
+    }
+});
+
+// Export all workshop registrations as CSV
+app.get('/workshop-registrations/export-all', authMiddleware, async (req, res) => {
+    try {
+        // Check if user is admin
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        const registrations = await WorkshopRegistration.find().sort({ registeredAt: -1 });
+        
+        // Create CSV content with the new structure
+        let csvContent = 'Team No,Role,Name,Email,Phone,USN,Year,Payment Status,Payment Verified,UTR Number,Registered At\n';
+        
+        // Add each registration with sequential team numbers
+        registrations.forEach((reg, index) => {
+            const teamNo = index + 1;
+            
+            // Add team leader (primary registrant)
+            csvContent += `${teamNo},Leader,${reg.name},${reg.email},${reg.phone},${reg.usn},${reg.year},${reg.payment_status},${reg.payment_verified ? 'Yes' : 'No'},${reg.utr_number || ''},${new Date(reg.registeredAt).toLocaleDateString()}\n`;
+            
+            // Add member 2 if exists
+            if (reg.member2_name) {
+                csvContent += `${teamNo},Member,${reg.member2_name},${reg.member2_email},${reg.member2_phone},${reg.member2_usn},${reg.member2_year},,,,\n`;
+            }
+            
+            // Add member 3 if exists
+            if (reg.member3_name) {
+                csvContent += `${teamNo},Member,${reg.member3_name},${reg.member3_email},${reg.member3_phone},${reg.member3_usn},${reg.member3_year},,,,\n`;
+            }
+            
+            // Add member 4 if exists
+            if (reg.member4_name) {
+                csvContent += `${teamNo},Member,${reg.member4_name},${reg.member4_email},${reg.member4_phone},${reg.member4_usn},${reg.member4_year},,,,\n`;
+            }
+        });
+        
+        // Set response headers
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="workshop-registrations.csv"');
+        
+        // Send the CSV
+        res.send(csvContent);
+    } catch (error) {
+        console.error('Error exporting registrations:', error);
+        res.status(500).json({ message: 'Error exporting registrations' });
     }
 });
 

@@ -239,31 +239,33 @@ const AdminsGallery = () => {
         // Process team registrations
         if (registrations.teams) {
             Object.entries(registrations.teams).forEach(([teamNo, members]) => {
-                // Check if it's a valid team number (starts with a number other than 0)
-                const isValidTeamNumber = /^[1-9]\d*$/.test(teamNo);
+                // Check if this is a valid team number (not 00, undefined, null, etc.)
+                const isValidTeam = teamNo && teamNo !== "00" && teamNo !== "undefined" && /^\d+$/.test(teamNo) && teamNo !== "0";
                 
                 if (Array.isArray(members) && members.length > 0) {
-                    if (isValidTeamNumber) {
-                        // Handle valid team numbers (01, 02, etc.)
+                    if (isValidTeam) {
+                        // Valid team - process as a team
+                        // Get team leader (first member)
                         const teamLead = members[0];
+                        
+                        // Create team entry with leader's info and remaining members
                         result.teams[teamNo] = {
                             teamLead: {
                                 ...teamLead,
                                 isTeamHeader: true,
                                 isTeamMember: false,
-                                teamNo: teamNo,
-                                membersCount: members.length
+                                teamNo: teamNo, // Add teamNo directly to team lead
+                                membersCount: members.length // Total members count
                             },
                             members: members.slice(1).map(member => ({
                                 ...member,
                                 isTeamHeader: false,
                                 isTeamMember: true,
-                                teamNo: teamNo
+                                teamNo: teamNo // Add teamNo to each member for consistency
                             }))
                         };
                     } else {
-                        // For team "00", "undefined", or any other invalid team numbers,
-                        // treat all members as individual registrations
+                        // Invalid team - treat all members as individual entries
                         members.forEach(member => {
                             result.individuals.push({
                                 ...member,
@@ -285,7 +287,7 @@ const AdminsGallery = () => {
     const processedRegistrations = React.useMemo(() => {
         const result = [];
         
-        // Add all individual registrations if they exist
+        // Start with all individual registrations if they exist
         if (processRegistrationsByTeams.individuals && processRegistrationsByTeams.individuals.length > 0) {
             result.push(...processRegistrationsByTeams.individuals);
         }
@@ -293,15 +295,26 @@ const AdminsGallery = () => {
         // Process team registrations (now each team is an array instead of {teamLead, members})
         if (processRegistrationsByTeams.teams) {
             Object.entries(processRegistrationsByTeams.teams).forEach(([teamNo, teamData]) => {
-                if (!teamData || !teamData.teamLead) return;
+                if (!teamData || teamData.length === 0) return;
                 
-                // Only process as a team if it's a valid team number
-                const isValidTeamNumber = /^[1-9]\d*$/.test(teamNo);
-                if (isValidTeamNumber) {
-                    result.push(teamData.teamLead);
-                    if (teamData.members) {
-                        result.push(...teamData.members);
-                    }
+                // The first member of each team is the team lead
+                const teamLead = { ...teamData.teamLead };
+                
+                // Add special style for team "00" (existing users)
+                if (teamNo === "00") {
+                    result.push({
+                        ...teamLead,
+                        isExistingUser: true,
+                        teamNo: "00",
+                        isTeamHeader: true,
+                        usn: teamLead.usn || "N/A", // Ensure USN has a default value
+                        year: teamLead.year || "N/A", // Ensure year has a default value
+                        payment_status: teamLead.payment_status || "N/A",
+                        payment_verified: teamLead.payment_verified || false
+                    });
+                } else {
+                    // Regular team - mark as team header
+                    result.push(teamLead);
                 }
             });
         }
@@ -1082,109 +1095,329 @@ const AdminsGallery = () => {
                                             <th className="px-4 py-3 text-gray-300 font-medium text-sm">UTN Number</th>
                                             <th className="px-4 py-3 text-gray-300 font-medium text-sm">Receipt</th>
                                             <th className="px-4 py-3 text-gray-300 font-medium text-sm">Verified</th>
-                                            <th className="px-4 py-3 text-gray-300 font-medium text-sm">Actions</th>
+                                            <th className="px-4 py-3 text-gray-300 font-medium text-sm">Delete</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {processedRegistrations.map((registration, index) => {
-                                            const dateFormatted = new Date(registration.registeredAt).toLocaleDateString('en-GB', {
-                                                day: '2-digit',
-                                                month: 'short',
+                                        {/* Group registrations by teams */}
+                                        {Object.entries(processRegistrationsByTeams.teams || {}).map(([teamNo, teamData]) => {
+                                            if (!teamData || !teamData.teamLead) return null;
+                                            
+                                            // Only render valid teams - invalid teams are already moved to individuals array
+                                            const teamMembers = [teamData.teamLead, ...(teamData.members || [])];
+                                            const membersCount = teamMembers.length;
+                                            const teamRowspan = membersCount > 0 ? membersCount : 1;
+                                            
+                                            return (
+                                                <React.Fragment key={`team-${teamNo}`}>
+                                                    {teamMembers.map((member, memberIndex) => {
+                                                        const isFirstMember = memberIndex === 0;
+                                                        const dateFormatted = new Date(member.registeredAt).toLocaleDateString('en-GB', { 
+                                                            day: '2-digit', 
+                                                            month: 'short', 
+                                                            year: 'numeric'
+                                                        });
+                                                        const timeFormatted = new Date(member.registeredAt).toLocaleTimeString('en-GB', {
+                                                            hour: '2-digit',
+                                                            minute: '2-digit'
+                                                        });
+                                                        
+                                                        return (
+                                                            <tr key={member._id || `team-${teamNo}-member-${memberIndex}`} 
+                                                                className={`border-b border-gray-700 ${isFirstMember ? 'border-t-2 border-t-[#cce4f7]' : ''}`}
+                                                                style={{ backgroundColor: isFirstMember ? 'rgba(204, 228, 247, 0.05)' : '' }}>
+                                                                
+                                                                {/* Team Number - only show on first row with rowspan */}
+                                                                {isFirstMember && (
+                                                                    <td rowSpan={teamRowspan} className="px-4 py-3 text-gray-300 align-middle bg-[rgba(204,228,247,0.05)] border-r border-gray-700">
+                                                                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-500/20 text-blue-400">
+                                                                            Team {teamNo}
+                                                                        </span>
+                                                                    </td>
+                                                                )}
+                                                                
+                                                                {/* Name */}
+                                                                <td className="px-4 py-3 text-gray-300">
+                                                                    {member.name}
+                                                                    {isFirstMember && (
+                                                                        <span className="ml-2 px-2 py-0.5 rounded text-xs bg-orange-500/20 text-orange-400">
+                                                                            Leader
+                                                                        </span>
+                                                                    )}
+                                                                </td>
+                                                                
+                                                                {/* Email */}
+                                                                <td className="px-4 py-3 text-gray-300">{member.email}</td>
+                                                                
+                                                                {/* Phone */}
+                                                                <td className="px-4 py-3 text-gray-300">{member.phone}</td>
+                                                                
+                                                                {/* USN */}
+                                                                <td className="px-4 py-3 font-mono text-gray-300">{member.usn}</td>
+                                                                
+                                                                {/* Year */}
+                                                                <td className="px-4 py-3 text-gray-300">{`${member.year}${getYearSuffix(member.year)} Year`}</td>
+                                                                
+                                                                {/* Registration Date - only show on first row with rowspan */}
+                                                                {isFirstMember && (
+                                                                    <td rowSpan={teamRowspan} className="px-4 py-3 text-gray-300 align-middle bg-[rgba(204,228,247,0.05)] border-r border-gray-700">
+                                                                        <div className="flex flex-col">
+                                                                            <span>{dateFormatted}</span>
+                                                                            <span className="text-xs text-gray-500">{timeFormatted}</span>
+                                                                        </div>
+                                                                    </td>
+                                                                )}
+                                                                
+                                                                {/* Payment Status - only show on first row with rowspan */}
+                                                                {isFirstMember && (
+                                                                    <td rowSpan={teamRowspan} className="px-4 py-3 align-middle bg-[rgba(204,228,247,0.05)] border-r border-gray-700">
+                                                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                                                            teamData.teamLead.payment_status === 'Paid' 
+                                                                                ? 'bg-green-500/20 text-green-400' 
+                                                                                : 'bg-yellow-500/20 text-yellow-400'
+                                                                        }`}>
+                                                                            {teamData.teamLead.payment_status || 'Unpaid'}
+                                                                        </span>
+                                                                    </td>
+                                                                )}
+                                                                
+                                                                {/* UTN Number - only show on first row with rowspan */}
+                                                                {isFirstMember && (
+                                                                    <td rowSpan={teamRowspan} className="px-4 py-3 text-gray-300 font-mono text-sm align-middle bg-[rgba(204,228,247,0.05)] border-r border-gray-700">
+                                                                        {teamData.teamLead.utr_number || '-'}
+                                                                    </td>
+                                                                )}
+                                                                
+                                                                {/* Receipt - only show on first row with rowspan */}
+                                                                {isFirstMember && (
+                                                                    <td rowSpan={teamRowspan} className="px-4 py-3 align-middle bg-[rgba(204,228,247,0.05)] border-r border-gray-700">
+                                                                        {teamData.teamLead.payment_screenshot ? (
+                                                                            <div 
+                                                                                className="w-12 h-12 rounded border border-gray-600 bg-gray-700 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation(); 
+                                                                                    openImageModal(teamData.teamLead.payment_screenshot);
+                                                                                }}
+                                                                            >
+                                                                                <img 
+                                                                                    src={teamData.teamLead.payment_screenshot} 
+                                                                                    alt="Payment Receipt" 
+                                                                                    className="w-full h-full object-cover"
+                                                                                />
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className="text-gray-500 text-sm">No receipt</span>
+                                                                        )}
+                                                                        
+                                                                        {teamData.teamLead.payment_screenshot && (
+                                                                            <a 
+                                                                                href={teamData.teamLead.payment_screenshot}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="block mt-1 text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
+                                                                                onClick={(e) => e.stopPropagation()}
+                                                                            >
+                                                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                                                </svg>
+                                                                                View Receipt
+                                                                            </a>
+                                                                        )}
+                                                                    </td>
+                                                                )}
+                                                                
+                                                                {/* Verified - only show on first row with rowspan */}
+                                                                {isFirstMember && (
+                                                                    <td rowSpan={teamRowspan} className="px-4 py-3 align-middle bg-[rgba(204,228,247,0.05)] border-r border-gray-700">
+                                                                        <div className="flex justify-center">
+                                                                            <button 
+                                                                                className="relative flex items-center justify-center"
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    handleVerifyPayment(teamData.teamLead._id, teamData.teamLead.payment_verified);
+                                                                                }}
+                                                                                disabled={actionLoading}
+                                                                                aria-label={teamData.teamLead.payment_verified ? "Unverify payment" : "Verify payment"}
+                                                                            >
+                                                                                <div className={`w-6 h-6 rounded-md border transition-all duration-300 ${
+                                                                                    teamData.teamLead.payment_verified 
+                                                                                        ? 'bg-green-500 border-green-600' 
+                                                                                        : 'bg-gray-700 border-gray-600 hover:border-green-400'
+                                                                                }`}>
+                                                                                    {teamData.teamLead.payment_verified && (
+                                                                                        <motion.svg
+                                                                                            className="w-6 h-6 text-white"
+                                                                                            initial={{ scale: 0 }}
+                                                                                            animate={{ scale: 1 }}
+                                                                                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                                                                            viewBox="0 0 24 24"
+                                                                                            fill="none"
+                                                                                            stroke="currentColor"
+                                                                                            strokeWidth="3"
+                                                                                            strokeLinecap="round"
+                                                                                            strokeLinejoin="round"
+                                                                                        >
+                                                                                            <polyline points="20 6 9 17 4 12" />
+                                                                                        </motion.svg>
+                                                                                    )}
+                                                                                </div>
+                                                                            </button>
+                                                                        </div>
+                                                                    </td>
+                                                                )}
+                                                                
+                                                                {/* Delete - only show on first row with rowspan */}
+                                                                {isFirstMember && (
+                                                                    <td rowSpan={teamRowspan} className="px-4 py-3 align-middle bg-[rgba(204,228,247,0.05)]">
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                openDeleteModal(teamData.teamLead);
+                                                                            }}
+                                                                            className="bg-red-500/20 hover:bg-red-500/40 text-red-400 p-2 rounded transition-colors"
+                                                                            aria-label="Delete registration"
+                                                                            disabled={actionLoading}
+                                                                        >
+                                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                            </svg>
+                                                                        </button>
+                                                                    </td>
+                                                                )}
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </React.Fragment>
+                                            );
+                                        })}
+                                        
+                                        {/* Individual registrations (includes both original individuals and entries from invalid teams) */}
+                                        {processRegistrationsByTeams.individuals && processRegistrationsByTeams.individuals.map((registration) => {
+                                            const dateFormatted = new Date(registration.registeredAt).toLocaleDateString('en-GB', { 
+                                                day: '2-digit', 
+                                                month: 'short', 
                                                 year: 'numeric'
                                             });
                                             const timeFormatted = new Date(registration.registeredAt).toLocaleTimeString('en-GB', {
                                                 hour: '2-digit',
                                                 minute: '2-digit'
                                             });
-
-                                            // For team entries
-                                            if (registration.isTeamHeader) {
-                                                return (
-                                                    <tr key={registration._id} className="border-t border-gray-200 bg-white hover:bg-gray-50">
-                                                        <td className="px-4 py-3" rowSpan={registration.membersCount}>Team {registration.teamNo}</td>
-                                                        <td className="px-4 py-3">{registration.name}</td>
-                                                        <td className="px-4 py-3">{registration.email}</td>
-                                                        <td className="px-4 py-3">{registration.phone}</td>
-                                                        <td className="px-4 py-3">{registration.usn}</td>
-                                                        <td className="px-4 py-3">{registration.year}</td>
-                                                        <td className="px-4 py-3" rowSpan={registration.membersCount}>{`${dateFormatted} ${timeFormatted}`}</td>
-                                                        <td className="px-4 py-3" rowSpan={registration.membersCount}>{registration.payment_status || 'Pending'}</td>
-                                                        <td className="px-4 py-3" rowSpan={registration.membersCount}>{registration.utn || 'N/A'}</td>
-                                                        <td className="px-4 py-3" rowSpan={registration.membersCount}>
-                                                            {registration.receipt ? (
-                                                                <a href={registration.receipt} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
-                                                                    View Receipt
-                                                                </a>
-                                                            ) : 'No Receipt'}
-                                                        </td>
-                                                        <td className="px-4 py-3" rowSpan={registration.membersCount}>
-                                                            {registration.payment_verified ? (
-                                                                <span className="text-green-600">✓ Verified</span>
-                                                            ) : (
-                                                                <span className="text-red-600">✗ Not Verified</span>
-                                                            )}
-                                                        </td>
-                                                        <td className="px-4 py-3" rowSpan={registration.membersCount}>
-                                                            <button
-                                                                onClick={() => handleDelete(registration._id)}
-                                                                className="text-red-600 hover:text-red-800"
+                                            
+                                            return (
+                                                <tr key={registration._id} className="border-b border-gray-700 border-t-2 border-t-[#cce4f7]" style={{ backgroundColor: 'rgba(204, 228, 247, 0.05)' }}>
+                                                    <td className="px-4 py-3 text-gray-300">
+                                                        {/* Leave blank for individual registrations */}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-gray-300">{registration.name}</td>
+                                                    <td className="px-4 py-3 text-gray-300">{registration.email}</td>
+                                                    <td className="px-4 py-3 text-gray-300">{registration.phone}</td>
+                                                    <td className="px-4 py-3 font-mono text-gray-300">{registration.usn}</td>
+                                                    <td className="px-4 py-3 text-gray-300">{`${registration.year}${getYearSuffix(registration.year)} Year`}</td>
+                                                    <td className="px-4 py-3 text-gray-300">
+                                                        <div className="flex flex-col">
+                                                            <span>{dateFormatted}</span>
+                                                            <span className="text-xs text-gray-500">{timeFormatted}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                                            registration.payment_status === 'Paid' 
+                                                                ? 'bg-green-500/20 text-green-400' 
+                                                                : 'bg-yellow-500/20 text-yellow-400'
+                                                        }`}>
+                                                            {registration.payment_status || 'Unpaid'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-gray-300 font-mono text-sm">
+                                                        {registration.utr_number || '-'}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        {registration.payment_screenshot ? (
+                                                            <div 
+                                                                className="w-12 h-12 rounded border border-gray-600 bg-gray-700 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation(); 
+                                                                    openImageModal(registration.payment_screenshot);
+                                                                }}
                                                             >
-                                                                Delete Team
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            }
-                                            // For team members
-                                            else if (registration.isTeamMember) {
-                                                return (
-                                                    <tr key={registration._id} className="border-t border-gray-200 bg-white hover:bg-gray-50">
-                                                        <td className="px-4 py-3">{registration.name}</td>
-                                                        <td className="px-4 py-3">{registration.email}</td>
-                                                        <td className="px-4 py-3">{registration.phone}</td>
-                                                        <td className="px-4 py-3">{registration.usn}</td>
-                                                        <td className="px-4 py-3">{registration.year}</td>
-                                                    </tr>
-                                                );
-                                            }
-                                            // For individual entries (no team or invalid team numbers)
-                                            else {
-                                                return (
-                                                    <tr key={registration._id} className="border-t border-gray-200 bg-white hover:bg-gray-50">
-                                                        <td className="px-4 py-3"></td>
-                                                        <td className="px-4 py-3">{registration.name}</td>
-                                                        <td className="px-4 py-3">{registration.email}</td>
-                                                        <td className="px-4 py-3">{registration.phone}</td>
-                                                        <td className="px-4 py-3">{registration.usn}</td>
-                                                        <td className="px-4 py-3">{registration.year}</td>
-                                                        <td className="px-4 py-3">{`${dateFormatted} ${timeFormatted}`}</td>
-                                                        <td className="px-4 py-3">{registration.payment_status || 'Pending'}</td>
-                                                        <td className="px-4 py-3">{registration.utn || 'N/A'}</td>
-                                                        <td className="px-4 py-3">
-                                                            {registration.receipt ? (
-                                                                <a href={registration.receipt} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
-                                                                    View Receipt
-                                                                </a>
-                                                            ) : 'No Receipt'}
-                                                        </td>
-                                                        <td className="px-4 py-3">
-                                                            {registration.payment_verified ? (
-                                                                <span className="text-green-600">✓ Verified</span>
-                                                            ) : (
-                                                                <span className="text-red-600">✗ Not Verified</span>
-                                                            )}
-                                                        </td>
-                                                        <td className="px-4 py-3">
-                                                            <button
-                                                                onClick={() => handleDelete(registration._id)}
-                                                                className="text-red-600 hover:text-red-800"
+                                                                <img 
+                                                                    src={registration.payment_screenshot} 
+                                                                    alt="Payment Receipt" 
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-gray-500 text-sm">No receipt</span>
+                                                        )}
+                                                        
+                                                        {registration.payment_screenshot && (
+                                                            <a 
+                                                                href={registration.payment_screenshot}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="block mt-1 text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
+                                                                onClick={(e) => e.stopPropagation()}
                                                             >
-                                                                Delete
+                                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                                </svg>
+                                                                View Receipt
+                                                            </a>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex justify-center">
+                                                            <button 
+                                                                className="relative flex items-center justify-center"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleVerifyPayment(registration._id, registration.payment_verified);
+                                                                }}
+                                                                disabled={actionLoading}
+                                                                aria-label={registration.payment_verified ? "Unverify payment" : "Verify payment"}
+                                                            >
+                                                                <div className={`w-6 h-6 rounded-md border transition-all duration-300 ${
+                                                                    registration.payment_verified 
+                                                                        ? 'bg-green-500 border-green-600' 
+                                                                        : 'bg-gray-700 border-gray-600 hover:border-green-400'
+                                                                }`}>
+                                                                    {registration.payment_verified && (
+                                                                        <motion.svg
+                                                                            className="w-6 h-6 text-white"
+                                                                            initial={{ scale: 0 }}
+                                                                            animate={{ scale: 1 }}
+                                                                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                                                            viewBox="0 0 24 24"
+                                                                            fill="none"
+                                                                            stroke="currentColor"
+                                                                            strokeWidth="3"
+                                                                            strokeLinecap="round"
+                                                                            strokeLinejoin="round"
+                                                                        >
+                                                                            <polyline points="20 6 9 17 4 12" />
+                                                                        </motion.svg>
+                                                                    )}
+                                                                </div>
                                                             </button>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            }
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                openDeleteModal(registration);
+                                                            }}
+                                                            className="bg-red-500/20 hover:bg-red-500/40 text-red-400 p-2 rounded transition-colors"
+                                                            aria-label="Delete registration"
+                                                            disabled={actionLoading}
+                                                        >
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            </svg>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
                                         })}
                                     </tbody>
                                 </table>

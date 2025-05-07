@@ -554,28 +554,7 @@ app.get('/workshop-registrations', authMiddleware, async (req, res) => {
             }
         });
         
-        // Process regular users and assign team_number "00"
-        if (!structuredRegistrations.teams["00"]) {
-            structuredRegistrations.teams["00"] = [];
-        }
         
-        regularUsers.forEach(user => {
-            structuredRegistrations.teams["00"].push({
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                phone: user.phone || "N/A",
-                usn: "N/A", // Regular users don't have USN
-                year: "N/A", // Regular users don't have year
-                payment_status: "N/A", // No payment status for regular users
-                payment_verified: false,
-                registeredAt: user.createdAt,
-                isTeamHeader: true, // Mark as team header for display purposes
-                teamNo: "00", // Assign team number "00" to distinguish existing users
-                membersCount: 1, // Individual user
-                isExistingUser: true // Flag to identify existing users
-            });
-        });
         
         res.json(structuredRegistrations);
     } catch (error) {

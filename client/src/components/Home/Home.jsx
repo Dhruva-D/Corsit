@@ -37,25 +37,28 @@ const Home = () => {
     <div className="relative text-[#f7ffff] flex flex-col overflow-x-hidden pt-28">
       {/* Gallery Modal */}
       {showGallery && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
-          <div className="bg-[#272928] rounded-xl max-w-5xl w-full max-h-[90vh] overflow-auto p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-3xl font-semibold text-[#ed5a2d]">{roboExpoData.title} Gallery</h3>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-80 p-4 pt-16 md:pt-4 overflow-y-auto">
+          <div className="bg-[#272928] rounded-xl max-w-5xl w-full max-h-[90vh] overflow-auto p-4 md:p-6 mt-10 md:mt-0">
+            <div className="sticky top-0 z-10 flex justify-between items-center mb-4 bg-[#272928] py-2 border-b border-gray-700">
+              <h3 className="text-2xl md:text-3xl font-semibold text-[#ed5a2d]">{roboExpoData.title} Gallery</h3>
               <button 
                 onClick={closeGallery}
-                className="text-white hover:text-[#ed5a2d] text-3xl"
+                className="text-white hover:text-[#ed5a2d] text-3xl w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/30 transition-colors"
+                aria-label="Close gallery"
               >
                 &times;
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
               {roboExpoData.images.map((img, index) => (
-                <img 
-                  key={index} 
-                  src={img} 
-                  alt={`${roboExpoData.title} ${index + 1}`}
-                  className="w-full h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
-                />
+                <div key={index} className="aspect-square relative">
+                  <img 
+                    src={img} 
+                    alt={`${roboExpoData.title} ${index + 1}`}
+                    className="w-full h-full object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer shadow-md"
+                    loading="lazy"
+                  />
+                </div>
               ))}
             </div>
           </div>

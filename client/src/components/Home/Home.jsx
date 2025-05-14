@@ -10,6 +10,11 @@ import re1 from '../../assets/events/roboexpo/1.jpg';
 import re2 from '../../assets/events/roboexpo/2.jpg';
 import re3 from '../../assets/events/roboexpo/3.jpg';
 
+// Import Workshop images
+import ws1 from '../../assets/events/workshop/1.jpg';
+import ws2 from '../../assets/events/workshop/2.jpg';
+import ws3 from '../../assets/events/workshop/3.jpg';
+
 const Home = () => {
   const [text] = useTypewriter({
     words: ['Robotics', 'AI & ML', 'Embedded Systems', 'Arduino', 'Mechatronics'],
@@ -19,28 +24,37 @@ const Home = () => {
   });
 
   const [showGallery, setShowGallery] = useState(false);
+  const [currentGallery, setCurrentGallery] = useState(null);
 
-  const roboExpoData = {
-    title: 'RoboExpo',
-    images: [re1, re2, re3]
+  const galleryData = {
+    roboExpo: {
+      title: 'RoboExpo',
+      images: [re1, re2, re3]
+    },
+    workshop: {
+      title: 'Robotics Workshop',
+      images: [ws1, ws2, ws3]
+    }
   };
 
-  const openGallery = () => {
+  const openGallery = (galleryType) => {
+    setCurrentGallery(galleryType);
     setShowGallery(true);
   };
 
   const closeGallery = () => {
     setShowGallery(false);
+    setCurrentGallery(null);
   };
 
   return (
     <div className="relative text-[#f7ffff] flex flex-col overflow-x-hidden pt-28">
       {/* Gallery Modal */}
-      {showGallery && (
+      {showGallery && currentGallery && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-80 p-4 pt-16 md:pt-4 overflow-y-auto">
           <div className="bg-[#272928] rounded-xl max-w-5xl w-full max-h-[90vh] overflow-auto p-4 md:p-6 mt-10 md:mt-0">
             <div className="sticky top-0 z-10 flex justify-between items-center mb-4 bg-[#272928] py-2 border-b border-gray-700">
-              <h3 className="text-2xl md:text-3xl font-semibold text-[#ed5a2d]">{roboExpoData.title} Gallery</h3>
+              <h3 className="text-2xl md:text-3xl font-semibold text-[#ed5a2d]">{galleryData[currentGallery].title} Gallery</h3>
               <button 
                 onClick={closeGallery}
                 className="text-white hover:text-[#ed5a2d] text-3xl w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/30 transition-colors"
@@ -50,11 +64,11 @@ const Home = () => {
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
-              {roboExpoData.images.map((img, index) => (
+              {galleryData[currentGallery].images.map((img, index) => (
                 <div key={index} className="aspect-square relative">
                   <img 
                     src={img} 
-                    alt={`${roboExpoData.title} ${index + 1}`}
+                    alt={`${galleryData[currentGallery].title} ${index + 1}`}
                     className="w-full h-full object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer shadow-md"
                     loading="lazy"
                   />
@@ -100,18 +114,18 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-16">
             {[
               {
-                date: 'Coming Soon',
+                date: '22 May 2025',
                 title: 'RoboCor',
                 description: 'The ultimate battleground for innovation, where robots clash and creativity thrives!',
                 location: '📍 SIT Campus',
-                status: 'closed'
+                status: 'robocor'
               },
               {
                 date: '11 May 2025',
                 title: 'Robotics Workshop',
                 description: 'Learn the basics of robotics and automation in this hands-on workshop.',
-                location: '📍 MBA seminar hall ',
-                status: 'open'
+                location: '📍 MBA seminar hall ',
+                status: 'workshop'
               },
               {
                 date: 'Coming Soon',
@@ -135,11 +149,27 @@ const Home = () => {
                   </NavLink>
                 ) : event.status === 'roboexpo' ? (
                   <button 
-                    onClick={openGallery}
+                    onClick={() => openGallery('roboExpo')}
                     className="mt-6 bg-gradient-to-r from-[#ed5a2d] to-orange-500 hover:from-orange-500 hover:to-[#ed5a2d] text-white font-bold py-2 px-6 rounded-full shadow-md transition-all duration-300 hover:scale-110"
                   >
                     View Gallery
                   </button>
+                ) : event.status === 'workshop' ? (
+                  <button 
+                    onClick={() => openGallery('workshop')}
+                    className="mt-6 bg-gradient-to-r from-[#ed5a2d] to-orange-500 hover:from-orange-500 hover:to-[#ed5a2d] text-white font-bold py-2 px-6 rounded-full shadow-md transition-all duration-300 hover:scale-110"
+                  >
+                    View Gallery
+                  </button>
+                ) : event.status === 'robocor' ? (
+                  <a 
+                    href="https://robocor.corsit.in" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="mt-6 inline-block bg-gradient-to-r from-[#ed5a2d] to-orange-500 hover:from-orange-500 hover:to-[#ed5a2d] text-white font-bold py-2 px-6 rounded-full shadow-md transition-all duration-300 hover:scale-110"
+                  >
+                    View Details
+                  </a>
                 ) : (
                   <div className="mt-6 bg-gray-700 text-gray-300 font-bold py-2 px-6 rounded-full shadow-md">
                     <span className="flex items-center">

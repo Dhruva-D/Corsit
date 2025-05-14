@@ -104,10 +104,19 @@ const Footer = () => {
         <div>
           <h2 className="text-2xl text-[#ed5a2d] font-bold">Quick Links</h2>
           <ul className="mt-4 space-y-3">
-            {["RoboExpo", "Workshop", "Robocor"].map((item, index) => (
+            {[
+              { name: "RoboExpo", url: "/" },
+              { name: "Workshop", url: "/" },
+              { name: "Robocor", url: "https://robocor.corsit.in" }
+            ].map((item, index) => (
               <li key={index}>
-                <a href={item === "Workshop" ? "/register" : "/"} className="text-[#f7ffff] hover:text-white text-lg block">
-                  {item}
+                <a 
+                  href={item.url} 
+                  target={item.url.startsWith("http") ? "_blank" : "_self"} 
+                  rel={item.url.startsWith("http") ? "noopener noreferrer" : ""}
+                  className="text-[#f7ffff] hover:text-white text-lg block"
+                >
+                  {item.name}
                 </a>
               </li>
             ))}

@@ -80,10 +80,14 @@ const storageProjects = new CloudinaryStorage({
 // Simple Cloudinary storage for abstract documents
 const storageAbstracts = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: 'abstract_uploads',
-    allowed_formats: ['pdf', 'doc', 'docx'],
-    resource_type: 'raw'
+  params: (req, file) => {
+    // For raw resources, we don't use allowed_formats
+    // Cloudinary determines format from file extension
+    return {
+      folder: 'abstract_uploads',
+      resource_type: 'raw',
+      public_id: `document_${Date.now()}`
+    };
   }
 });
 
@@ -105,7 +109,29 @@ const uploadProject = multer({
 
 const uploadAbstract = multer({ 
   storage: storageAbstracts,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    console.log('Abstract file filter - File details:', {
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size
+    });
+    
+    // Accept PDF, DOC, and DOCX files
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      console.log('File type accepted:', file.mimetype);
+      cb(null, true);
+    } else {
+      console.log('File type rejected:', file.mimetype);
+      cb(new Error(`Invalid file type: ${file.mimetype}. Only PDF, DOC, and DOCX files are allowed.`), false);
+    }
+  }
 });
 
 module.exports = {

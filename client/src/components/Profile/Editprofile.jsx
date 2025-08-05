@@ -124,8 +124,7 @@ const EditProfile = () => {
         return;
       }
     } else if (type === 'abstractDoc') {
-      const fileType = file.type.toLowerCase();
-      if (!validDocTypes.some(t => fileType.includes(t.split('/').pop().split('.').shift()))) {
+      if (!validDocTypes.includes(file.type)) {
         setUploadState(prev => ({
           ...prev,
           [type]: { loading: false, progress: 0, status: { type: 'error', message: 'Please upload a valid document (PDF, DOC, DOCX)' }, fileName: file.name }

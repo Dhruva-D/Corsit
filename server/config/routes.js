@@ -125,37 +125,62 @@ router.post('/upload/project', uploadProject.single('image'), (req, res) => {
 });
 
 // Generic single file upload route for abstract documents
-router.post('/upload/abstract', uploadAbstract.single('document'), (req, res, next) => {
-  try {
-    if (!req.file) {
-      console.log('No file received in upload/abstract');
-      return res.status(400).json({ 
+router.post('/upload/abstract', (req, res, next) => {
+  console.log('Abstract upload route hit');
+  console.log('Request headers:', req.headers);
+  
+  // Add middleware to log incoming file information
+  req.on('data', chunk => {
+    console.log('Received chunk of size:', chunk.length);
+  });
+  
+  uploadAbstract.single('document')(req, res, (err) => {
+    console.log('Abstract multer processing complete');
+    
+    if (err) {
+      console.error('Multer error in abstract upload:', {
+        message: err.message,
+        stack: err.stack,
+        code: err.code
+      });
+      return res.status(500).json({ 
         success: false,
-        message: 'No file uploaded or file is empty' 
+        message: 'Abstract document upload failed',
+        error: err.message
       });
     }
     
-    console.log('Abstract document uploaded successfully:', {
-      originalname: req.file.originalname,
-      mimetype: req.file.mimetype,
-      size: req.file.size,
-      path: req.file.path
-    });
-    
-    // Return the Cloudinary URL of the uploaded document
-    return res.status(200).json({
-      success: true,
-      message: 'Abstract document uploaded successfully',
-      imageUrl: req.file.path
-    });
-  } catch (error) {
-    console.error('Error in abstract upload route:', {
-      error: error.message,
-      stack: error.stack,
-      file: req.file
-    });
-    next(error);
-  }
+    try {
+      if (!req.file) {
+        console.log('No file received in upload/abstract');
+        return res.status(400).json({ 
+          success: false,
+          message: 'No file uploaded or file is empty' 
+        });
+      }
+      
+      console.log('Abstract document uploaded successfully:', {
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        path: req.file.path
+      });
+      
+      // Return the Cloudinary URL of the uploaded document
+      return res.status(200).json({
+        success: true,
+        message: 'Abstract document uploaded successfully',
+        imageUrl: req.file.path
+      });
+    } catch (error) {
+      console.error('Error in abstract upload route:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        error: error.message
+      });
+    }
+  });
 });
 
 // Apply error handling middleware to all routes

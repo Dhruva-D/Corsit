@@ -14,103 +14,99 @@ if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !pr
   console.error('ERROR: Missing required Cloudinary environment variables');
 }
 
-// Error handling wrapper for Cloudinary storage
-const createCloudinaryStorage = (options) => {
-  const params = {
-    folder: options.folder,
-    allowed_formats: options.allowed_formats,
-    resource_type: options.resource_type || 'image',
-  };
-
-  if (options.transformation) {
-    params.transformation = options.transformation;
+// Simple Cloudinary storage for profile photos (including SVG)
+const storageProfiles = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: (req, file) => {
+    // Handle SVG files as raw resource type
+    if (file.mimetype === 'image/svg+xml') {
+      return {
+        folder: 'profile_uploads',
+        resource_type: 'raw',
+        format: 'svg'
+      };
+    }
+    // Handle regular images
+    return {
+      folder: 'profile_uploads',
+      allowed_formats: ['jpg', 'jpeg', 'png', 'avif'],
+      transformation: [{ width: 500, height: 500, crop: 'limit' }]
+    };
   }
-
-  const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: params,
-  });
-
-  // Add error handling to the storage engine
-  const _handleFile = storage._handleFile.bind(storage);
-  storage._handleFile = function (req, file, cb) {
-    console.log(`Uploading file to ${options.folder}:`, {
-      originalname: file.originalname,
-      mimetype: file.mimetype,
-      size: file.size
-    });
-
-    _handleFile(req, file, (err, result) => {
-      if (err) {
-        console.error('Cloudinary upload error:', {
-          folder: options.folder,
-          error: err.message,
-          stack: err.stack
-        });
-        return cb(err);
-      }
-      console.log('Upload successful:', {
-        folder: options.folder,
-        path: result.path,
-        size: result.size
-      });
-      cb(null, result);
-    });
-  };
-
-  return storage;
-};
-
-// Configure Cloudinary storage with error handling
-const storageProfiles = createCloudinaryStorage({
-  folder: 'profile_uploads',
-  allowed_formats: ['jpg', 'jpeg', 'png', 'avif'],
-  transformation: [{ width: 500, height: 500, crop: 'limit' }]
 });
 
-// Configure storage for payment screenshots
-const storagePayments = createCloudinaryStorage({
-  folder: 'payment_screenshots',
-  allowed_formats: ['jpg', 'jpeg', 'png', 'avif'],
-  transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
-});
-
-// Configure storage for project photos
-const storageProjects = createCloudinaryStorage({
-  folder: 'project_uploads',
-  allowed_formats: ['jpg', 'jpeg', 'png', 'avif'],
-  transformation: [{ width: 800, height: 800, crop: 'limit' }]
-});
-
-// Configure storage for abstract documents
-const storageAbstracts = createCloudinaryStorage({
-  folder: 'abstract_uploads',
-  resource_type: 'raw' // Use 'raw' for non-image files
-});
-
-// Custom file filter for abstract documents
-const abstractFileFilter = (req, file, cb) => {
-  const allowedMimeTypes = [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-  ];
-  const allowedExtensions = ['.pdf', '.doc', '.docx'];
-  
-  const fileExtension = path.extname(file.originalname).toLowerCase();
-
-  if (allowedMimeTypes.includes(file.mimetype) && allowedExtensions.includes(fileExtension)) {
-    cb(null, true); // Accept file
-  } else {
-    cb(new Error('Invalid file type. Only PDF, DOC, and DOCX files are allowed.'), false); // Reject file
+// Simple Cloudinary storage for payment screenshots (including SVG)
+const storagePayments = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: (req, file) => {
+    // Handle SVG files as raw resource type
+    if (file.mimetype === 'image/svg+xml') {
+      return {
+        folder: 'payment_screenshots',
+        resource_type: 'raw',
+        format: 'svg'
+      };
+    }
+    // Handle regular images
+    return {
+      folder: 'payment_screenshots',
+      allowed_formats: ['jpg', 'jpeg', 'png', 'avif'],
+      transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
+    };
   }
-};
+});
+
+// Simple Cloudinary storage for project photos (including SVG)
+const storageProjects = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: (req, file) => {
+    // Handle SVG files as raw resource type
+    if (file.mimetype === 'image/svg+xml') {
+      return {
+        folder: 'project_uploads',
+        resource_type: 'raw',
+        format: 'svg'
+      };
+    }
+    // Handle regular images
+    return {
+      folder: 'project_uploads',
+      allowed_formats: ['jpg', 'jpeg', 'png', 'avif'],
+      transformation: [{ width: 800, height: 800, crop: 'limit' }]
+    };
+  }
+});
+
+// Simple Cloudinary storage for abstract documents
+const storageAbstracts = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'abstract_uploads',
+    allowed_formats: ['pdf', 'doc', 'docx'],
+    resource_type: 'raw'
+  }
+});
 
 // Create multer upload instances
-const uploadProfile = multer({ storage: storageProfiles });
-const uploadPayment = multer({ storage: storagePayments });
-const uploadProject = multer({ storage: storageProjects });
-const uploadAbstract = multer({ storage: storageAbstracts, fileFilter: abstractFileFilter });
+const uploadProfile = multer({ 
+  storage: storageProfiles,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
+
+const uploadPayment = multer({ 
+  storage: storagePayments,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
+
+const uploadProject = multer({ 
+  storage: storageProjects,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
+
+const uploadAbstract = multer({ 
+  storage: storageAbstracts,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
 
 module.exports = {
   uploadProfile,

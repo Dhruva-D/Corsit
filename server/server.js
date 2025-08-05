@@ -164,14 +164,26 @@ app.post("/change-password", authMiddleware, async (req, res) => {
     res.json({ message: "Password updated successfully" });
 });
 
-// Update Profile - Now using Cloudinary
-app.post("/edit-profile", authMiddleware, uploadProfile.fields([
-    { name: "profilePhoto", maxCount: 1 }, 
-    { name: "projectPhoto", maxCount: 1 }, 
-    { name: "abstractDoc", maxCount: 1 }
-]), async (req, res) => {
+// Update Profile - Now using Cloudinary URLs sent from client
+app.post("/edit-profile", authMiddleware, async (req, res) => {
     try {
-        const { name, designation, linkedin, github, projectTitle, projectDescription, phone, instagram } = req.body;
+        const { 
+            name, 
+            designation, 
+            linkedin, 
+            github, 
+            projectTitle, 
+            projectDescription, 
+            phone, 
+            instagram,
+            profilePhoto,
+            projectPhoto,
+            abstractDoc
+        } = req.body;
+        
+        // Get current user data to preserve existing file URLs if not updating
+        const currentUser = await User.findById(req.user.id);
+        
         const updateData = { 
             name, 
             designation, 
@@ -180,24 +192,19 @@ app.post("/edit-profile", authMiddleware, uploadProfile.fields([
             projectTitle, 
             projectDescription,
             phone,
-            instagram
+            instagram,
+            // Always include file URLs - use new ones if provided, otherwise keep existing ones
+            profilePhoto: profilePhoto && profilePhoto.trim() !== '' ? profilePhoto : currentUser.profilePhoto,
+            projectPhoto: projectPhoto && projectPhoto.trim() !== '' ? projectPhoto : currentUser.projectPhoto,
+            abstractDoc: abstractDoc && abstractDoc.trim() !== '' ? abstractDoc : currentUser.abstractDoc
         };
-
-        // Handle file uploads through Cloudinary and use the full URLs
-        if (req.files) {
-            if (req.files.profilePhoto) {
-                updateData.profilePhoto = req.files.profilePhoto[0].path;
-            }
-            if (req.files.projectPhoto) {
-                updateData.projectPhoto = req.files.projectPhoto[0].path;
-            }
-            if (req.files.abstractDoc) {
-                updateData.abstractDoc = req.files.abstractDoc[0].path;
-            }
-        }
-
-        await User.findByIdAndUpdate(req.user.id, updateData);
-        res.json({ message: "Profile and project details updated" });
+        
+        const updatedUser = await User.findByIdAndUpdate(req.user.id, updateData, { new: true });
+        
+        res.json({ 
+            message: "Profile and project details updated",
+            user: updatedUser
+        });
     } catch (error) {
         console.error("Error updating profile:", error);
         res.status(500).json({ message: "Server error" });
@@ -262,12 +269,8 @@ app.get("/admin/users", authMiddleware, async (req, res) => {
     }
 });
 
-// Update User by Admin - Now using Cloudinary
-app.put("/admin/users/:userId", authMiddleware, uploadProfile.fields([
-    { name: "profilePhoto", maxCount: 1 },
-    { name: "projectPhoto", maxCount: 1 },
-    { name: "abstractDoc", maxCount: 1 }
-]), async (req, res) => {
+// Update User by Admin - Now using Cloudinary URLs sent from client
+app.put("/admin/users/:userId", authMiddleware, async (req, res) => {
     try {
         // Check if user is admin
         const isAdmin = req.header("isAdmin");
@@ -276,20 +279,7 @@ app.put("/admin/users/:userId", authMiddleware, uploadProfile.fields([
         }
         
         const { userId } = req.params;
-        const updateData = req.body;
-        
-        // Handle file uploads through Cloudinary
-        if (req.files) {
-            if (req.files.profilePhoto) {
-                updateData.profilePhoto = req.files.profilePhoto[0].path;
-            }
-            if (req.files.projectPhoto) {
-                updateData.projectPhoto = req.files.projectPhoto[0].path;
-            }
-            if (req.files.abstractDoc) {
-                updateData.abstractDoc = req.files.abstractDoc[0].path;
-            }
-        }
+        const updateData = { ...req.body };
         
         // Always set adminAuthenticated to 'yes' when admin updates a user
         updateData.adminAuthenticated = 'yes';

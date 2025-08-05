@@ -2,6 +2,26 @@ const express = require('express');
 const router = express.Router();
 const { uploadProfile, uploadPayment, uploadProject, uploadAbstract } = require('./storage');
 
+// Test endpoint to check if routes are working
+router.get('/test', (req, res) => {
+  res.json({ message: 'Upload routes are working', timestamp: new Date() });
+});
+
+// Test Cloudinary connection
+router.get('/test-cloudinary', async (req, res) => {
+  try {
+    const cloudinary = require('./cloudinary');
+    const result = await cloudinary.api.ping();
+    res.json({ success: true, message: 'Cloudinary connection successful', result });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: 'Cloudinary connection failed', 
+      error: error.message 
+    });
+  }
+});
+
 // Error handling middleware for file uploads
 const handleUploadError = (err, req, res, next) => {
   console.error('Upload Error:', {
@@ -42,33 +62,40 @@ const handleUploadError = (err, req, res, next) => {
 };
 
 // Generic single file upload route for profile photos
-router.post('/upload/profile', uploadProfile.single('image'), (req, res, next) => {
-  try {
-    if (!req.file) {
-      console.log('No file received in upload/profile');
-      return res.status(400).json({ 
+router.post('/upload/profile', (req, res, next) => {
+  uploadProfile.single('image')(req, res, (err) => {
+    if (err) {
+      console.error('Upload error:', err.message);
+      return res.status(500).json({ 
         success: false,
-        message: 'No file uploaded or file is empty' 
+        message: 'File upload failed',
+        error: err.message
       });
     }
     
-    console.log('File uploaded successfully:', {
-      originalname: req.file.originalname,
-      mimetype: req.file.mimetype,
-      size: req.file.size,
-      path: req.file.path
-    });
-    
-    // Return the Cloudinary URL of the uploaded image
-    return res.status(200).json({
-      success: true,
-      message: 'File uploaded successfully',
-      imageUrl: req.file.path
-    });
-  } catch (error) {
-    console.error('Error in profile upload route:', error);
-    next(error);
-  }
+    try {
+      if (!req.file) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'No file uploaded or file is empty' 
+        });
+      }
+      
+      // Return the Cloudinary URL of the uploaded image
+      return res.status(200).json({
+        success: true,
+        message: 'File uploaded successfully',
+        imageUrl: req.file.path
+      });
+    } catch (error) {
+      console.error('Error in profile upload route:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        error: error.message
+      });
+    }
+  });
 });
 
 // Generic single file upload route for payment screenshots

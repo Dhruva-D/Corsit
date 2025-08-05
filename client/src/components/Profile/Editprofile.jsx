@@ -102,7 +102,7 @@ const EditProfile = () => {
     }));
 
     // File type validation
-    const validImageTypes = ['image/jpeg', 'image/png', 'image/avif'];
+    const validImageTypes = ['image/jpeg', 'image/png', 'image/avif', 'image/svg+xml'];
     const validDocTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     
     // Common validations
@@ -119,7 +119,7 @@ const EditProfile = () => {
       if (!validImageTypes.includes(file.type)) {
         setUploadState(prev => ({
           ...prev,
-          [type]: { loading: false, progress: 0, status: { type: 'error', message: 'Please upload a valid image (JPEG, PNG, AVIF)' }, fileName: file.name }
+          [type]: { loading: false, progress: 0, status: { type: 'error', message: 'Please upload a valid image (JPEG, PNG, AVIF, SVG)' }, fileName: file.name }
         }));
         return;
       }
@@ -149,7 +149,7 @@ const EditProfile = () => {
       const response = await axios.post(`${config.apiBaseUrl}${endpoint}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': localStorage.getItem('token')
         },
         onUploadProgress: (progressEvent) => {
           const progress = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
@@ -162,8 +162,14 @@ const EditProfile = () => {
         throw new Error(response.data?.message || 'Upload failed: No image URL returned');
       }
 
-      setPreview(prev => ({ ...prev, [type]: response.data.imageUrl }));
-      setUserData(prev => ({ ...prev, [type]: response.data.imageUrl }));
+      // Update both preview and userData with the new URL
+      const newUrl = response.data.imageUrl;
+      setPreview(prev => ({ ...prev, [type]: newUrl }));
+      setUserData(prev => ({ 
+        ...prev, 
+        [type]: newUrl 
+      }));
+      
       setUploadState(prev => ({
         ...prev,
         [type]: { ...prev[type], loading: false, status: { type: 'success', message: 'Upload successful!' } }
@@ -199,24 +205,25 @@ const EditProfile = () => {
     setLoading(true);
 
     try {
-      // We're now sending only the form data, as images are already uploaded to Cloudinary
+      // Ensure we have the latest state values and handle empty strings properly
       const updateData = {
-        name: userData.name,
-        designation: userData.designation,
-        linkedin: userData.linkedin,
-        github: userData.github,
-        instagram: userData.instagram,
-        phone: userData.phone,
-        projectTitle: userData.projectTitle,
-        projectDescription: userData.projectDescription,
-        profilePhoto: userData.profilePhoto,
-        projectPhoto: userData.projectPhoto,
-        abstractDoc: userData.abstractDoc
+        name: userData.name || '',
+        designation: userData.designation || '',
+        linkedin: userData.linkedin || '',
+        github: userData.github || '',
+        instagram: userData.instagram || '',
+        phone: userData.phone || '',
+        projectTitle: userData.projectTitle || '',
+        projectDescription: userData.projectDescription || '',
+        profilePhoto: userData.profilePhoto || '',
+        projectPhoto: userData.projectPhoto || '',
+        abstractDoc: userData.abstractDoc || ''
       };
 
-      await axios.post(`${config.apiBaseUrl}/edit-profile`, updateData, {
+      const response = await axios.post(`${config.apiBaseUrl}/edit-profile`, updateData, {
         headers: {
-          Authorization: localStorage.getItem('token')
+          'Authorization': localStorage.getItem('token'),
+          'Content-Type': 'application/json'
         }
       });
       
@@ -226,7 +233,7 @@ const EditProfile = () => {
       navigate('/profile');
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile');
+      alert('Failed to update profile. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -248,7 +255,7 @@ const EditProfile = () => {
               <div className="w-full">
                 <div className="mb-2">
                   <label className="block text-lg font-medium text-gray-300 mb-1">Profile Photo</label>
-                  <p className="text-xs text-gray-400">Accepted formats: JPG, PNG (Max 5MB)</p>
+                  <p className="text-xs text-gray-400">Accepted formats: JPG, PNG, SVG (Max 5MB)</p>
                 </div>
                 <div className="flex flex-col-reverse md:flex-row items-center gap-4">
                   <div className="flex-1 w-full">
@@ -257,7 +264,7 @@ const EditProfile = () => {
                         type="file"
                         id="profilePhoto"
                         className="hidden"
-                        accept=".jpg,.jpeg,.png,.avif"
+                        accept=".jpg,.jpeg,.png,.avif,.svg"
                         onChange={(e) => handleFileChange(e, 'profilePhoto')}
                         disabled={uploadState.profilePhoto.loading}
                       />
@@ -302,7 +309,7 @@ const EditProfile = () => {
               <div className="w-full">
                 <div className="mb-2">
                   <label className="block text-lg font-medium text-gray-300 mb-1">Project Photo</label>
-                  <p className="text-xs text-gray-400">Accepted formats: JPG, PNG (Max 5MB)</p>
+                  <p className="text-xs text-gray-400">Accepted formats: JPG, PNG, SVG (Max 5MB)</p>
                 </div>
                 <div className="flex flex-col-reverse md:flex-row items-center gap-4">
                   <div className="flex-1 w-full">
@@ -311,7 +318,7 @@ const EditProfile = () => {
                         type="file"
                         id="projectPhoto"
                         className="hidden"
-                        accept=".jpg,.jpeg,.png,.avif"
+                        accept=".jpg,.jpeg,.png,.avif,.svg"
                         onChange={(e) => handleFileChange(e, 'projectPhoto')}
                         disabled={uploadState.projectPhoto.loading}
                       />

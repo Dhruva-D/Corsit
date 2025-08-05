@@ -1,5 +1,6 @@
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const path = require('path');
 const cloudinary = require('./cloudinary');
 
 // Verify Cloudinary configuration
@@ -15,14 +16,19 @@ if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !pr
 
 // Error handling wrapper for Cloudinary storage
 const createCloudinaryStorage = (options) => {
+  const params = {
+    folder: options.folder,
+    allowed_formats: options.allowed_formats,
+    resource_type: options.resource_type || 'image',
+  };
+
+  if (options.transformation) {
+    params.transformation = options.transformation;
+  }
+
   const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
-    params: {
-      folder: options.folder,
-      allowed_formats: options.allowed_formats,
-      transformation: options.transformation,
-      resource_type: options.resource_type || 'image'
-    }
+    params: params,
   });
 
   // Add error handling to the storage engine
@@ -79,15 +85,32 @@ const storageProjects = createCloudinaryStorage({
 // Configure storage for abstract documents
 const storageAbstracts = createCloudinaryStorage({
   folder: 'abstract_uploads',
-  allowed_formats: ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'],
-  resource_type: 'auto'
+  resource_type: 'raw' // Use 'raw' for non-image files
 });
+
+// Custom file filter for abstract documents
+const abstractFileFilter = (req, file, cb) => {
+  const allowedMimeTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ];
+  const allowedExtensions = ['.pdf', '.doc', '.docx'];
+  
+  const fileExtension = path.extname(file.originalname).toLowerCase();
+
+  if (allowedMimeTypes.includes(file.mimetype) && allowedExtensions.includes(fileExtension)) {
+    cb(null, true); // Accept file
+  } else {
+    cb(new Error('Invalid file type. Only PDF, DOC, and DOCX files are allowed.'), false); // Reject file
+  }
+};
 
 // Create multer upload instances
 const uploadProfile = multer({ storage: storageProfiles });
 const uploadPayment = multer({ storage: storagePayments });
 const uploadProject = multer({ storage: storageProjects });
-const uploadAbstract = multer({ storage: storageAbstracts });
+const uploadAbstract = multer({ storage: storageAbstracts, fileFilter: abstractFileFilter });
 
 module.exports = {
   uploadProfile,

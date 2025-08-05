@@ -53,6 +53,11 @@ const EditProfile = () => {
 
   const [preview, setPreview] = useState({ profilePhoto: '', projectPhoto: '' });
   const [loading, setLoading] = useState(false);
+  const [uploadState, setUploadState] = useState({
+    profilePhoto: { loading: false, progress: 0, status: null, fileName: '' },
+    projectPhoto: { loading: false, progress: 0, status: null, fileName: '' },
+    abstractDoc: { loading: false, progress: 0, status: null, fileName: '' },
+  });
 
   const designations = [
     "First Year", "Second Year", "Third Year", "Fourth Year",
@@ -91,50 +96,55 @@ const EditProfile = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    setUploadState(prev => ({
+      ...prev,
+      [type]: { loading: true, progress: 0, status: null, fileName: file.name }
+    }));
+
     // File type validation
     const validImageTypes = ['image/jpeg', 'image/png', 'image/avif'];
     const validDocTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     
     // Common validations
     if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      setUploadStatus({
-        type: 'error',
-        message: 'File size should not exceed 5MB'
-      });
+      setUploadState(prev => ({
+        ...prev,
+        [type]: { loading: false, progress: 0, status: { type: 'error', message: 'File size should not exceed 5MB' }, fileName: file.name }
+      }));
       return;
     }
 
     // Type-specific validations
     if (type === 'profilePhoto' || type === 'projectPhoto') {
       if (!validImageTypes.includes(file.type)) {
-        setUploadStatus({
-          type: 'error',
-          message: 'Please upload a valid image (JPEG, PNG, AVIF)'
-        });
+        setUploadState(prev => ({
+          ...prev,
+          [type]: { loading: false, progress: 0, status: { type: 'error', message: 'Please upload a valid image (JPEG, PNG, AVIF)' }, fileName: file.name }
+        }));
         return;
       }
     } else if (type === 'abstractDoc') {
       const fileType = file.type.toLowerCase();
       if (!validDocTypes.some(t => fileType.includes(t.split('/').pop().split('.').shift()))) {
-        setUploadStatus({
-          type: 'error',
-          message: 'Please upload a valid document (PDF, DOC, DOCX)'
-        });
+        setUploadState(prev => ({
+          ...prev,
+          [type]: { loading: false, progress: 0, status: { type: 'error', message: 'Please upload a valid document (PDF, DOC, DOCX)' }, fileName: file.name }
+        }));
         return;
       }
     }
 
-    setLoading(true);
-    setUploadProgress(0);
+
 
     const formData = new FormData();
-    formData.append('image', file);
+    const fieldName = type === 'abstractDoc' ? 'document' : 'image';
+    formData.append(fieldName, file);
 
     try {
       let endpoint = '';
-      if (type === 'profilePhoto') endpoint = '/upload/profile';
-      else if (type === 'projectPhoto') endpoint = '/upload/project';
-      else if (type === 'abstractDoc') endpoint = '/upload/abstract';
+      if (type === 'profilePhoto') endpoint = '/api/upload/profile';
+      else if (type === 'projectPhoto') endpoint = '/api/upload/project';
+      else if (type === 'abstractDoc') endpoint = '/api/upload/abstract';
 
       const response = await axios.post(`${config.apiBaseUrl}${endpoint}`, formData, {
         headers: {
@@ -143,7 +153,7 @@ const EditProfile = () => {
         },
         onUploadProgress: (progressEvent) => {
           const progress = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
-          setUploadProgress(progress);
+          setUploadState(prev => ({ ...prev, [type]: { ...prev[type], progress: progress } }));
         },
         timeout: 30000 // 30 seconds timeout
       });
@@ -152,41 +162,40 @@ const EditProfile = () => {
         throw new Error(response.data?.message || 'Upload failed: No image URL returned');
       }
 
-      setUserData(prev => ({
+      setPreview(prev => ({ ...prev, [type]: response.data.imageUrl }));
+      setUserData(prev => ({ ...prev, [type]: response.data.imageUrl }));
+      setUploadState(prev => ({
         ...prev,
-        [type]: response.data.imageUrl
+        [type]: { ...prev[type], loading: false, status: { type: 'success', message: 'Upload successful!' } }
       }));
 
-      // Show success message
-      setUploadStatus({
-        type: 'success',
-        message: `${type === 'profilePhoto' ? 'Profile photo' : type === 'projectPhoto' ? 'Project photo' : 'Abstract document'} uploaded successfully!`
-      });
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => setUploadStatus(null), 3000);
+      setTimeout(() => {
+        setUploadState(prev => ({ ...prev, [type]: { ...prev[type], status: null, fileName: file.name } }));
+      }, 3000);
       
     } catch (error) {
       console.error(`Error uploading ${type}:`, error);
-      const errorMessage = error.response?.data?.message || 
-                         error.message || 
-                         `Failed to upload ${type === 'profilePhoto' ? 'profile photo' : type === 'projectPhoto' ? 'project photo' : 'abstract document'}. Please try again.`;
-      
-      setUploadStatus({
-        type: 'error',
-        message: errorMessage
-      });
-      
-      // Clear error message after 5 seconds
-      setTimeout(() => setUploadStatus(null), 5000);
-    } finally {
-      setLoading(false);
-      setUploadProgress(0);
+      const errorMessage = error.response?.data?.message || error.message || `Failed to upload. Please try again.`;
+      setUploadState(prev => ({
+        ...prev,
+        [type]: { ...prev[type], loading: false, status: { type: 'error', message: errorMessage } }
+      }));
+
+      setTimeout(() => {
+        setUploadState(prev => ({ ...prev, [type]: { ...prev[type], status: null } }));
+      }, 5000);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const isUploading = Object.values(uploadState).some(state => state.loading);
+    if (isUploading) {
+      alert('Please wait for the file uploads to complete.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -242,37 +251,49 @@ const EditProfile = () => {
                   <p className="text-xs text-gray-400">Accepted formats: JPG, PNG (Max 5MB)</p>
                 </div>
                 <div className="flex flex-col-reverse md:flex-row items-center gap-4">
-                  <div className="flex-1 w-full relative">
-                    <input
-                      type="file"
-                      accept=".jpg,.jpeg,.png,.avif"
-                      onChange={(e) => handleFileChange(e, 'profilePhoto')}
-                      className={`w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 ${loading ? 'opacity-50 cursor-not-allowed' : 'file:bg-gray-600 hover:file:bg-gray-500 file:cursor-pointer'} file:text-gray-200`}
-                      disabled={loading}
-                      title="Upload your profile photo (JPG, PNG, AVIF, max 5MB)"
-                    />
-                    {loading && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-lg">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ed5a2d]"></div>
+                  <div className="flex-1 w-full">
+                    <div className="relative">
+                      <input
+                        type="file"
+                        id="profilePhoto"
+                        className="hidden"
+                        accept=".jpg,.jpeg,.png,.avif"
+                        onChange={(e) => handleFileChange(e, 'profilePhoto')}
+                        disabled={uploadState.profilePhoto.loading}
+                      />
+                      <label
+                        htmlFor="profilePhoto"
+                        className={`w-full text-left cursor-pointer px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition ${uploadState.profilePhoto.loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'}`}>
+                        {uploadState.profilePhoto.fileName || 'Choose a file...'}
+                      </label>
+                      {uploadState.profilePhoto.loading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-lg">
+                          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ed5a2d]"></div>
+                        </div>
+                      )}
+                    </div>
+                    {uploadState.profilePhoto.progress > 0 && (
+                      <div className="w-full bg-gray-600 rounded-full h-2.5 mt-2">
+                        <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadState.profilePhoto.progress}%` }}></div>
                       </div>
                     )}
+                    {uploadState.profilePhoto.status && uploadState.profilePhoto.status.message && (
+                      <p className={`mt-2 text-sm ${uploadState.profilePhoto.status.type === 'error' ? 'text-red-500' : 'text-green-500'}`}>
+                        {uploadState.profilePhoto.status.message}
+                      </p>
+                    )}
                   </div>
-                  <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-gray-700 shadow-lg">
+                  <div className={`relative w-32 h-32 rounded-full overflow-hidden border-4 border-gray-700 shadow-lg ${uploadState.profilePhoto.loading ? 'animate-pulse' : ''}`}>
                     <img
                       src={preview.profilePhoto || config.defaultProfileImage}
                       alt="Profile Preview"
-                      className={`w-full h-full object-cover transition-opacity ${loading ? 'opacity-50' : 'opacity-100'}`}
+                      className={`w-full h-full object-cover transition-all duration-300 ${uploadState.profilePhoto.loading ? 'opacity-50' : 'opacity-100'}`}
                       onError={(e) => {
                         console.log("Profile preview image failed to load, using default");
                         e.target.src = config.defaultProfileImage;
                         e.target.onerror = null; // Prevents infinite loop
                       }}
                     />
-                    {loading && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#ed5a2d]"></div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -284,37 +305,49 @@ const EditProfile = () => {
                   <p className="text-xs text-gray-400">Accepted formats: JPG, PNG (Max 5MB)</p>
                 </div>
                 <div className="flex flex-col-reverse md:flex-row items-center gap-4">
-                  <div className="flex-1 w-full relative">
-                    <input
-                      type="file"
-                      accept=".jpg,.jpeg,.png,.avif"
-                      onChange={(e) => handleFileChange(e, 'projectPhoto')}
-                      className={`w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 ${loading ? 'opacity-50 cursor-not-allowed' : 'file:bg-gray-600 hover:file:bg-gray-500 file:cursor-pointer'} file:text-gray-200`}
-                      disabled={loading}
-                      title="Upload your project photo (JPG, PNG, AVIF, max 5MB)"
-                    />
-                    {loading && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-lg">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ed5a2d]"></div>
+                  <div className="flex-1 w-full">
+                    <div className="relative">
+                      <input
+                        type="file"
+                        id="projectPhoto"
+                        className="hidden"
+                        accept=".jpg,.jpeg,.png,.avif"
+                        onChange={(e) => handleFileChange(e, 'projectPhoto')}
+                        disabled={uploadState.projectPhoto.loading}
+                      />
+                      <label
+                        htmlFor="projectPhoto"
+                        className={`w-full text-left cursor-pointer px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition ${uploadState.projectPhoto.loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'}`}>
+                        {uploadState.projectPhoto.fileName || 'Choose a file...'}
+                      </label>
+                      {uploadState.projectPhoto.loading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-lg">
+                          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ed5a2d]"></div>
+                        </div>
+                      )}
+                    </div>
+                    {uploadState.projectPhoto.progress > 0 && (
+                      <div className="w-full bg-gray-600 rounded-full h-2.5 mt-2">
+                        <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadState.projectPhoto.progress}%` }}></div>
                       </div>
                     )}
+                    {uploadState.projectPhoto.status && uploadState.projectPhoto.status.message && (
+                      <p className={`mt-2 text-sm ${uploadState.projectPhoto.status.type === 'error' ? 'text-red-500' : 'text-green-500'}`}>
+                        {uploadState.projectPhoto.status.message}
+                      </p>
+                    )}
                   </div>
-                  <div className="relative w-48 h-32 rounded-lg overflow-hidden border-2 border-gray-700 shadow-lg">
+                  <div className={`relative w-48 h-32 rounded-lg overflow-hidden border-2 border-gray-700 shadow-lg ${uploadState.projectPhoto.loading ? 'animate-pulse' : ''}`}>
                     <img
                       src={preview.projectPhoto || config.defaultProjectImage}
                       alt="Project Preview"
-                      className={`w-full h-full object-cover transition-opacity ${loading ? 'opacity-50' : 'opacity-100'}`}
+                      className={`w-full h-full object-cover transition-all duration-300 ${uploadState.projectPhoto.loading ? 'opacity-50' : 'opacity-100'}`}
                       onError={(e) => {
                         console.log("Project preview image failed to load, using default");
                         e.target.src = config.defaultProjectImage;
                         e.target.onerror = null;
                       }}
                     />
-                    {loading && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-                        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#ed5a2d]"></div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -326,22 +359,39 @@ const EditProfile = () => {
                   <p className="text-xs text-gray-400">Accepted formats: PDF, DOC, DOCX (Max 5MB)</p>
                 </div>
                 <div className="flex flex-col-reverse md:flex-row items-center gap-4">
-                  <div className="flex-1 w-full relative">
-                    <input
-                      type="file"
-                      accept=".pdf,.doc,.docx"
-                      onChange={(e) => handleFileChange(e, 'abstractDoc')}
-                      className={`w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 ${loading ? 'opacity-50 cursor-not-allowed' : 'file:bg-gray-600 hover:file:bg-gray-500 file:cursor-pointer'} file:text-gray-200`}
-                      disabled={loading}
-                      title="Upload your abstract document (PDF, DOC, DOCX, max 5MB)"
-                    />
-                    {loading && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-lg">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ed5a2d]"></div>
+                  <div className="flex-1 w-full">
+                    <div className="relative">
+                      <input
+                        type="file"
+                        id="abstractDoc"
+                        className="hidden"
+                        accept=".pdf,.doc,.docx"
+                        onChange={(e) => handleFileChange(e, 'abstractDoc')}
+                        disabled={uploadState.abstractDoc.loading}
+                      />
+                      <label
+                        htmlFor="abstractDoc"
+                        className={`w-full text-left cursor-pointer px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition ${uploadState.abstractDoc.loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'}`}>
+                        {uploadState.abstractDoc.fileName || 'Choose a file...'}
+                      </label>
+                      {uploadState.abstractDoc.loading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-lg">
+                          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ed5a2d]"></div>
+                        </div>
+                      )}
+                    </div>
+                    {uploadState.abstractDoc.progress > 0 && (
+                      <div className="w-full bg-gray-600 rounded-full h-2.5 mt-2">
+                        <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadState.abstractDoc.progress}%` }}></div>
                       </div>
                     )}
+                    {uploadState.abstractDoc.status && uploadState.abstractDoc.status.message && (
+                      <p className={`mt-2 text-sm ${uploadState.abstractDoc.status.type === 'error' ? 'text-red-500' : 'text-green-500'}`}>
+                        {uploadState.abstractDoc.status.message}
+                      </p>
+                    )}
                   </div>
-                  <div className={`relative w-48 h-32 rounded-lg overflow-hidden border-2 border-gray-700 shadow-lg bg-gray-800 flex items-center justify-center ${loading ? 'opacity-50' : ''}`}>
+                  <div className={`relative w-48 h-32 rounded-lg overflow-hidden border-2 border-gray-700 shadow-lg bg-gray-800 flex items-center justify-center ${uploadState.abstractDoc.loading ? 'opacity-50' : ''}`}>
                     <div className="text-center p-4">
                       <svg className="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -350,12 +400,12 @@ const EditProfile = () => {
                         {userData.abstractDoc ? 'Document Uploaded' : 'No Document'}
                       </p>
                     </div>
-                    {loading && (
+                    {uploadState.abstractDoc.loading && (
                       <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-70">
                         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#ed5a2d]"></div>
                       </div>
                     )}
-                    {userData.abstractDoc && !loading && (
+                    {userData.abstractDoc && !uploadState.abstractDoc.loading && (
                       <div className="absolute bottom-0 left-0 right-0 bg-green-600 bg-opacity-90 text-white text-xs text-center py-1">
                         Document Ready
                       </div>

@@ -98,7 +98,7 @@ router.post('/upload/project', uploadProject.single('image'), (req, res) => {
 });
 
 // Generic single file upload route for abstract documents
-router.post('/upload/abstract', uploadAbstract.single('image'), (req, res, next) => {
+router.post('/upload/abstract', uploadAbstract.single('document'), (req, res, next) => {
   try {
     if (!req.file) {
       console.log('No file received in upload/abstract');

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './HeaderProfile';
+import { LoadingButton, LoadingOverlay } from '../common/LoadingSpinner';
 import axios from 'axios';
 import config from '../../config';
 
@@ -59,6 +60,8 @@ const EditProfile = () => {
     abstractDoc: { loading: false, progress: 0, status: null, fileName: '' },
   });
 
+  const [showUploadOverlay, setShowUploadOverlay] = useState(false);
+
   const designations = [
     "First Year", "Second Year", "Third Year", "Fourth Year",
     "Digital Lead", "Photoshop Lead", "Tech Lead",
@@ -100,6 +103,8 @@ const EditProfile = () => {
       ...prev,
       [type]: { loading: true, progress: 0, status: null, fileName: file.name }
     }));
+
+    setShowUploadOverlay(true);
 
     // File type validation
     const validImageTypes = ['image/jpeg', 'image/png', 'image/avif', 'image/svg+xml'];
@@ -174,6 +179,8 @@ const EditProfile = () => {
         [type]: { ...prev[type], loading: false, status: { type: 'success', message: 'Upload successful!' } }
       }));
 
+      setShowUploadOverlay(false);
+
       setTimeout(() => {
         setUploadState(prev => ({ ...prev, [type]: { ...prev[type], status: null, fileName: file.name } }));
       }, 3000);
@@ -185,6 +192,8 @@ const EditProfile = () => {
         ...prev,
         [type]: { ...prev[type], loading: false, status: { type: 'error', message: errorMessage } }
       }));
+
+      setShowUploadOverlay(false);
 
       setTimeout(() => {
         setUploadState(prev => ({ ...prev, [type]: { ...prev[type], status: null } }));
@@ -265,11 +274,11 @@ const EditProfile = () => {
                         className="hidden"
                         accept=".jpg,.jpeg,.png,.avif,.svg"
                         onChange={(e) => handleFileChange(e, 'profilePhoto')}
-                        disabled={uploadState.profilePhoto.loading}
+                        disabled={uploadState.profilePhoto.loading || loading}
                       />
                       <label
                         htmlFor="profilePhoto"
-                        className={`w-full text-left cursor-pointer px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition ${uploadState.profilePhoto.loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'}`}>
+                        className={`w-full text-left cursor-pointer px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition ${(uploadState.profilePhoto.loading || loading) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'}`}>
                         {uploadState.profilePhoto.fileName || 'Choose a file...'}
                       </label>
                       {uploadState.profilePhoto.loading && (
@@ -319,11 +328,11 @@ const EditProfile = () => {
                         className="hidden"
                         accept=".jpg,.jpeg,.png,.avif,.svg"
                         onChange={(e) => handleFileChange(e, 'projectPhoto')}
-                        disabled={uploadState.projectPhoto.loading}
+                        disabled={uploadState.projectPhoto.loading || loading}
                       />
                       <label
                         htmlFor="projectPhoto"
-                        className={`w-full text-left cursor-pointer px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition ${uploadState.projectPhoto.loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'}`}>
+                        className={`w-full text-left cursor-pointer px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition ${(uploadState.projectPhoto.loading || loading) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'}`}>
                         {uploadState.projectPhoto.fileName || 'Choose a file...'}
                       </label>
                       {uploadState.projectPhoto.loading && (
@@ -373,11 +382,11 @@ const EditProfile = () => {
                         className="hidden"
                         accept=".pdf,.doc,.docx"
                         onChange={(e) => handleFileChange(e, 'abstractDoc')}
-                        disabled={uploadState.abstractDoc.loading}
+                        disabled={uploadState.abstractDoc.loading || loading}
                       />
                       <label
                         htmlFor="abstractDoc"
-                        className={`w-full text-left cursor-pointer px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition ${uploadState.abstractDoc.loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'}`}>
+                        className={`w-full text-left cursor-pointer px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition ${(uploadState.abstractDoc.loading || loading) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'}`}>
                         {uploadState.abstractDoc.fileName || 'Choose a file...'}
                       </label>
                       {uploadState.abstractDoc.loading && (
@@ -434,7 +443,8 @@ const EditProfile = () => {
                     name="name"
                     value={userData.name}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
+                    disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -444,7 +454,8 @@ const EditProfile = () => {
                     name="designation"
                     value={userData.designation}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] appearance-none"
+                    disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] appearance-none input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="" className="bg-gray-700 text-gray-200">Select Designation</option>
                     {designations.map((designation, index) => (
@@ -466,7 +477,8 @@ const EditProfile = () => {
                     name="linkedin"
                     value={userData.linkedin}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
+                    disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -477,7 +489,8 @@ const EditProfile = () => {
                     name="github"
                     value={userData.github}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
+                    disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -488,7 +501,8 @@ const EditProfile = () => {
                     name="instagram"
                     value={userData.instagram}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
+                    disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -499,7 +513,8 @@ const EditProfile = () => {
                     name="phone"
                     value={userData.phone}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
+                    disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -510,7 +525,8 @@ const EditProfile = () => {
                     name="projectTitle"
                     value={userData.projectTitle}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
+                    disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -521,24 +537,34 @@ const EditProfile = () => {
                     value={userData.projectDescription}
                     onChange={handleChange}
                     rows="4"
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
+                    disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                   ></textarea>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-gray-700 mt-8">
-                <button
+                <div className="pt-4 border-t border-gray-700 mt-8">
+                <LoadingButton
                   type="submit"
-                  disabled={loading}
-                  className="w-full py-3 px-6 bg-[#ed5a2d] hover:bg-[#ff6b3d] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  loading={loading}
+                  disabled={Object.values(uploadState).some(state => state.loading)}
+                  loadingText="Saving your changes..."
+                  size="lg"
+                  className="w-full"
                 >
-                  {loading ? 'Saving...' : 'Save Changes'}
-                </button>
+                  Save Changes
+                </LoadingButton>
               </div>
               </form>
             </div>
           </div>
         </div>
+        
+        {/* Upload Overlay */}
+        <LoadingOverlay 
+          show={showUploadOverlay} 
+          text="Uploading your file..." 
+        />
       </div>
     </>
   );

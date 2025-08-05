@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { ClipLoader } from 'react-spinners';
+import { LoadingOverlay } from '../common/LoadingSpinner';
 import QRImage from '../../assets/QR.jpg';
 import config from '../../config';
 
@@ -46,6 +47,7 @@ const Register = () => {
   const [showMember2, setShowMember2] = useState(false);
   const [showMember3, setShowMember3] = useState(false);
   const [showMember4, setShowMember4] = useState(false);
+  const [showSubmitOverlay, setShowSubmitOverlay] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -268,6 +270,7 @@ const Register = () => {
     if (validateForm()) {
       setIsLoading(true);
       setSuccessMessage('');
+      setShowSubmitOverlay(true);
 
       try {
         // Calculate members count
@@ -349,10 +352,12 @@ const Register = () => {
         
         setPaymentScreenshot(null);
         setPreviewUrl('');
+        setShowSubmitOverlay(false);
       } catch (error) {
         setErrors({
           submit: error.response?.data?.message || 'Registration failed. Please try again.',
         });
+        setShowSubmitOverlay(false);
       } finally {
         setIsLoading(false);
       }
@@ -972,6 +977,12 @@ const Register = () => {
             </button>
           </div>
         </form>
+        
+        {/* Loading Overlay */}
+        <LoadingOverlay 
+          show={showSubmitOverlay} 
+          text="Processing your registration..." 
+        />
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './HeaderProfile';
+import { LoadingButton } from '../common/LoadingSpinner';
 import axios from 'axios';
 import config from '../../config';
 
@@ -11,6 +12,7 @@ const ChangePassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,6 +23,8 @@ const ChangePassword = () => {
       setError('New passwords do not match');
       return;
     }
+
+    setIsLoading(true);
 
     try {
       const response = await axios.post(
@@ -33,6 +37,8 @@ const ChangePassword = () => {
       navigate('/profile');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update password');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -55,7 +61,8 @@ const ChangePassword = () => {
                   placeholder="Enter your current password"
                   value={oldPassword}
                   onChange={(e) => setOldPassword(e.target.value)}
-                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md"
+                  disabled={isLoading}
+                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -66,7 +73,8 @@ const ChangePassword = () => {
                   placeholder="Enter your new password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md"
+                  disabled={isLoading}
+                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -77,16 +85,20 @@ const ChangePassword = () => {
                   placeholder="Confirm your new password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md"
+                  disabled={isLoading}
+                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
-              <button
+              <LoadingButton
                 type="submit"
-                className="w-full px-6 py-4 mt-6 bg-[#ed5a2d] rounded-lg text-xl font-semibold text-center transition text-white shadow-md hover:bg-[#d54a1d] active:scale-95 cursor-pointer"
+                loading={isLoading}
+                loadingText="Updating password..."
+                size="lg"
+                className="w-full mt-6"
               >
                 Update Password
-              </button>
+              </LoadingButton>
             </form>
           </div>
         </div>

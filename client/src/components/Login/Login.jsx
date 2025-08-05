@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Header from "../Header/Header";
+import { LoadingButton } from "../common/LoadingSpinner";
 import config from "../../config";
 import "./Login.css";
 
@@ -9,12 +10,15 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
+    
     try {
       const response = await fetch(`${config.apiBaseUrl}/login`, {
         method: "POST",
@@ -33,6 +37,8 @@ const Login = () => {
       navigate("/profile");
     } catch (err) {
       setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -52,7 +58,8 @@ const Login = () => {
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-xl bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md"
+                  disabled={isLoading}
+                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-xl bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
               <div className="w-full">
@@ -62,15 +69,19 @@ const Login = () => {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-xl bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md"
+                  disabled={isLoading}
+                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-xl bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
-              <button
+              <LoadingButton
                 type="submit"
-                className="w-full px-6 my-7 py-4 bg-[#ed5a2d] rounded-lg text-xl font-semibold text-center transition text-white shadow-md hover:bg-[#d54a1d] active:scale-95 cursor-pointer"
+                loading={isLoading}
+                loadingText="Signing you in..."
+                size="lg"
+                className="w-full my-7"
               >
                 Login
-              </button>
+              </LoadingButton>
 
               <p className="text-center text-gray-400">
                 Don't have an account?{' '}

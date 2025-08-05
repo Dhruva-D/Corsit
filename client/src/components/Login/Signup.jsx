@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Header from '../Header/Header';
+import { LoadingButton } from '../common/LoadingSpinner';
 import config from '../../config';
 
 const Signup = () => {
@@ -14,6 +15,7 @@ const Signup = () => {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -37,6 +39,8 @@ const Signup = () => {
       return;
     }
 
+    setIsLoading(true);
+
     try {
       const response = await axios.post(`${config.apiBaseUrl}/signup`, formData);
       setSuccess(response.data.message || 'Registration successful!');
@@ -44,6 +48,8 @@ const Signup = () => {
       navigate('/login');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -67,7 +73,8 @@ const Signup = () => {
                   placeholder="Enter your name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-xl bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md"
+                  disabled={isLoading}
+                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-xl bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -79,7 +86,8 @@ const Signup = () => {
                   placeholder="Enter your email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-xl bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md"
+                  disabled={isLoading}
+                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-xl bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -91,7 +99,8 @@ const Signup = () => {
                   placeholder="Create your password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-xl bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md"
+                  disabled={isLoading}
+                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-xl bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -103,7 +112,8 @@ const Signup = () => {
                   placeholder="Confirm your password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-xl bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md"
+                  disabled={isLoading}
+                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-xl bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -115,16 +125,20 @@ const Signup = () => {
                   placeholder="Enter the secret key"
                   value={formData.secretKey}
                   onChange={handleChange}
-                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-xl bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md"
+                  disabled={isLoading}
+                  className="w-full px-5 py-3 border rounded-lg border-gray-600 text-xl bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] shadow-md input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
-              <button
+              <LoadingButton
                 type="submit"
-                className="w-full px-6 my-7 py-4 bg-[#ed5a2d] rounded-lg text-xl font-semibold text-center transition text-white shadow-md hover:bg-[#d54a1d] active:scale-95 cursor-pointer"
+                loading={isLoading}
+                loadingText="Creating your account..."
+                size="lg"
+                className="w-full my-7"
               >
                 Sign Up
-              </button>
+              </LoadingButton>
 
               <p className="text-center text-gray-400">
                 Already have an account?{' '}

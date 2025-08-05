@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import config from '../../config';
 import { useNavigate } from 'react-router-dom';
+import { LoadingButton } from '../common/LoadingSpinner';
 import { FaInstagram } from 'react-icons/fa';
 import { FaLinkedin } from 'react-icons/fa';
 import { FaGithub } from 'react-icons/fa';
@@ -602,13 +603,15 @@ const Admin = () => {
                             >
                                 Cancel
                             </button>
-                            <button
+                            <LoadingButton
                                 onClick={handleSave}
-                                disabled={loading}
-                                className={`px-6 py-2 bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] hover:from-[#ff6b3d] hover:to-[#ed5a2d] text-white rounded-lg transition-all duration-300 transform hover:scale-105 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                loading={loading}
+                                loadingText="Saving changes..."
+                                size="md"
+                                className="px-6 py-2"
                             >
-                                {loading ? 'Saving...' : 'Save'}
-                            </button>
+                                Save
+                            </LoadingButton>
                         </div>
                     </div>
                 </div>

@@ -126,7 +126,7 @@ const Profile = () => {
                           <span>GitHub</span>
                         </a>
                         <a 
-                          href={userData?.instagram ? `https://instagram.com/${userData.instagram}` : config.defaultInstagram} 
+                          href={userData?.instagram && userData.instagram.trim() !== '' && !userData.instagram.includes('instagram.com') ? `https://instagram.com/${userData.instagram}` : 'https://instagram.com'} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 hover:bg-gray-600 transition-all"

@@ -9,8 +9,8 @@ import defaultProjectImage from './assets/default-project.svg';
 
 const config = {
   // API URLs
-  // apiBaseUrl: 'https://corsit-qahn.onrender.com',
-  apiBaseUrl: 'http://localhost:5002',
+  apiBaseUrl: 'https://corsit-qahn.onrender.com',
+  // apiBaseUrl: 'http://localhost:5002',
   
   // Default images
   defaultProfileImage: defaultProfileImage,

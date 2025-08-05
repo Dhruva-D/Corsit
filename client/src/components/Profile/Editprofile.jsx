@@ -87,38 +87,101 @@ const EditProfile = () => {
     setUserData({ ...userData, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = async (e, field) => {
+  const handleFileChange = async (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Set local preview
-    setPreview({ ...preview, [field]: URL.createObjectURL(file) });
-    setLoading(true);
+    // File type validation
+    const validImageTypes = ['image/jpeg', 'image/png', 'image/avif'];
+    const validDocTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    
+    // Common validations
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      setUploadStatus({
+        type: 'error',
+        message: 'File size should not exceed 5MB'
+      });
+      return;
+    }
 
-    // Create form data for this specific file
+    // Type-specific validations
+    if (type === 'profilePhoto' || type === 'projectPhoto') {
+      if (!validImageTypes.includes(file.type)) {
+        setUploadStatus({
+          type: 'error',
+          message: 'Please upload a valid image (JPEG, PNG, AVIF)'
+        });
+        return;
+      }
+    } else if (type === 'abstractDoc') {
+      const fileType = file.type.toLowerCase();
+      if (!validDocTypes.some(t => fileType.includes(t.split('/').pop().split('.').shift()))) {
+        setUploadStatus({
+          type: 'error',
+          message: 'Please upload a valid document (PDF, DOC, DOCX)'
+        });
+        return;
+      }
+    }
+
+    setLoading(true);
+    setUploadProgress(0);
+
     const formData = new FormData();
     formData.append('image', file);
 
     try {
-      // Determine upload endpoint based on field type
-      let uploadEndpoint = 'profile';
-      if (field === 'projectPhoto') uploadEndpoint = 'project';
-      if (field === 'abstractDoc') uploadEndpoint = 'abstract';
+      let endpoint = '';
+      if (type === 'profilePhoto') endpoint = '/upload/profile';
+      else if (type === 'projectPhoto') endpoint = '/upload/project';
+      else if (type === 'abstractDoc') endpoint = '/upload/abstract';
 
-      // Upload file to Cloudinary through our API
-      const response = await axios.post(
-        `${config.apiBaseUrl}/api/upload/${uploadEndpoint}`, 
-        formData, 
-        { headers: { 'Content-Type': 'multipart/form-data' } }
-      );
+      const response = await axios.post(`${config.apiBaseUrl}${endpoint}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
+          setUploadProgress(progress);
+        },
+        timeout: 30000 // 30 seconds timeout
+      });
 
-      // Update user data with the Cloudinary URL
-      setUserData({ ...userData, [field]: response.data.imageUrl });
+      if (!response.data || !response.data.imageUrl) {
+        throw new Error(response.data?.message || 'Upload failed: No image URL returned');
+      }
+
+      setUserData(prev => ({
+        ...prev,
+        [type]: response.data.imageUrl
+      }));
+
+      // Show success message
+      setUploadStatus({
+        type: 'success',
+        message: `${type === 'profilePhoto' ? 'Profile photo' : type === 'projectPhoto' ? 'Project photo' : 'Abstract document'} uploaded successfully!`
+      });
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setUploadStatus(null), 3000);
+      
     } catch (error) {
-      console.error(`Error uploading ${field}:`, error);
-      alert(`Failed to upload ${field}. Please try again.`);
+      console.error(`Error uploading ${type}:`, error);
+      const errorMessage = error.response?.data?.message || 
+                         error.message || 
+                         `Failed to upload ${type === 'profilePhoto' ? 'profile photo' : type === 'projectPhoto' ? 'project photo' : 'abstract document'}. Please try again.`;
+      
+      setUploadStatus({
+        type: 'error',
+        message: errorMessage
+      });
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => setUploadStatus(null), 5000);
     } finally {
       setLoading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -164,82 +227,145 @@ const EditProfile = () => {
     <>
       <style>{selectStyles}</style>
       <Header />
-      <div className="min-h-screen bg-gray-900 text-gray-200 py-12 px-4 mt-22">
-        <div className="max-w-[750px] mx-auto mb-8 card-wrapper min-h-[2000px] md:min-h-[1500px] w-full">
-          <div className="card-content flex items-center justify-center text-lg bg-gray-800 p-8 rounded-lg border border-gray-700 shadow-md">
-            <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center px-6 space-y-8 w-full">
-              <h1 className="text-4xl font-bold mb-8 text-[#ed5a2d]">Edit Profile</h1>
+      <div className="min-h-screen bg-gray-900 text-gray-200 py-29 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-gray-800 rounded-lg border border-gray-700 shadow-md">
+            <div className="p-4 sm:p-6">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center text-[#ed5a2d]">Edit Profile</h1>
+              <form onSubmit={handleSubmit} className="space-y-6">
+
 
               {/* Profile Photo Section */}
               <div className="w-full">
-                <label className="block text-xl text-center font-medium mb-3 text-gray-300">Profile Photo</label>
+                <div className="mb-2">
+                  <label className="block text-lg font-medium text-gray-300 mb-1">Profile Photo</label>
+                  <p className="text-xs text-gray-400">Accepted formats: JPG, PNG (Max 5MB)</p>
+                </div>
                 <div className="flex flex-col-reverse md:flex-row items-center gap-4">
-                  <div className="flex-1 w-full">
+                  <div className="flex-1 w-full relative">
                     <input
                       type="file"
-                      accept="image/*"
+                      accept=".jpg,.jpeg,.png,.avif"
                       onChange={(e) => handleFileChange(e, 'profilePhoto')}
-                      className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500 file:cursor-pointer"
+                      className={`w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 ${loading ? 'opacity-50 cursor-not-allowed' : 'file:bg-gray-600 hover:file:bg-gray-500 file:cursor-pointer'} file:text-gray-200`}
                       disabled={loading}
+                      title="Upload your profile photo (JPG, PNG, AVIF, max 5MB)"
                     />
+                    {loading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-lg">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ed5a2d]"></div>
+                      </div>
+                    )}
                   </div>
-                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-700 shadow-lg">
+                  <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-gray-700 shadow-lg">
                     <img
                       src={preview.profilePhoto || config.defaultProfileImage}
                       alt="Profile Preview"
-                      className="w-full h-full object-cover"
+                      className={`w-full h-full object-cover transition-opacity ${loading ? 'opacity-50' : 'opacity-100'}`}
                       onError={(e) => {
                         console.log("Profile preview image failed to load, using default");
                         e.target.src = config.defaultProfileImage;
                         e.target.onerror = null; // Prevents infinite loop
                       }}
                     />
+                    {loading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#ed5a2d]"></div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* Project Photo Section */}
               <div className="w-full">
-                <label className="block text-xl text-center font-medium mb-3 text-gray-300">Project Photo</label>
+                <div className="mb-2">
+                  <label className="block text-lg font-medium text-gray-300 mb-1">Project Photo</label>
+                  <p className="text-xs text-gray-400">Accepted formats: JPG, PNG (Max 5MB)</p>
+                </div>
                 <div className="flex flex-col-reverse md:flex-row items-center gap-4">
-                  <div className="flex-1 w-full">
+                  <div className="flex-1 w-full relative">
                     <input
                       type="file"
-                      accept="image/*"
+                      accept=".jpg,.jpeg,.png,.avif"
                       onChange={(e) => handleFileChange(e, 'projectPhoto')}
-                      className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500 file:cursor-pointer"
+                      className={`w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 ${loading ? 'opacity-50 cursor-not-allowed' : 'file:bg-gray-600 hover:file:bg-gray-500 file:cursor-pointer'} file:text-gray-200`}
                       disabled={loading}
+                      title="Upload your project photo (JPG, PNG, AVIF, max 5MB)"
                     />
+                    {loading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-lg">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ed5a2d]"></div>
+                      </div>
+                    )}
                   </div>
-                  <div className="w-32 h-32 rounded-lg overflow-hidden border-4 border-gray-700 shadow-lg">
+                  <div className="relative w-48 h-32 rounded-lg overflow-hidden border-2 border-gray-700 shadow-lg">
                     <img
                       src={preview.projectPhoto || config.defaultProjectImage}
                       alt="Project Preview"
-                      className="w-full h-full object-cover"
+                      className={`w-full h-full object-cover transition-opacity ${loading ? 'opacity-50' : 'opacity-100'}`}
                       onError={(e) => {
                         console.log("Project preview image failed to load, using default");
                         e.target.src = config.defaultProjectImage;
-                        e.target.onerror = null; // Prevents infinite loop
+                        e.target.onerror = null;
                       }}
                     />
+                    {loading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+                        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#ed5a2d]"></div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* Abstract Document Upload */}
               <div className="w-full">
-                <label className="block text-xl text-center font-medium mb-3 text-gray-300">Abstract Document</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx,image/*"
-                    onChange={(e) => handleFileChange(e, 'abstractDoc')}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500 file:cursor-pointer"
-                    disabled={loading}
-                  />
+                <div className="mb-2">
+                  <label className="block text-lg font-medium text-gray-300 mb-1">Abstract Document</label>
+                  <p className="text-xs text-gray-400">Accepted formats: PDF, DOC, DOCX (Max 5MB)</p>
+                </div>
+                <div className="flex flex-col-reverse md:flex-row items-center gap-4">
+                  <div className="flex-1 w-full relative">
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => handleFileChange(e, 'abstractDoc')}
+                      className={`w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 ${loading ? 'opacity-50 cursor-not-allowed' : 'file:bg-gray-600 hover:file:bg-gray-500 file:cursor-pointer'} file:text-gray-200`}
+                      disabled={loading}
+                      title="Upload your abstract document (PDF, DOC, DOCX, max 5MB)"
+                    />
+                    {loading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-lg">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ed5a2d]"></div>
+                      </div>
+                    )}
+                  </div>
+                  <div className={`relative w-48 h-32 rounded-lg overflow-hidden border-2 border-gray-700 shadow-lg bg-gray-800 flex items-center justify-center ${loading ? 'opacity-50' : ''}`}>
+                    <div className="text-center p-4">
+                      <svg className="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                      <p className="mt-2 text-sm text-gray-400">
+                        {userData.abstractDoc ? 'Document Uploaded' : 'No Document'}
+                      </p>
+                    </div>
+                    {loading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-70">
+                        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#ed5a2d]"></div>
+                      </div>
+                    )}
+                    {userData.abstractDoc && !loading && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-green-600 bg-opacity-90 text-white text-xs text-center py-1">
+                        Document Ready
+                      </div>
+                    )}
+                  </div>
                 </div>
                 {userData.abstractDoc && (
-                  <p className="mt-2 text-sm text-green-400">Abstract document uploaded successfully</p>
+                  <p className="mt-2 text-sm text-green-400 text-center">
+                    Document uploaded successfully: {userData.abstractDoc.split('/').pop().substring(0, 20)}...
+                  </p>
                 )}
               </div>
 
@@ -344,16 +470,17 @@ const EditProfile = () => {
                 </div>
               </div>
 
-              <div className="w-full flex justify-center mt-6">
+              <div className="pt-4 border-t border-gray-700 mt-8">
                 <button
                   type="submit"
-                  className="px-8 py-4 bg-[#ed5a2d] rounded-lg text-xl font-semibold text-center transition text-white shadow-md hover:bg-[#d54a1d] active:scale-95 cursor-pointer"
                   disabled={loading}
+                  className="w-full py-3 px-6 bg-[#ed5a2d] hover:bg-[#ff6b3d] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Save Changes
+                  {loading ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       </div>

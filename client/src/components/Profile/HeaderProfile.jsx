@@ -122,9 +122,9 @@ const HeaderProfile = () => {
                     </button>
                     {dropdownOpen && (
                         <div className='absolute right-0 mt-2 w-52 shadow-lg bg-gradient-to-b from-slate-700 to-slate-800 rounded-lg overflow-hidden z-50'>
-                            <NavLink to='/profile' className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Profile</NavLink>
-                            <NavLink to='/edit-profile' className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Edit Profile</NavLink>
-                            <NavLink to='/change-password' className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Change Password</NavLink>
+                            <NavLink to='/profile' onClick={() => setDropdownOpen(false)} className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Profile</NavLink>
+                            <NavLink to='/edit-profile' onClick={() => setDropdownOpen(false)} className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Edit Profile</NavLink>
+                            <NavLink to='/change-password' onClick={() => setDropdownOpen(false)} className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Change Password</NavLink>
                             <NavLink to="#" onClick={handleAdminGalleryClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Admins Gallery</NavLink>
                             <NavLink to="#" onClick={handleAdminClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Admin Page</NavLink>
                             <button onClick={handleLogout} className='block w-full text-left px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Logout</button>

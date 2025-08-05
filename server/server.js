@@ -810,5 +810,29 @@ app.post("/api/subscribe", async (req, res) => {
     }
 });
 
+// Profile endpoint to get user data
+app.get('/profile', authMiddleware, async (req, res) => {
+    try {
+        // Find user by ID from the token
+        const user = await User.findById(req.user._id).select('-password');
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        
+        res.status(200).json({
+            success: true,
+            user: user
+        });
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error fetching user profile',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

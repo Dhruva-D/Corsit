@@ -7,7 +7,7 @@ import { FaInstagram } from 'react-icons/fa';
 import { FaLinkedin } from 'react-icons/fa';
 import { FaGithub } from 'react-icons/fa';
 import { FaPhone } from 'react-icons/fa';
-import { DESIGNATION_ORDER, DESIGNATION_OPTIONS, sortByDesignation, filterUsersForDisplay } from '../../config/designations';
+import { DESIGNATION_ORDER, DESIGNATION_OPTIONS, sortByDesignation } from '../../config/designations';
 
 const Admin = () => {
     const [loading, setLoading] = useState(false);
@@ -17,7 +17,6 @@ const Admin = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [previewImages, setPreviewImages] = useState({});
-    const [hideDefaultDesignations, setHideDefaultDesignations] = useState(true);
     const fileInputRefs = {
         profilePhoto: useRef(),
         projectPhoto: useRef(),
@@ -248,9 +247,8 @@ const Admin = () => {
         }
     };
 
-    // Filter and sort users
-    const filteredUsers = filterUsersForDisplay(users, hideDefaultDesignations);
-    const sortedUsers = sortByDesignation([...filteredUsers]);
+    // Sort users
+    const sortedUsers = sortByDesignation([...users]);
 
     const renderSocialLinks = (user) => (
         <div className="flex space-x-4 mt-2">
@@ -316,29 +314,7 @@ const Admin = () => {
                     </div>
                     
                     <div className="bg-slate-800 rounded-lg p-6 shadow-md">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-                            <h2 className="text-2xl font-bold text-[#ed5a2d] mb-4 sm:mb-0">Members</h2>
-                            
-                            {/* Filter Toggle */}
-                            <div className="flex items-center space-x-3">
-                                <span className="text-sm text-gray-300">Show default designations:</span>
-                                <button
-                                    onClick={() => setHideDefaultDesignations(!hideDefaultDesignations)}
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
-                                        hideDefaultDesignations ? 'bg-gray-600' : 'bg-[#ed5a2d]'
-                                    }`}
-                                >
-                                    <span
-                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
-                                            hideDefaultDesignations ? 'translate-x-1' : 'translate-x-6'
-                                        }`}
-                                    />
-                                </button>
-                                <span className="text-xs text-gray-400">
-                                    ({hideDefaultDesignations ? 'Hidden' : 'Visible'})
-                                </span>
-                            </div>
-                        </div>
+                        <h2 className="text-2xl font-bold text-[#ed5a2d] mb-6">Members</h2>
                         
                         {loading && !editingUser ? (
                             <div className="flex justify-center items-center py-8">

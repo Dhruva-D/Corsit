@@ -23,34 +23,6 @@ export const DESIGNATION_OPTIONS = Object.keys(DESIGNATION_ORDER).sort(
     (a, b) => DESIGNATION_ORDER[a] - DESIGNATION_ORDER[b]
 );
 
-// Default designations that should be hidden when other designations are chosen
-export const DEFAULT_DESIGNATIONS = ['First Year', 'Second Year', 'Third Year', 'Fourth Year', 'Member'];
-
-// Check if a user has only default designations
-export const hasOnlyDefaultDesignations = (userDesignations) => {
-    if (!userDesignations || userDesignations.length === 0) return true;
-    return userDesignations.every(designation => DEFAULT_DESIGNATIONS.includes(designation));
-};
-
-// Filter users to hide default designation members when others are present
-export const filterUsersForDisplay = (users, showOnlySpecialDesignations = false) => {
-    if (!showOnlySpecialDesignations) return users;
-    
-    const hasSpecialDesignations = users.some(user => {
-        const userDesignations = user.designations || ['Member'];
-        return !hasOnlyDefaultDesignations(userDesignations);
-    });
-    
-    if (hasSpecialDesignations) {
-        return users.filter(user => {
-            const userDesignations = user.designations || ['Member'];
-            return !hasOnlyDefaultDesignations(userDesignations);
-        });
-    }
-    
-    return users;
-};
-
 // Array version for sorting (highest to lowest priority)
 export const DESIGNATION_SORT_ORDER = [
     "Chairman", "Vice-Chairman", "Treasurer", "Tech Lead", "Web Dev Lead", "App Dev Lead",

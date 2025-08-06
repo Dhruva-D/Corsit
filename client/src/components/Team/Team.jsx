@@ -3,7 +3,7 @@ import { faLinkedin, faGithub, faInstagram } from "@fortawesome/free-brands-svg-
 import { faEnvelope, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
 import config from '../../config';
-import { sortByDesignation, filterUsersForDisplay } from '../../config/designations';
+import { sortByDesignation } from '../../config/designations';
 
 const Team = () => {
   const [teamMembers, setTeamMembers] = useState([]);
@@ -12,9 +12,7 @@ const Team = () => {
     fetch(`${config.apiBaseUrl}/team`)
       .then((response) => response.json())
       .then((data) => {
-        // Filter to hide default designation members if there are special designations
-        const filteredData = filterUsersForDisplay(data, true);
-        const sortedTeam = sortByDesignation(filteredData);
+        const sortedTeam = sortByDesignation(data);
         setTeamMembers(sortedTeam);
       })
       .catch((error) => console.error("Error fetching team data:", error));
@@ -61,7 +59,7 @@ const ProfileCard = ({ person }) => {
         <div className="text-center mt-3 mb-2">
           {person.designations && person.designations.length > 0 ? (
             <div className="flex flex-wrap justify-center gap-2">
-              {person.designations.map((designation, index) => (
+              {person.designations.filter(designation => designation !== 'Member').map((designation, index) => (
                 <span
                   key={index}
                   className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide 
@@ -72,12 +70,18 @@ const ProfileCard = ({ person }) => {
                   {designation}
                 </span>
               ))}
+              {person.designations.filter(designation => designation !== 'Member').length === 0 && (
+                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium 
+                               bg-gray-700/50 text-gray-300 border border-gray-600/50 backdrop-blur-sm">
+                  Member
+                </span>
+              )}
             </div>
           ) : (
             <div className="flex justify-center">
               <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium 
                              bg-gray-700/50 text-gray-300 border border-gray-600/50 backdrop-blur-sm">
-                {person.designation || 'Member'}
+                Member
               </span>
             </div>
           )}

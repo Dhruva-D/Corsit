@@ -7,7 +7,7 @@ import { FaInstagram } from 'react-icons/fa';
 import { FaLinkedin } from 'react-icons/fa';
 import { FaGithub } from 'react-icons/fa';
 import { FaPhone } from 'react-icons/fa';
-import { DESIGNATION_ORDER, DESIGNATION_OPTIONS, sortByDesignation } from '../../config/designations';
+import { DESIGNATION_ORDER, DESIGNATION_OPTIONS, sortByDesignation, filterUsersForDisplay } from '../../config/designations';
 
 const Admin = () => {
     const [loading, setLoading] = useState(false);
@@ -17,6 +17,7 @@ const Admin = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [previewImages, setPreviewImages] = useState({});
+    const [hideDefaultDesignations, setHideDefaultDesignations] = useState(true);
     const fileInputRefs = {
         profilePhoto: useRef(),
         projectPhoto: useRef(),
@@ -55,14 +56,10 @@ const Admin = () => {
     const handleEdit = (user) => {
         setEditingUser(user);
         
-        // Handle designations array for backward compatibility
-        let userDesignations = [];
+        // Handle designations array
+        let userDesignations = ['Member']; // Default fallback
         if (user.designations && Array.isArray(user.designations)) {
             userDesignations = user.designations;
-        } else if (user.designation) {
-            userDesignations = [user.designation];
-        } else {
-            userDesignations = ['Member'];
         }
         
         setFormData({
@@ -251,40 +248,9 @@ const Admin = () => {
         }
     };
 
-    // Migration function to convert single designations to arrays
-    const runMigration = async () => {
-        if (!window.confirm('This will migrate all existing single designations to designation arrays. Continue?')) {
-            return;
-        }
-        
-        try {
-            setLoading(true);
-            const response = await axios.post(
-                `${config.apiBaseUrl}/admin/migrate-designations`,
-                {},
-                {
-                    headers: {
-                        Authorization: localStorage.getItem('token'),
-                        isAdmin: 'true'
-                    }
-                }
-            );
-            
-            setSuccess(`Migration completed successfully! ${response.data.updatedCount} users updated.`);
-            setTimeout(() => setSuccess(''), 5000);
-            
-            // Refresh user list
-            fetchUsers();
-        } catch (error) {
-            console.error('Migration error:', error);
-            setError('Failed to run migration. Please try again.');
-            setTimeout(() => setError(''), 5000);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const sortedUsers = sortByDesignation([...users]);
+    // Filter and sort users
+    const filteredUsers = filterUsersForDisplay(users, hideDefaultDesignations);
+    const sortedUsers = sortByDesignation([...filteredUsers]);
 
     const renderSocialLinks = (user) => (
         <div className="flex space-x-4 mt-2">
@@ -349,23 +315,30 @@ const Admin = () => {
                         </div>
                     </div>
                     
-                    {/* Migration Button */}
-                    <div className="mb-6 p-4 bg-yellow-900 bg-opacity-20 border border-yellow-700 rounded-lg">
-                        <h3 className="text-lg font-semibold text-yellow-400 mb-2">Database Migration</h3>
-                        <p className="text-gray-300 text-sm mb-3">
-                            Convert existing single designation fields to support multiple designations. This is safe to run multiple times.
-                        </p>
-                        <button
-                            onClick={runMigration}
-                            disabled={loading}
-                            className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
-                        >
-                            {loading ? 'Running Migration...' : 'Run Designation Migration'}
-                        </button>
-                    </div>
-                    
                     <div className="bg-slate-800 rounded-lg p-6 shadow-md">
-                        <h2 className="text-2xl font-bold mb-4 text-[#ed5a2d]">Members</h2>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+                            <h2 className="text-2xl font-bold text-[#ed5a2d] mb-4 sm:mb-0">Members</h2>
+                            
+                            {/* Filter Toggle */}
+                            <div className="flex items-center space-x-3">
+                                <span className="text-sm text-gray-300">Show default designations:</span>
+                                <button
+                                    onClick={() => setHideDefaultDesignations(!hideDefaultDesignations)}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+                                        hideDefaultDesignations ? 'bg-gray-600' : 'bg-[#ed5a2d]'
+                                    }`}
+                                >
+                                    <span
+                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                                            hideDefaultDesignations ? 'translate-x-1' : 'translate-x-6'
+                                        }`}
+                                    />
+                                </button>
+                                <span className="text-xs text-gray-400">
+                                    ({hideDefaultDesignations ? 'Hidden' : 'Visible'})
+                                </span>
+                            </div>
+                        </div>
                         
                         {loading && !editingUser ? (
                             <div className="flex justify-center items-center py-8">
@@ -392,20 +365,25 @@ const Admin = () => {
                                                 />
                                                 <div>
                                                     <h3 className="text-xl font-bold text-white">{user.name}</h3>
-                                                    <div className="mt-1">
+                                                    <div className="mt-2">
                                                         {user.designations && user.designations.length > 0 ? (
-                                                            <div className="flex flex-wrap gap-1">
+                                                            <div className="flex flex-wrap gap-2">
                                                                 {user.designations.map((designation, index) => (
                                                                     <span
                                                                         key={index}
-                                                                        className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-[#ed5a2d] bg-opacity-20 text-[#ed5a2d] border border-[#ed5a2d]"
+                                                                        className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide 
+                                                                                 bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] text-white 
+                                                                                 shadow-md border border-[#ed5a2d]/30 backdrop-blur-sm"
                                                                     >
                                                                         {designation}
                                                                     </span>
                                                                 ))}
                                                             </div>
                                                         ) : (
-                                                            <p className="text-[#ed5a2d]">{user.designation || 'Member'}</p>
+                                                            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium 
+                                                                           bg-gray-700/50 text-gray-300 border border-gray-600/50">
+                                                                Member
+                                                            </span>
                                                         )}
                                                     </div>
                                                     {renderSocialLinks(user)}
@@ -637,19 +615,24 @@ const Admin = () => {
                                         })}
                                     </div>
                                     {formData.designations && formData.designations.length > 0 && (
-                                        <div className="mt-2 p-2 bg-slate-800 rounded border border-slate-600">
-                                            <p className="text-sm text-gray-400 mb-1">Selected designations:</p>
-                                            <div className="flex flex-wrap gap-1">
+                                        <div className="mt-3 p-3 bg-slate-800/50 rounded-lg border border-slate-600/50 backdrop-blur-sm">
+                                            <p className="text-sm text-gray-400 mb-2 font-medium">Selected designations:</p>
+                                            <div className="flex flex-wrap gap-2">
                                                 {formData.designations.map((designation, index) => (
                                                     <span
                                                         key={index}
-                                                        className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-[#ed5a2d] bg-opacity-20 text-[#ed5a2d] border border-[#ed5a2d]"
+                                                        className="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold tracking-wide 
+                                                                 bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] text-white 
+                                                                 shadow-md hover:shadow-lg transition-all duration-200 
+                                                                 border border-[#ed5a2d]/30 backdrop-blur-sm group"
                                                     >
                                                         {designation}
                                                         <button
                                                             type="button"
                                                             onClick={() => handleDesignationChange(designation)}
-                                                            className="ml-1 text-[#ed5a2d] hover:text-red-400 transition-colors"
+                                                            className="ml-2 w-4 h-4 rounded-full bg-white/20 text-white hover:bg-white/30 
+                                                                     transition-all duration-200 flex items-center justify-center text-xs font-bold
+                                                                     group-hover:scale-110"
                                                         >
                                                             ×
                                                         </button>

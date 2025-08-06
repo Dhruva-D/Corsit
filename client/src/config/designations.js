@@ -23,6 +23,34 @@ export const DESIGNATION_OPTIONS = Object.keys(DESIGNATION_ORDER).sort(
     (a, b) => DESIGNATION_ORDER[a] - DESIGNATION_ORDER[b]
 );
 
+// Default designations that should be hidden when other designations are chosen
+export const DEFAULT_DESIGNATIONS = ['First Year', 'Second Year', 'Third Year', 'Fourth Year', 'Member'];
+
+// Check if a user has only default designations
+export const hasOnlyDefaultDesignations = (userDesignations) => {
+    if (!userDesignations || userDesignations.length === 0) return true;
+    return userDesignations.every(designation => DEFAULT_DESIGNATIONS.includes(designation));
+};
+
+// Filter users to hide default designation members when others are present
+export const filterUsersForDisplay = (users, showOnlySpecialDesignations = false) => {
+    if (!showOnlySpecialDesignations) return users;
+    
+    const hasSpecialDesignations = users.some(user => {
+        const userDesignations = user.designations || ['Member'];
+        return !hasOnlyDefaultDesignations(userDesignations);
+    });
+    
+    if (hasSpecialDesignations) {
+        return users.filter(user => {
+            const userDesignations = user.designations || ['Member'];
+            return !hasOnlyDefaultDesignations(userDesignations);
+        });
+    }
+    
+    return users;
+};
+
 // Array version for sorting (highest to lowest priority)
 export const DESIGNATION_SORT_ORDER = [
     "Chairman", "Vice-Chairman", "Treasurer", "Tech Lead", "Web Dev Lead", "App Dev Lead",
@@ -38,13 +66,13 @@ export const getDesignationPriority = (designation) => {
 // Helper function to sort users by designation
 export const sortByDesignation = (users) => {
     return users.sort((a, b) => {
-        // Get primary designation for sorting (first in array, or fallback to legacy designation field)
+        // Get primary designation for sorting (first in array)
         const aDesignation = (a.designations && a.designations.length > 0) 
             ? a.designations[0] 
-            : (a.designation || 'First Year');
+            : 'Member';
         const bDesignation = (b.designations && b.designations.length > 0) 
             ? b.designations[0] 
-            : (b.designation || 'First Year');
+            : 'Member';
         
         const aPriority = getDesignationPriority(aDesignation);
         const bPriority = getDesignationPriority(bDesignation);

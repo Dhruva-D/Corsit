@@ -75,16 +75,12 @@ const EditProfile = () => {
         
         const userData = response.data;
         
-        // Handle backward compatibility for designation field
-        let userDesignations = [];
+        // Handle designations array
+        let userDesignations = ['Member']; // Default fallback
         if (userData.designations && Array.isArray(userData.designations)) {
           userDesignations = userData.designations;
-        } else if (userData.designation) {
-          userDesignations = [userData.designation];
-        } else {
-          userDesignations = ['Member'];
         }
-        
+
         setUserData({
           ...userData,
           designations: userDesignations
@@ -493,17 +489,17 @@ const EditProfile = () => {
                       (Select 1-5 designations)
                     </span>
                   </label>
-                  <div className="border rounded-lg border-gray-600 bg-gray-700 p-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="border rounded-xl border-gray-600/50 bg-gray-700/30 backdrop-blur-sm p-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {designations.map((designation, index) => {
                         const isSelected = userData.designations?.includes(designation);
                         return (
                           <label
                             key={index}
-                            className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                            className={`flex items-center p-4 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
                               isSelected 
-                                ? 'bg-[#ed5a2d] bg-opacity-20 border border-[#ed5a2d] text-white' 
-                                : 'bg-gray-800 border border-gray-600 text-gray-300 hover:bg-gray-700'
+                                ? 'bg-gradient-to-r from-[#ed5a2d]/20 to-[#ff6b3d]/20 border-2 border-[#ed5a2d] text-white shadow-lg shadow-[#ed5a2d]/20' 
+                                : 'bg-gray-800/50 border-2 border-gray-600/50 text-gray-300 hover:bg-gray-700/50 hover:border-gray-500/50'
                             } ${(loading || Object.values(uploadState).some(state => state.loading)) ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
                             <input
@@ -513,37 +509,43 @@ const EditProfile = () => {
                               disabled={loading || Object.values(uploadState).some(state => state.loading)}
                               className="sr-only"
                             />
-                            <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center transition-colors ${
+                            <div className={`w-6 h-6 rounded-lg border-2 mr-4 flex items-center justify-center transition-all duration-200 ${
                               isSelected 
-                                ? 'bg-[#ed5a2d] border-[#ed5a2d]' 
-                                : 'border-gray-500'
+                                ? 'bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] border-[#ed5a2d] shadow-md' 
+                                : 'border-gray-500 hover:border-gray-400'
                             }`}>
                               {isSelected && (
-                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <svg className="w-4 h-4 text-white font-bold" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                 </svg>
                               )}
                             </div>
-                            <span className="text-sm font-medium">{designation}</span>
+                            <span className="text-sm font-semibold tracking-wide">{designation}</span>
                           </label>
                         );
                       })}
                     </div>
                     {userData.designations && userData.designations.length > 0 && (
-                      <div className="mt-3 p-2 bg-gray-800 rounded border border-gray-600">
-                        <p className="text-sm text-gray-400 mb-2">Selected designations:</p>
+                      <div className="mt-4 p-3 bg-gray-800/50 rounded-lg border border-gray-600/50 backdrop-blur-sm">
+                        <p className="text-sm text-gray-400 mb-3 font-medium">Selected designations:</p>
                         <div className="flex flex-wrap gap-2">
                           {userData.designations.map((designation, index) => (
                             <span
                               key={index}
-                              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#ed5a2d] bg-opacity-20 text-[#ed5a2d] border border-[#ed5a2d]"
+                              className="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold tracking-wide 
+                                       bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] text-white 
+                                       shadow-md hover:shadow-lg transition-all duration-200 
+                                       border border-[#ed5a2d]/30 backdrop-blur-sm group"
                             >
                               {designation}
                               <button
                                 type="button"
                                 onClick={() => handleDesignationChange(designation)}
                                 disabled={loading || Object.values(uploadState).some(state => state.loading)}
-                                className="ml-2 text-[#ed5a2d] hover:text-red-400 transition-colors"
+                                className="ml-2 w-4 h-4 rounded-full bg-white/20 text-white hover:bg-white/30 
+                                         transition-all duration-200 flex items-center justify-center text-xs font-bold
+                                         group-hover:scale-110"
+                                title="Remove designation"
                               >
                                 ×
                               </button>

@@ -3,7 +3,7 @@ import { faLinkedin, faGithub, faInstagram } from "@fortawesome/free-brands-svg-
 import { faEnvelope, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
 import config from '../../config';
-import { sortByDesignation } from '../../config/designations';
+import { sortByDesignation, filterUsersForDisplay } from '../../config/designations';
 
 const Team = () => {
   const [teamMembers, setTeamMembers] = useState([]);
@@ -12,7 +12,9 @@ const Team = () => {
     fetch(`${config.apiBaseUrl}/team`)
       .then((response) => response.json())
       .then((data) => {
-        const sortedTeam = sortByDesignation(data);
+        // Filter to hide default designation members if there are special designations
+        const filteredData = filterUsersForDisplay(data, true);
+        const sortedTeam = sortByDesignation(filteredData);
         setTeamMembers(sortedTeam);
       })
       .catch((error) => console.error("Error fetching team data:", error));
@@ -56,20 +58,28 @@ const ProfileCard = ({ person }) => {
           />
         </div>
         <h1 className="mt-4 text-center text-xl md:text-2xl font-semibold text-white leading-7 tracking-tight">{person.name}</h1>
-        <div className="text-center mt-2">
+        <div className="text-center mt-3 mb-2">
           {person.designations && person.designations.length > 0 ? (
-            <div className="flex flex-wrap justify-center gap-1">
+            <div className="flex flex-wrap justify-center gap-2">
               {person.designations.map((designation, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-[#ed5a2d] bg-opacity-20 text-[#ed5a2d] border border-[#ed5a2d]"
+                  className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide 
+                           bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] text-white 
+                           shadow-md hover:shadow-lg transition-all duration-200 
+                           border border-[#ed5a2d]/30 backdrop-blur-sm"
                 >
                   {designation}
                 </span>
               ))}
             </div>
           ) : (
-            <h3 className="text-center text-sm md:text-md text-gray-300 font-medium leading-6">{person.designation || 'Member'}</h3>
+            <div className="flex justify-center">
+              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium 
+                             bg-gray-700/50 text-gray-300 border border-gray-600/50 backdrop-blur-sm">
+                {person.designation || 'Member'}
+              </span>
+            </div>
           )}
         </div>
         <div className="mt-auto pt-4 flex justify-center space-x-3">

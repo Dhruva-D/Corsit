@@ -2,6 +2,7 @@
 // This ensures consistency across all components
 
 export const DESIGNATION_ORDER = {
+    'Member': 0,  // Added Member with lowest priority
     'First Year': 1,
     'Second Year': 2,
     'Third Year': 3,
@@ -32,19 +33,35 @@ export const DESIGNATION_SORT_ORDER = [
 
 // Helper function to get designation priority for sorting
 export const getDesignationPriority = (designation) => {
-    return DESIGNATION_ORDER[designation] || 999; // Default high number for unknown designations
+    return DESIGNATION_ORDER[designation] || 0; // Default to 0 (lowest priority) for unknown designations
 };
 
 // Helper function to sort users by designation
 export const sortByDesignation = (users) => {
     return users.sort((a, b) => {
-        // Get primary designation for sorting (first in array)
-        const aDesignation = (a.designations && a.designations.length > 0) 
-            ? a.designations[0] 
-            : 'Member';
-        const bDesignation = (b.designations && b.designations.length > 0) 
-            ? b.designations[0] 
-            : 'Member';
+        // Get highest priority designation for sorting
+        const getHighestPriorityDesignation = (user) => {
+            if (!user.designations || user.designations.length === 0) {
+                return 'Member'; // Default designation
+            }
+            
+            // Find the designation with the highest priority number
+            let highestPriority = 0;
+            let highestDesignation = 'Member';
+            
+            user.designations.forEach(designation => {
+                const priority = getDesignationPriority(designation);
+                if (priority > highestPriority) {
+                    highestPriority = priority;
+                    highestDesignation = designation;
+                }
+            });
+            
+            return highestDesignation;
+        };
+        
+        const aDesignation = getHighestPriorityDesignation(a);
+        const bDesignation = getHighestPriorityDesignation(b);
         
         const aPriority = getDesignationPriority(aDesignation);
         const bPriority = getDesignationPriority(bDesignation);

@@ -3,11 +3,7 @@ import { faLinkedin, faGithub, faInstagram } from "@fortawesome/free-brands-svg-
 import { faEnvelope, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
 import config from '../../config';
-
-const designationOrder = [
-  "Chairman", "Vice-Chairman", "Treasurer", "Web Dev Lead", "Android Dev Lead",
-  "Tech Lead", "Photoshop Lead", "Digital Lead", "Fourth Year", "Third Year", "Second Year", "First Year", "Member"
-];
+import { sortByDesignation } from '../../config/designations';
 
 const Team = () => {
   const [teamMembers, setTeamMembers] = useState([]);
@@ -16,9 +12,7 @@ const Team = () => {
     fetch(`${config.apiBaseUrl}/team`)
       .then((response) => response.json())
       .then((data) => {
-        const sortedTeam = data.sort((a, b) => {
-          return designationOrder.indexOf(a.designation) - designationOrder.indexOf(b.designation);
-        });
+        const sortedTeam = sortByDesignation(data);
         setTeamMembers(sortedTeam);
       })
       .catch((error) => console.error("Error fetching team data:", error));
@@ -62,7 +56,22 @@ const ProfileCard = ({ person }) => {
           />
         </div>
         <h1 className="mt-4 text-center text-xl md:text-2xl font-semibold text-white leading-7 tracking-tight">{person.name}</h1>
-        <h3 className="text-center text-sm md:text-md text-gray-300 font-medium leading-6">{person.designation}</h3>
+        <div className="text-center mt-2">
+          {person.designations && person.designations.length > 0 ? (
+            <div className="flex flex-wrap justify-center gap-1">
+              {person.designations.map((designation, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-[#ed5a2d] bg-opacity-20 text-[#ed5a2d] border border-[#ed5a2d]"
+                >
+                  {designation}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <h3 className="text-center text-sm md:text-md text-gray-300 font-medium leading-6">{person.designation || 'Member'}</h3>
+          )}
+        </div>
         <div className="mt-auto pt-4 flex justify-center space-x-3">
           {person.linkedin && (
             <a 

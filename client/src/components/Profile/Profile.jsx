@@ -83,7 +83,22 @@ const Profile = () => {
                       />
                     </div>
                     <h2 className="text-3xl font-bold text-center mb-2">{userData?.name}</h2>
-                    <p className="text-xl text-gray-400 text-center">{userData?.designation}</p>
+                    <div className="text-center">
+                      {userData?.designations && userData.designations.length > 0 ? (
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {userData.designations.map((designation, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#ed5a2d] bg-opacity-20 text-[#ed5a2d] border border-[#ed5a2d]"
+                            >
+                              {designation}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xl text-gray-400">{userData?.designation || 'Member'}</p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Profile Details */}

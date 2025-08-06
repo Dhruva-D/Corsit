@@ -7,25 +7,7 @@ import { FaInstagram } from 'react-icons/fa';
 import { FaLinkedin } from 'react-icons/fa';
 import { FaGithub } from 'react-icons/fa';
 import { FaPhone } from 'react-icons/fa';
-
-const DESIGNATION_ORDER = {
-    'First Year': 1,
-    'Second Year': 2,
-    'Third Year': 3,
-    'Fourth Year': 4,
-    'Video Lead': 10,
-    'Photoshop Lead': 5,
-    'Collaboration and Network Lead': 6,
-    'Expedition Lead': 7,
-    'App Dev Lead': 8,
-    'Web Dev Lead': 9,
-    'Tech Lead': 10,
-    'Treasurer': 11,
-    'Vice-Chairman': 12,
-    'Chairman': 13
-};
-
-const DESIGNATION_OPTIONS = Object.keys(DESIGNATION_ORDER);
+import { DESIGNATION_ORDER, DESIGNATION_OPTIONS, sortByDesignation } from '../../config/designations';
 
 const Admin = () => {
     const [loading, setLoading] = useState(false);
@@ -72,12 +54,23 @@ const Admin = () => {
 
     const handleEdit = (user) => {
         setEditingUser(user);
+        
+        // Handle designations array for backward compatibility
+        let userDesignations = [];
+        if (user.designations && Array.isArray(user.designations)) {
+            userDesignations = user.designations;
+        } else if (user.designation) {
+            userDesignations = [user.designation];
+        } else {
+            userDesignations = ['Member'];
+        }
+        
         setFormData({
             name: user.name || '',
             email: user.email || '',
             phone: user.phone || '',
             instagram: user.instagram || '',
-            designation: user.designation || 'Member',
+            designations: userDesignations,
             linkedin: user.linkedin || '',
             github: user.github || '',
             projectTitle: user.projectTitle || '',
@@ -88,6 +81,31 @@ const Admin = () => {
             projectPhoto: user.projectPhoto || null,
             abstractDoc: user.abstractDoc || null
         });
+    };
+
+    // Handle designation changes (for multi-select)
+    const handleDesignationChange = (designation) => {
+        const currentDesignations = formData.designations || [];
+        const isSelected = currentDesignations.includes(designation);
+        
+        let newDesignations;
+        if (isSelected) {
+            // Remove designation (but ensure at least one remains)
+            newDesignations = currentDesignations.filter(d => d !== designation);
+            if (newDesignations.length === 0) {
+                newDesignations = ['Member']; // Fallback to Member if all removed
+            }
+        } else {
+            // Add designation (max 5 designations)
+            if (currentDesignations.length < 5) {
+                newDesignations = [...currentDesignations, designation];
+            } else {
+                alert('You can select maximum 5 designations');
+                return;
+            }
+        }
+        
+        setFormData(prev => ({ ...prev, designations: newDesignations }));
     };
 
     const handleInputChange = (e) => {
@@ -141,10 +159,16 @@ const Admin = () => {
         try {
             setLoading(true);
             
+            // Prepare the data with designations array
+            const updateData = {
+                ...formData,
+                designations: formData.designations || ['Member']
+            };
+            
             // We're using formData object directly as we've already uploaded images to Cloudinary
             const response = await axios.put(
                 `${config.apiBaseUrl}/admin/users/${editingUser._id}`,
-                formData,
+                updateData,
                 {
                     headers: {
                         Authorization: localStorage.getItem('token'),
@@ -227,11 +251,40 @@ const Admin = () => {
         }
     };
 
-    const sortedUsers = [...users].sort((a, b) => {
-        const orderA = DESIGNATION_ORDER[a.designation || 'Member'] || 999;
-        const orderB = DESIGNATION_ORDER[b.designation || 'Member'] || 999;
-        return orderA - orderB;
-    });
+    // Migration function to convert single designations to arrays
+    const runMigration = async () => {
+        if (!window.confirm('This will migrate all existing single designations to designation arrays. Continue?')) {
+            return;
+        }
+        
+        try {
+            setLoading(true);
+            const response = await axios.post(
+                `${config.apiBaseUrl}/admin/migrate-designations`,
+                {},
+                {
+                    headers: {
+                        Authorization: localStorage.getItem('token'),
+                        isAdmin: 'true'
+                    }
+                }
+            );
+            
+            setSuccess(`Migration completed successfully! ${response.data.updatedCount} users updated.`);
+            setTimeout(() => setSuccess(''), 5000);
+            
+            // Refresh user list
+            fetchUsers();
+        } catch (error) {
+            console.error('Migration error:', error);
+            setError('Failed to run migration. Please try again.');
+            setTimeout(() => setError(''), 5000);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const sortedUsers = sortByDesignation([...users]);
 
     const renderSocialLinks = (user) => (
         <div className="flex space-x-4 mt-2">
@@ -296,6 +349,21 @@ const Admin = () => {
                         </div>
                     </div>
                     
+                    {/* Migration Button */}
+                    <div className="mb-6 p-4 bg-yellow-900 bg-opacity-20 border border-yellow-700 rounded-lg">
+                        <h3 className="text-lg font-semibold text-yellow-400 mb-2">Database Migration</h3>
+                        <p className="text-gray-300 text-sm mb-3">
+                            Convert existing single designation fields to support multiple designations. This is safe to run multiple times.
+                        </p>
+                        <button
+                            onClick={runMigration}
+                            disabled={loading}
+                            className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
+                        >
+                            {loading ? 'Running Migration...' : 'Run Designation Migration'}
+                        </button>
+                    </div>
+                    
                     <div className="bg-slate-800 rounded-lg p-6 shadow-md">
                         <h2 className="text-2xl font-bold mb-4 text-[#ed5a2d]">Members</h2>
                         
@@ -324,7 +392,22 @@ const Admin = () => {
                                                 />
                                                 <div>
                                                     <h3 className="text-xl font-bold text-white">{user.name}</h3>
-                                                    <p className="text-[#ed5a2d]">{user.designation || 'Member'}</p>
+                                                    <div className="mt-1">
+                                                        {user.designations && user.designations.length > 0 ? (
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {user.designations.map((designation, index) => (
+                                                                    <span
+                                                                        key={index}
+                                                                        className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-[#ed5a2d] bg-opacity-20 text-[#ed5a2d] border border-[#ed5a2d]"
+                                                                    >
+                                                                        {designation}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-[#ed5a2d]">{user.designation || 'Member'}</p>
+                                                        )}
+                                                    </div>
                                                     {renderSocialLinks(user)}
                                                 </div>
                                             </div>
@@ -512,23 +595,69 @@ const Admin = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-gray-300 mb-2">Designation</label>
-                                <div className="relative">
-                                    <select
-                                        name="designation"
-                                        value={formData.designation}
-                                        onChange={handleInputChange}
-                                        className="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-[#ed5a2d] appearance-none"
-                                    >
-                                        {DESIGNATION_OPTIONS.map(option => (
-                                            <option key={option} value={option}>{option}</option>
-                                        ))}
-                                    </select>
-                                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                        </svg>
+                                <label className="block text-gray-300 mb-2">
+                                    Designations
+                                    <span className="text-sm text-gray-400 ml-2">
+                                        (Select 1-5 designations)
+                                    </span>
+                                </label>
+                                <div className="border rounded-lg border-slate-600 bg-slate-700 p-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        {DESIGNATION_OPTIONS.map((designation, index) => {
+                                            const isSelected = formData.designations?.includes(designation);
+                                            return (
+                                                <label
+                                                    key={index}
+                                                    className={`flex items-center p-2 rounded cursor-pointer transition-all duration-200 ${
+                                                        isSelected 
+                                                            ? 'bg-[#ed5a2d] bg-opacity-20 border border-[#ed5a2d] text-white' 
+                                                            : 'bg-slate-800 border border-slate-600 text-gray-300 hover:bg-slate-600'
+                                                    }`}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isSelected}
+                                                        onChange={() => handleDesignationChange(designation)}
+                                                        className="sr-only"
+                                                    />
+                                                    <div className={`w-4 h-4 rounded border-2 mr-2 flex items-center justify-center transition-colors ${
+                                                        isSelected 
+                                                            ? 'bg-[#ed5a2d] border-[#ed5a2d]' 
+                                                            : 'border-gray-500'
+                                                    }`}>
+                                                        {isSelected && (
+                                                            <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                            </svg>
+                                                        )}
+                                                    </div>
+                                                    <span className="text-sm font-medium">{designation}</span>
+                                                </label>
+                                            );
+                                        })}
                                     </div>
+                                    {formData.designations && formData.designations.length > 0 && (
+                                        <div className="mt-2 p-2 bg-slate-800 rounded border border-slate-600">
+                                            <p className="text-sm text-gray-400 mb-1">Selected designations:</p>
+                                            <div className="flex flex-wrap gap-1">
+                                                {formData.designations.map((designation, index) => (
+                                                    <span
+                                                        key={index}
+                                                        className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-[#ed5a2d] bg-opacity-20 text-[#ed5a2d] border border-[#ed5a2d]"
+                                                    >
+                                                        {designation}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleDesignationChange(designation)}
+                                                            className="ml-1 text-[#ed5a2d] hover:text-red-400 transition-colors"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div>

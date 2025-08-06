@@ -43,6 +43,17 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     phone: { type: String },
     instagram: { type: String },
+    designations: { 
+        type: [String], 
+        default: ['Member'],
+        validate: {
+            validator: function(designations) {
+                return designations.length > 0 && designations.length <= 5; // Max 5 designations
+            },
+            message: 'User must have at least 1 and at most 5 designations'
+        }
+    },
+    // Keep the old designation field for backward compatibility during migration
     designation: { type: String, default: 'Member' },
     profilePhoto: { type: String },
     linkedin: { type: String },
@@ -169,7 +180,7 @@ app.post("/edit-profile", authMiddleware, async (req, res) => {
     try {
         const { 
             name, 
-            designation, 
+            designations, // Now expecting an array
             linkedin, 
             github, 
             projectTitle, 
@@ -184,9 +195,26 @@ app.post("/edit-profile", authMiddleware, async (req, res) => {
         // Get current user data to preserve existing file URLs if not updating
         const currentUser = await User.findById(req.user.id);
         
+        // Process designations - ensure it's an array and not empty
+        let processedDesignations = ['Member']; // Default fallback
+        if (designations) {
+            if (Array.isArray(designations)) {
+                processedDesignations = designations.filter(d => d && d.trim() !== '');
+            } else if (typeof designations === 'string' && designations.trim() !== '') {
+                processedDesignations = [designations.trim()];
+            }
+        }
+        
+        // Ensure we have at least one designation
+        if (processedDesignations.length === 0) {
+            processedDesignations = ['Member'];
+        }
+        
         const updateData = { 
             name, 
-            designation, 
+            designations: processedDesignations,
+            // Update the legacy designation field with the primary (first) designation for backward compatibility
+            designation: processedDesignations[0],
             linkedin, 
             github, 
             projectTitle, 
@@ -252,6 +280,45 @@ app.get("/team", async (req, res) => {
     res.json(teamData);
 });
 
+// Migration endpoint to convert single designations to arrays
+app.post("/admin/migrate-designations", authMiddleware, async (req, res) => {
+    try {
+        // Check if user is admin
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        // Find all users who don't have the new designations array or have empty array
+        const usersToUpdate = await User.find({
+            $or: [
+                { designations: { $exists: false } },
+                { designations: { $size: 0 } },
+                { designations: null }
+            ]
+        });
+        
+        let updatedCount = 0;
+        
+        for (const user of usersToUpdate) {
+            const designation = user.designation || 'Member';
+            await User.findByIdAndUpdate(user._id, {
+                designations: [designation],
+                designation: designation // Keep for backward compatibility
+            });
+            updatedCount++;
+        }
+        
+        res.json({ 
+            message: `Migration completed. Updated ${updatedCount} users.`,
+            updatedCount 
+        });
+    } catch (error) {
+        console.error('Error during migration:', error);
+        res.status(500).json({ message: 'Migration failed' });
+    }
+});
+
 // Get All Users for Admin
 app.get("/admin/users", authMiddleware, async (req, res) => {
     try {
@@ -280,6 +347,24 @@ app.put("/admin/users/:userId", authMiddleware, async (req, res) => {
         
         const { userId } = req.params;
         const updateData = { ...req.body };
+        
+        // Handle designations array
+        if (updateData.designations) {
+            // Ensure it's an array and not empty
+            if (Array.isArray(updateData.designations)) {
+                updateData.designations = updateData.designations.filter(d => d && d.trim() !== '');
+            } else if (typeof updateData.designations === 'string' && updateData.designations.trim() !== '') {
+                updateData.designations = [updateData.designations.trim()];
+            }
+            
+            // Ensure we have at least one designation
+            if (!updateData.designations || updateData.designations.length === 0) {
+                updateData.designations = ['Member'];
+            }
+            
+            // Update the legacy designation field with the primary (first) designation for backward compatibility
+            updateData.designation = updateData.designations[0];
+        }
         
         // Always set adminAuthenticated to 'yes' when admin updates a user
         updateData.adminAuthenticated = 'yes';
@@ -353,6 +438,9 @@ app.post('/signup', async (req, res) => {
             linkedin: 'https://linkedin.com',
             github: 'https://github.com',
             instagram: 'https://instagram.com',
+            // Initialize with default designation array
+            designations: ['Member'],
+            designation: 'Member', // Keep for backward compatibility
             // Use Cloudinary default images
             profilePhoto: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/v1/profile_uploads/default-profile.png`,
             projectPhoto: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/v1/project_uploads/default-project.png`,

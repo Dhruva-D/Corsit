@@ -4,6 +4,7 @@ import Header from './HeaderProfile';
 import { LoadingButton, LoadingOverlay } from '../common/LoadingSpinner';
 import axios from 'axios';
 import config from '../../config';
+import { DESIGNATION_OPTIONS } from '../../config/designations';
 
 // Add custom styles for the select dropdown
 const selectStyles = `
@@ -40,7 +41,7 @@ const EditProfile = () => {
   const [userData, setUserData] = useState({
     name: '',
     email: '',
-    designation: '',
+    designations: [], // Changed to array
     linkedin: '',
     github: '',
     instagram: '',
@@ -62,12 +63,8 @@ const EditProfile = () => {
 
   const [showUploadOverlay, setShowUploadOverlay] = useState(false);
 
-  const designations = [
-    "First Year", "Second Year", "Third Year", "Fourth Year",
-    "Digital Lead", "Photoshop Lead", "Tech Lead",
-    "Android Dev Lead", "Web Dev Lead", "Treasurer",
-    "Vice-Chairman", "Chairman"
-  ];
+  // Use centralized designations configuration
+  const designations = DESIGNATION_OPTIONS;
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -75,10 +72,26 @@ const EditProfile = () => {
         const response = await axios.get(`${config.apiBaseUrl}/profile`, {
           headers: { Authorization: localStorage.getItem('token') }
         });
-        setUserData(response.data);
+        
+        const userData = response.data;
+        
+        // Handle backward compatibility for designation field
+        let userDesignations = [];
+        if (userData.designations && Array.isArray(userData.designations)) {
+          userDesignations = userData.designations;
+        } else if (userData.designation) {
+          userDesignations = [userData.designation];
+        } else {
+          userDesignations = ['Member'];
+        }
+        
+        setUserData({
+          ...userData,
+          designations: userDesignations
+        });
         setPreview({
-          profilePhoto: response.data.profilePhoto || '',
-          projectPhoto: response.data.projectPhoto || ''
+          profilePhoto: userData.profilePhoto || '',
+          projectPhoto: userData.projectPhoto || ''
         });
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -93,6 +106,31 @@ const EditProfile = () => {
 
   const handleChange = (e) => {
     setUserData({ ...userData, [e.target.name]: e.target.value });
+  };
+
+  // Handle designation changes (for multi-select)
+  const handleDesignationChange = (designation) => {
+    const currentDesignations = userData.designations || [];
+    const isSelected = currentDesignations.includes(designation);
+    
+    let newDesignations;
+    if (isSelected) {
+      // Remove designation (but ensure at least one remains)
+      newDesignations = currentDesignations.filter(d => d !== designation);
+      if (newDesignations.length === 0) {
+        newDesignations = ['Member']; // Fallback to Member if all removed
+      }
+    } else {
+      // Add designation (max 5 designations)
+      if (currentDesignations.length < 5) {
+        newDesignations = [...currentDesignations, designation];
+      } else {
+        alert('You can select maximum 5 designations');
+        return;
+      }
+    }
+    
+    setUserData({ ...userData, designations: newDesignations });
   };
 
   const handleFileChange = async (e, type) => {
@@ -216,7 +254,7 @@ const EditProfile = () => {
       // Ensure we have the latest state values and handle empty strings properly
       const updateData = {
         name: userData.name || '',
-        designation: userData.designation || '',
+        designations: userData.designations || ['Member'],
         linkedin: userData.linkedin || '',
         github: userData.github || '',
         instagram: userData.instagram || '',
@@ -449,25 +487,72 @@ const EditProfile = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xl font-medium mb-3 text-gray-300">Designation</label>
-                  <select
-                    name="designation"
-                    value={userData.designation}
-                    onChange={handleChange}
-                    disabled={loading || Object.values(uploadState).some(state => state.loading)}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] appearance-none input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <option value="" className="bg-gray-700 text-gray-200">Select Designation</option>
-                    {designations.map((designation, index) => (
-                      <option
-                        key={index}
-                        value={designation}
-                        className="bg-gray-700 text-gray-200"
-                      >
-                        {designation}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="block text-xl font-medium mb-3 text-gray-300">
+                    Designations
+                    <span className="text-sm text-gray-400 ml-2">
+                      (Select 1-5 designations)
+                    </span>
+                  </label>
+                  <div className="border rounded-lg border-gray-600 bg-gray-700 p-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {designations.map((designation, index) => {
+                        const isSelected = userData.designations?.includes(designation);
+                        return (
+                          <label
+                            key={index}
+                            className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                              isSelected 
+                                ? 'bg-[#ed5a2d] bg-opacity-20 border border-[#ed5a2d] text-white' 
+                                : 'bg-gray-800 border border-gray-600 text-gray-300 hover:bg-gray-700'
+                            } ${(loading || Object.values(uploadState).some(state => state.loading)) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => handleDesignationChange(designation)}
+                              disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                              className="sr-only"
+                            />
+                            <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center transition-colors ${
+                              isSelected 
+                                ? 'bg-[#ed5a2d] border-[#ed5a2d]' 
+                                : 'border-gray-500'
+                            }`}>
+                              {isSelected && (
+                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </div>
+                            <span className="text-sm font-medium">{designation}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    {userData.designations && userData.designations.length > 0 && (
+                      <div className="mt-3 p-2 bg-gray-800 rounded border border-gray-600">
+                        <p className="text-sm text-gray-400 mb-2">Selected designations:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {userData.designations.map((designation, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#ed5a2d] bg-opacity-20 text-[#ed5a2d] border border-[#ed5a2d]"
+                            >
+                              {designation}
+                              <button
+                                type="button"
+                                onClick={() => handleDesignationChange(designation)}
+                                disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                                className="ml-2 text-[#ed5a2d] hover:text-red-400 transition-colors"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div>

@@ -43,7 +43,16 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     phone: { type: String },
     instagram: { type: String },
-    designation: { type: String, default: 'Member' },
+    designations: { 
+        type: [String], 
+        default: ['Member'],
+        validate: {
+            validator: function(designations) {
+                return designations.length > 0 && designations.length <= 5; // Max 5 designations
+            },
+            message: 'User must have at least 1 and at most 5 designations'
+        }
+    },
     profilePhoto: { type: String },
     linkedin: { type: String },
     github: { type: String },
@@ -169,7 +178,7 @@ app.post("/edit-profile", authMiddleware, async (req, res) => {
     try {
         const { 
             name, 
-            designation, 
+            designations, // Now expecting an array
             linkedin, 
             github, 
             projectTitle, 
@@ -184,9 +193,24 @@ app.post("/edit-profile", authMiddleware, async (req, res) => {
         // Get current user data to preserve existing file URLs if not updating
         const currentUser = await User.findById(req.user.id);
         
+        // Process designations - ensure it's an array and not empty
+        let processedDesignations = ['Member']; // Default fallback
+        if (designations) {
+            if (Array.isArray(designations)) {
+                processedDesignations = designations.filter(d => d && d.trim() !== '');
+            } else if (typeof designations === 'string' && designations.trim() !== '') {
+                processedDesignations = [designations.trim()];
+            }
+        }
+        
+        // Ensure we have at least one designation
+        if (processedDesignations.length === 0) {
+            processedDesignations = ['Member'];
+        }
+        
         const updateData = { 
             name, 
-            designation, 
+            designations: processedDesignations,
             linkedin, 
             github, 
             projectTitle, 
@@ -281,6 +305,21 @@ app.put("/admin/users/:userId", authMiddleware, async (req, res) => {
         const { userId } = req.params;
         const updateData = { ...req.body };
         
+        // Handle designations array
+        if (updateData.designations) {
+            // Ensure it's an array and not empty
+            if (Array.isArray(updateData.designations)) {
+                updateData.designations = updateData.designations.filter(d => d && d.trim() !== '');
+            } else if (typeof updateData.designations === 'string' && updateData.designations.trim() !== '') {
+                updateData.designations = [updateData.designations.trim()];
+            }
+            
+            // Ensure we have at least one designation
+            if (!updateData.designations || updateData.designations.length === 0) {
+                updateData.designations = ['Member'];
+            }
+        }
+        
         // Always set adminAuthenticated to 'yes' when admin updates a user
         updateData.adminAuthenticated = 'yes';
         
@@ -353,6 +392,8 @@ app.post('/signup', async (req, res) => {
             linkedin: 'https://linkedin.com',
             github: 'https://github.com',
             instagram: 'https://instagram.com',
+            // Initialize with default designation array
+            designations: ['Member'],
             // Use Cloudinary default images
             profilePhoto: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/v1/profile_uploads/default-profile.png`,
             projectPhoto: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/v1/project_uploads/default-project.png`,

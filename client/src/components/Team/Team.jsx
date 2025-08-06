@@ -3,11 +3,7 @@ import { faLinkedin, faGithub, faInstagram } from "@fortawesome/free-brands-svg-
 import { faEnvelope, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
 import config from '../../config';
-
-const designationOrder = [
-  "Chairman", "Vice-Chairman", "Treasurer", "Web Dev Lead", "Android Dev Lead",
-  "Tech Lead", "Photoshop Lead", "Digital Lead", "Fourth Year", "Third Year", "Second Year", "First Year", "Member"
-];
+import { sortByDesignation } from '../../config/designations';
 
 const Team = () => {
   const [teamMembers, setTeamMembers] = useState([]);
@@ -16,9 +12,7 @@ const Team = () => {
     fetch(`${config.apiBaseUrl}/team`)
       .then((response) => response.json())
       .then((data) => {
-        const sortedTeam = data.sort((a, b) => {
-          return designationOrder.indexOf(a.designation) - designationOrder.indexOf(b.designation);
-        });
+        const sortedTeam = sortByDesignation(data);
         setTeamMembers(sortedTeam);
       })
       .catch((error) => console.error("Error fetching team data:", error));
@@ -62,7 +56,53 @@ const ProfileCard = ({ person }) => {
           />
         </div>
         <h1 className="mt-4 text-center text-xl md:text-2xl font-semibold text-white leading-7 tracking-tight">{person.name}</h1>
-        <h3 className="text-center text-sm md:text-md text-gray-300 font-medium leading-6">{person.designation}</h3>
+        <div className="text-center mt-3 mb-2">
+          {person.designations && person.designations.length > 0 ? (
+            <div className="flex flex-wrap justify-center gap-2">
+              {(() => {
+                // Academic year designations and Member to filter out when other designations exist
+                const academicDesignations = ['First Year', 'Second Year', 'Third Year', 'Fourth Year', 'Member'];
+                
+                // Get non-academic designations (leadership roles)
+                const nonAcademicDesignations = person.designations.filter(
+                  designation => !academicDesignations.includes(designation)
+                );
+                
+                // If person has leadership roles, show only those
+                // If person has only academic/member designations, show them (but filter out Member)
+                const designationsToShow = nonAcademicDesignations.length > 0 
+                  ? nonAcademicDesignations 
+                  : person.designations.filter(designation => designation !== 'Member');
+                
+                return designationsToShow.length > 0 ? (
+                  designationsToShow.map((designation, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide 
+                               bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] text-white 
+                               shadow-md hover:shadow-lg transition-all duration-200 
+                               border border-[#ed5a2d]/30 backdrop-blur-sm"
+                    >
+                      {designation}
+                    </span>
+                  ))
+                ) : (
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium 
+                                 bg-gray-700/50 text-gray-300 border border-gray-600/50 backdrop-blur-sm">
+                    Member
+                  </span>
+                );
+              })()}
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium 
+                             bg-gray-700/50 text-gray-300 border border-gray-600/50 backdrop-blur-sm">
+                Member
+              </span>
+            </div>
+          )}
+        </div>
         <div className="mt-auto pt-4 flex justify-center space-x-3">
           {person.linkedin && (
             <a 

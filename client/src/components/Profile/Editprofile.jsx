@@ -285,7 +285,7 @@ const EditProfile = () => {
     <>
       <style>{selectStyles}</style>
       <Header />
-      <div className="min-h-screen bg-gray-900 text-gray-200 py-29 px-4">
+      <div className="min-h-screen bg-gray-900 text-gray-200 py-32 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="bg-gray-800 rounded-lg border border-gray-700 shadow-md">
             <div className="p-4 sm:p-6">

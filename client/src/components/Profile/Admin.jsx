@@ -434,8 +434,8 @@ const Admin = () => {
             
             {/* Edit User Modal */}
             {editingUser && (
-                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 px-4 overflow-y-auto">
-                    <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-xl shadow-2xl p-6 w-full max-w-2xl relative animate-fadeIn my-8">
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-start justify-center z-50 p-4 overflow-y-auto">
+                    <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-xl shadow-2xl p-6 w-full max-w-4xl relative animate-fadeIn my-8 min-h-fit max-h-full">
                         <button 
                             onClick={() => setEditingUser(null)}
                             className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
@@ -549,77 +549,6 @@ const Admin = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-gray-300 mb-2">
-                                    Designations
-                                    <span className="text-sm text-gray-400 ml-2">
-                                        (Select 1-5 designations)
-                                    </span>
-                                </label>
-                                <div className="border rounded-lg border-slate-600 bg-slate-700 p-3">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                        {DESIGNATION_OPTIONS.map((designation, index) => {
-                                            const isSelected = formData.designations?.includes(designation);
-                                            return (
-                                                <label
-                                                    key={index}
-                                                    className={`flex items-center p-2 rounded cursor-pointer transition-all duration-200 ${
-                                                        isSelected 
-                                                            ? 'bg-[#ed5a2d] bg-opacity-20 border border-[#ed5a2d] text-white' 
-                                                            : 'bg-slate-800 border border-slate-600 text-gray-300 hover:bg-slate-600'
-                                                    }`}
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={isSelected}
-                                                        onChange={() => handleDesignationChange(designation)}
-                                                        className="sr-only"
-                                                    />
-                                                    <div className={`w-4 h-4 rounded border-2 mr-2 flex items-center justify-center transition-colors ${
-                                                        isSelected 
-                                                            ? 'bg-[#ed5a2d] border-[#ed5a2d]' 
-                                                            : 'border-gray-500'
-                                                    }`}>
-                                                        {isSelected && (
-                                                            <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                            </svg>
-                                                        )}
-                                                    </div>
-                                                    <span className="text-sm font-medium">{designation}</span>
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
-                                    {formData.designations && formData.designations.length > 0 && (
-                                        <div className="mt-3 p-3 bg-slate-800/50 rounded-lg border border-slate-600/50 backdrop-blur-sm">
-                                            <p className="text-sm text-gray-400 mb-2 font-medium">Selected designations:</p>
-                                            <div className="flex flex-wrap gap-2">
-                                                {formData.designations.map((designation, index) => (
-                                                    <span
-                                                        key={index}
-                                                        className="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold tracking-wide 
-                                                                 bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] text-white 
-                                                                 shadow-md hover:shadow-lg transition-all duration-200 
-                                                                 border border-[#ed5a2d]/30 backdrop-blur-sm group"
-                                                    >
-                                                        {designation}
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleDesignationChange(designation)}
-                                                            className="ml-2 w-4 h-4 rounded-full bg-white/20 text-white hover:bg-white/30 
-                                                                     transition-all duration-200 flex items-center justify-center text-xs font-bold
-                                                                     group-hover:scale-110"
-                                                        >
-                                                            ×
-                                                        </button>
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            <div>
                                 <label className="block text-gray-300 mb-2">Phone</label>
                                 <input
                                     type="text"
@@ -663,16 +592,91 @@ const Admin = () => {
                                 />
                             </div>
                         </div>
-                        
+
+                        {/* Designations section - full width */}
                         <div className="mb-6">
-                            <label className="block text-gray-300 mb-2">Project Title</label>
-                            <input
-                                type="text"
-                                name="projectTitle"
-                                value={formData.projectTitle}
-                                onChange={handleInputChange}
-                                className="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-[#ed5a2d]"
-                            />
+                            <label className="block text-gray-300 mb-2">
+                                Designations
+                                <span className="text-sm text-gray-400 ml-2">
+                                    (Select 1-5 designations)
+                                </span>
+                            </label>
+                            <div className="border rounded-lg border-slate-600 bg-slate-700 p-3">
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                                    {DESIGNATION_OPTIONS.map((designation, index) => {
+                                        const isSelected = formData.designations?.includes(designation);
+                                        return (
+                                            <label
+                                                key={index}
+                                                className={`flex items-center p-2 rounded cursor-pointer transition-all duration-200 ${
+                                                    isSelected 
+                                                        ? 'bg-[#ed5a2d] bg-opacity-20 border border-[#ed5a2d] text-white' 
+                                                        : 'bg-slate-800 border border-slate-600 text-gray-300 hover:bg-slate-600'
+                                                }`}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isSelected}
+                                                    onChange={() => handleDesignationChange(designation)}
+                                                    className="sr-only"
+                                                />
+                                                <div className={`w-4 h-4 rounded border-2 mr-2 flex items-center justify-center transition-colors ${
+                                                    isSelected 
+                                                        ? 'bg-[#ed5a2d] border-[#ed5a2d]' 
+                                                        : 'border-gray-500'
+                                                }`}>
+                                                    {isSelected && (
+                                                        <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                        </svg>
+                                                    )}
+                                                </div>
+                                                <span className="text-sm font-medium">{designation}</span>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                                {formData.designations && formData.designations.length > 0 && (
+                                    <div className="mt-3 p-3 bg-slate-800/50 rounded-lg border border-slate-600/50 backdrop-blur-sm">
+                                        <p className="text-sm text-gray-400 mb-2 font-medium">Selected designations:</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {formData.designations.map((designation, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold tracking-wide 
+                                                             bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] text-white 
+                                                             shadow-md hover:shadow-lg transition-all duration-200 
+                                                             border border-[#ed5a2d]/30 backdrop-blur-sm group"
+                                                >
+                                                    {designation}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDesignationChange(designation)}
+                                                        className="ml-2 w-4 h-4 rounded-full bg-white/20 text-white hover:bg-white/30 
+                                                                 transition-all duration-200 flex items-center justify-center text-xs font-bold
+                                                                 group-hover:scale-110"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label className="block text-gray-300 mb-2">Project Title</label>
+                                <input
+                                    type="text"
+                                    name="projectTitle"
+                                    value={formData.projectTitle}
+                                    onChange={handleInputChange}
+                                    className="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-[#ed5a2d]"
+                                />
+                            </div>
                         </div>
                         
                         <div className="mb-6">

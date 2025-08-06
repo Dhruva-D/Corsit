@@ -59,23 +59,40 @@ const ProfileCard = ({ person }) => {
         <div className="text-center mt-3 mb-2">
           {person.designations && person.designations.length > 0 ? (
             <div className="flex flex-wrap justify-center gap-2">
-              {person.designations.filter(designation => designation !== 'Member').map((designation, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide 
-                           bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] text-white 
-                           shadow-md hover:shadow-lg transition-all duration-200 
-                           border border-[#ed5a2d]/30 backdrop-blur-sm"
-                >
-                  {designation}
-                </span>
-              ))}
-              {person.designations.filter(designation => designation !== 'Member').length === 0 && (
-                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium 
-                               bg-gray-700/50 text-gray-300 border border-gray-600/50 backdrop-blur-sm">
-                  Member
-                </span>
-              )}
+              {(() => {
+                // Academic year designations and Member to filter out when other designations exist
+                const academicDesignations = ['First Year', 'Second Year', 'Third Year', 'Fourth Year', 'Member'];
+                
+                // Get non-academic designations (leadership roles)
+                const nonAcademicDesignations = person.designations.filter(
+                  designation => !academicDesignations.includes(designation)
+                );
+                
+                // If person has leadership roles, show only those
+                // If person has only academic/member designations, show them (but filter out Member)
+                const designationsToShow = nonAcademicDesignations.length > 0 
+                  ? nonAcademicDesignations 
+                  : person.designations.filter(designation => designation !== 'Member');
+                
+                return designationsToShow.length > 0 ? (
+                  designationsToShow.map((designation, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide 
+                               bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] text-white 
+                               shadow-md hover:shadow-lg transition-all duration-200 
+                               border border-[#ed5a2d]/30 backdrop-blur-sm"
+                    >
+                      {designation}
+                    </span>
+                  ))
+                ) : (
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium 
+                                 bg-gray-700/50 text-gray-300 border border-gray-600/50 backdrop-blur-sm">
+                    Member
+                  </span>
+                );
+              })()}
             </div>
           ) : (
             <div className="flex justify-center">

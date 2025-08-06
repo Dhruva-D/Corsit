@@ -13,14 +13,16 @@ const DESIGNATION_ORDER = {
     'Second Year': 2,
     'Third Year': 3,
     'Fourth Year': 4,
-    'Digital Lead': 5,
-    'Photoshop Lead': 6,
-    'Tech Lead': 7,
-    'Android Dev Lead': 8,
+    'Video Lead': 10,
+    'Photoshop Lead': 5,
+    'Collaboration and Network Lead': 6,
+    'Expedition Lead': 7,
+    'App Dev Lead': 8,
     'Web Dev Lead': 9,
-    'Treasurer': 10,
-    'Vice-Chairman': 11,
-    'Chairman': 12
+    'Tech Lead': 10,
+    'Treasurer': 11,
+    'Vice-Chairman': 12,
+    'Chairman': 13
 };
 
 const DESIGNATION_OPTIONS = Object.keys(DESIGNATION_ORDER);

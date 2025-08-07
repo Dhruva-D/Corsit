@@ -129,7 +129,7 @@ const Footer = () => {
             {[ 
               { icon: faMapMarkerAlt, text: "Siddaganga Institute Of Technology, Tumkur", color: "hover:text-red-500" },
               { icon: faEnvelope, text: "corsit@sit.ac.in", href: "mailto:corsit@sit.ac.in", color: "hover:text-yellow-500" },
-              { icon: faWhatsapp, text: "+91 8104882160", href: "https://wa.me/8104882160", color: "hover:text-green-500" }
+              { icon: faWhatsapp, text: "+91 7975215782", href: "https://wa.me/7975215782", color: "hover:text-green-500" }
             ].map((contact, index) => (
               <li key={index} className="flex items-center space-x-4 text-[#f7ffff] text-lg">
                 <FontAwesomeIcon icon={contact.icon} className={`text-xl transition-colors duration-300 ${contact.color}`} />

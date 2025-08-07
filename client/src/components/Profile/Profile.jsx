@@ -82,8 +82,31 @@ const Profile = () => {
                         }}
                       />
                     </div>
-                    <h2 className="text-3xl font-bold text-center mb-2">{userData?.name}</h2>
-                    <p className="text-xl text-gray-400 text-center">{userData?.designation}</p>
+                    <h2 className="text-3xl font-bold text-center mb-4">{userData?.name}</h2>
+                    <div className="text-center mb-4">
+                      {userData?.designations && userData.designations.length > 0 ? (
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {userData.designations.map((designation, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold tracking-wide 
+                                       bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] text-white 
+                                       shadow-lg hover:shadow-xl transition-all duration-200 
+                                       border border-[#ed5a2d]/30 backdrop-blur-sm transform hover:scale-105"
+                            >
+                              {designation}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex justify-center">
+                          <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium 
+                                         bg-gray-700/50 text-gray-300 border border-gray-600/50 backdrop-blur-sm">
+                            Member
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Profile Details */}
@@ -126,7 +149,7 @@ const Profile = () => {
                           <span>GitHub</span>
                         </a>
                         <a 
-                          href={userData?.instagram ? `https://instagram.com/${userData.instagram}` : config.defaultInstagram} 
+                          href={userData?.instagram && userData.instagram.trim() !== '' && !userData.instagram.includes('instagram.com') ? `https://instagram.com/${userData.instagram}` : 'https://instagram.com'} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 hover:bg-gray-600 transition-all"

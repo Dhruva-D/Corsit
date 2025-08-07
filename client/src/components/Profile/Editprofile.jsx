@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './HeaderProfile';
+import { LoadingButton, LoadingOverlay } from '../common/LoadingSpinner';
 import axios from 'axios';
 import config from '../../config';
+import { DESIGNATION_OPTIONS } from '../../config/designations';
 
 // Add custom styles for the select dropdown
 const selectStyles = `
@@ -39,7 +41,7 @@ const EditProfile = () => {
   const [userData, setUserData] = useState({
     name: '',
     email: '',
-    designation: '',
+    designations: [], // Changed to array
     linkedin: '',
     github: '',
     instagram: '',
@@ -53,13 +55,16 @@ const EditProfile = () => {
 
   const [preview, setPreview] = useState({ profilePhoto: '', projectPhoto: '' });
   const [loading, setLoading] = useState(false);
+  const [uploadState, setUploadState] = useState({
+    profilePhoto: { loading: false, progress: 0, status: null, fileName: '' },
+    projectPhoto: { loading: false, progress: 0, status: null, fileName: '' },
+    abstractDoc: { loading: false, progress: 0, status: null, fileName: '' },
+  });
 
-  const designations = [
-    "First Year", "Second Year", "Third Year", "Fourth Year",
-    "Digital Lead", "Photoshop Lead", "Tech Lead",
-    "Android Dev Lead", "Web Dev Lead", "Treasurer",
-    "Vice-Chairman", "Chairman"
-  ];
+  const [showUploadOverlay, setShowUploadOverlay] = useState(false);
+
+  // Use centralized designations configuration
+  const designations = DESIGNATION_OPTIONS;
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -67,10 +72,22 @@ const EditProfile = () => {
         const response = await axios.get(`${config.apiBaseUrl}/profile`, {
           headers: { Authorization: localStorage.getItem('token') }
         });
-        setUserData(response.data);
+        
+        const userData = response.data;
+        
+        // Handle designations array
+        let userDesignations = ['Member']; // Default fallback
+        if (userData.designations && Array.isArray(userData.designations)) {
+          userDesignations = userData.designations;
+        }
+
+        setUserData({
+          ...userData,
+          designations: userDesignations
+        });
         setPreview({
-          profilePhoto: response.data.profilePhoto || '',
-          projectPhoto: response.data.projectPhoto || ''
+          profilePhoto: userData.profilePhoto || '',
+          projectPhoto: userData.projectPhoto || ''
         });
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -87,64 +104,168 @@ const EditProfile = () => {
     setUserData({ ...userData, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = async (e, field) => {
+  // Handle designation changes (for multi-select)
+  const handleDesignationChange = (designation) => {
+    const currentDesignations = userData.designations || [];
+    const isSelected = currentDesignations.includes(designation);
+    
+    let newDesignations;
+    if (isSelected) {
+      // Remove designation (but ensure at least one remains)
+      newDesignations = currentDesignations.filter(d => d !== designation);
+      if (newDesignations.length === 0) {
+        newDesignations = ['Member']; // Fallback to Member if all removed
+      }
+    } else {
+      // Add designation (max 5 designations)
+      if (currentDesignations.length < 5) {
+        newDesignations = [...currentDesignations, designation];
+      } else {
+        alert('You can select maximum 5 designations');
+        return;
+      }
+    }
+    
+    setUserData({ ...userData, designations: newDesignations });
+  };
+
+  const handleFileChange = async (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Set local preview
-    setPreview({ ...preview, [field]: URL.createObjectURL(file) });
-    setLoading(true);
+    setUploadState(prev => ({
+      ...prev,
+      [type]: { loading: true, progress: 0, status: null, fileName: file.name }
+    }));
 
-    // Create form data for this specific file
+    setShowUploadOverlay(true);
+
+    // File type validation
+    const validImageTypes = ['image/jpeg', 'image/png', 'image/avif', 'image/svg+xml'];
+    const validDocTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    
+    // Common validations
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      setUploadState(prev => ({
+        ...prev,
+        [type]: { loading: false, progress: 0, status: { type: 'error', message: 'File size should not exceed 5MB' }, fileName: file.name }
+      }));
+      return;
+    }
+
+    // Type-specific validations
+    if (type === 'profilePhoto' || type === 'projectPhoto') {
+      if (!validImageTypes.includes(file.type)) {
+        setUploadState(prev => ({
+          ...prev,
+          [type]: { loading: false, progress: 0, status: { type: 'error', message: 'Please upload a valid image (JPEG, PNG, AVIF, SVG)' }, fileName: file.name }
+        }));
+        return;
+      }
+    } else if (type === 'abstractDoc') {
+      if (!validDocTypes.includes(file.type)) {
+        setUploadState(prev => ({
+          ...prev,
+          [type]: { loading: false, progress: 0, status: { type: 'error', message: 'Please upload a valid document (PDF, DOC, DOCX)' }, fileName: file.name }
+        }));
+        return;
+      }
+    }
+
+
+
     const formData = new FormData();
-    formData.append('image', file);
+    const fieldName = type === 'abstractDoc' ? 'document' : 'image';
+    formData.append(fieldName, file);
 
     try {
-      // Determine upload endpoint based on field type
-      let uploadEndpoint = 'profile';
-      if (field === 'projectPhoto') uploadEndpoint = 'project';
-      if (field === 'abstractDoc') uploadEndpoint = 'abstract';
+      let endpoint = '';
+      if (type === 'profilePhoto') endpoint = '/api/upload/profile';
+      else if (type === 'projectPhoto') endpoint = '/api/upload/project';
+      else if (type === 'abstractDoc') endpoint = '/api/upload/abstract';
 
-      // Upload file to Cloudinary through our API
-      const response = await axios.post(
-        `${config.apiBaseUrl}/api/upload/${uploadEndpoint}`, 
-        formData, 
-        { headers: { 'Content-Type': 'multipart/form-data' } }
-      );
+      const response = await axios.post(`${config.apiBaseUrl}${endpoint}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': localStorage.getItem('token')
+        },
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
+          setUploadState(prev => ({ ...prev, [type]: { ...prev[type], progress: progress } }));
+        },
+        timeout: 30000 // 30 seconds timeout
+      });
 
-      // Update user data with the Cloudinary URL
-      setUserData({ ...userData, [field]: response.data.imageUrl });
+      if (!response.data || !response.data.imageUrl) {
+        throw new Error(response.data?.message || 'Upload failed: No image URL returned');
+      }
+
+      // Update both preview and userData with the new URL
+      const newUrl = response.data.imageUrl;
+      setPreview(prev => ({ ...prev, [type]: newUrl }));
+      setUserData(prev => ({ 
+        ...prev, 
+        [type]: newUrl 
+      }));
+      
+      setUploadState(prev => ({
+        ...prev,
+        [type]: { ...prev[type], loading: false, status: { type: 'success', message: 'Upload successful!' } }
+      }));
+
+      setShowUploadOverlay(false);
+
+      setTimeout(() => {
+        setUploadState(prev => ({ ...prev, [type]: { ...prev[type], status: null, fileName: file.name } }));
+      }, 3000);
+      
     } catch (error) {
-      console.error(`Error uploading ${field}:`, error);
-      alert(`Failed to upload ${field}. Please try again.`);
-    } finally {
-      setLoading(false);
+      console.error(`Error uploading ${type}:`, error);
+      const errorMessage = error.response?.data?.message || error.message || `Failed to upload. Please try again.`;
+      setUploadState(prev => ({
+        ...prev,
+        [type]: { ...prev[type], loading: false, status: { type: 'error', message: errorMessage } }
+      }));
+
+      setShowUploadOverlay(false);
+
+      setTimeout(() => {
+        setUploadState(prev => ({ ...prev, [type]: { ...prev[type], status: null } }));
+      }, 5000);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const isUploading = Object.values(uploadState).some(state => state.loading);
+    if (isUploading) {
+      alert('Please wait for the file uploads to complete.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // We're now sending only the form data, as images are already uploaded to Cloudinary
+      // Ensure we have the latest state values and handle empty strings properly
       const updateData = {
-        name: userData.name,
-        designation: userData.designation,
-        linkedin: userData.linkedin,
-        github: userData.github,
-        instagram: userData.instagram,
-        phone: userData.phone,
-        projectTitle: userData.projectTitle,
-        projectDescription: userData.projectDescription,
-        profilePhoto: userData.profilePhoto,
-        projectPhoto: userData.projectPhoto,
-        abstractDoc: userData.abstractDoc
+        name: userData.name || '',
+        designations: userData.designations || ['Member'],
+        linkedin: userData.linkedin || '',
+        github: userData.github || '',
+        instagram: userData.instagram || '',
+        phone: userData.phone || '',
+        projectTitle: userData.projectTitle || '',
+        projectDescription: userData.projectDescription || '',
+        profilePhoto: userData.profilePhoto || '',
+        projectPhoto: userData.projectPhoto || '',
+        abstractDoc: userData.abstractDoc || ''
       };
 
-      await axios.post(`${config.apiBaseUrl}/edit-profile`, updateData, {
+      const response = await axios.post(`${config.apiBaseUrl}/edit-profile`, updateData, {
         headers: {
-          Authorization: localStorage.getItem('token')
+          'Authorization': localStorage.getItem('token'),
+          'Content-Type': 'application/json'
         }
       });
       
@@ -154,7 +275,7 @@ const EditProfile = () => {
       navigate('/profile');
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile');
+      alert('Failed to update profile. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -164,30 +285,58 @@ const EditProfile = () => {
     <>
       <style>{selectStyles}</style>
       <Header />
-      <div className="min-h-screen bg-gray-900 text-gray-200 py-12 px-4 mt-22">
-        <div className="max-w-[750px] mx-auto mb-8 card-wrapper min-h-[2000px] md:min-h-[1500px] w-full">
-          <div className="card-content flex items-center justify-center text-lg bg-gray-800 p-8 rounded-lg border border-gray-700 shadow-md">
-            <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center px-6 space-y-8 w-full">
-              <h1 className="text-4xl font-bold mb-8 text-[#ed5a2d]">Edit Profile</h1>
+      <div className="min-h-screen bg-gray-900 text-gray-200 py-32 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-gray-800 rounded-lg border border-gray-700 shadow-md">
+            <div className="p-4 sm:p-6">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center text-[#ed5a2d]">Edit Profile</h1>
+              <form onSubmit={handleSubmit} className="space-y-6">
+
 
               {/* Profile Photo Section */}
               <div className="w-full">
-                <label className="block text-xl text-center font-medium mb-3 text-gray-300">Profile Photo</label>
+                <div className="mb-2">
+                  <label className="block text-lg font-medium text-gray-300 mb-1">Profile Photo</label>
+                  <p className="text-xs text-gray-400">Accepted formats: JPG, PNG, SVG (Max 5MB)</p>
+                </div>
                 <div className="flex flex-col-reverse md:flex-row items-center gap-4">
                   <div className="flex-1 w-full">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileChange(e, 'profilePhoto')}
-                      className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500 file:cursor-pointer"
-                      disabled={loading}
-                    />
+                    <div className="relative">
+                      <input
+                        type="file"
+                        id="profilePhoto"
+                        className="hidden"
+                        accept=".jpg,.jpeg,.png,.avif,.svg"
+                        onChange={(e) => handleFileChange(e, 'profilePhoto')}
+                        disabled={uploadState.profilePhoto.loading || loading}
+                      />
+                      <label
+                        htmlFor="profilePhoto"
+                        className={`w-full text-left cursor-pointer px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition ${(uploadState.profilePhoto.loading || loading) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'}`}>
+                        {uploadState.profilePhoto.fileName || 'Choose a file...'}
+                      </label>
+                      {uploadState.profilePhoto.loading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-lg">
+                          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ed5a2d]"></div>
+                        </div>
+                      )}
+                    </div>
+                    {uploadState.profilePhoto.progress > 0 && (
+                      <div className="w-full bg-gray-600 rounded-full h-2.5 mt-2">
+                        <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadState.profilePhoto.progress}%` }}></div>
+                      </div>
+                    )}
+                    {uploadState.profilePhoto.status && uploadState.profilePhoto.status.message && (
+                      <p className={`mt-2 text-sm ${uploadState.profilePhoto.status.type === 'error' ? 'text-red-500' : 'text-green-500'}`}>
+                        {uploadState.profilePhoto.status.message}
+                      </p>
+                    )}
                   </div>
-                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-700 shadow-lg">
+                  <div className={`relative w-32 h-32 rounded-full overflow-hidden border-4 border-gray-700 shadow-lg ${uploadState.profilePhoto.loading ? 'animate-pulse' : ''}`}>
                     <img
                       src={preview.profilePhoto || config.defaultProfileImage}
                       alt="Profile Preview"
-                      className="w-full h-full object-cover"
+                      className={`w-full h-full object-cover transition-all duration-300 ${uploadState.profilePhoto.loading ? 'opacity-50' : 'opacity-100'}`}
                       onError={(e) => {
                         console.log("Profile preview image failed to load, using default");
                         e.target.src = config.defaultProfileImage;
@@ -200,26 +349,52 @@ const EditProfile = () => {
 
               {/* Project Photo Section */}
               <div className="w-full">
-                <label className="block text-xl text-center font-medium mb-3 text-gray-300">Project Photo</label>
+                <div className="mb-2">
+                  <label className="block text-lg font-medium text-gray-300 mb-1">Project Photo</label>
+                  <p className="text-xs text-gray-400">Accepted formats: JPG, PNG, SVG (Max 5MB)</p>
+                </div>
                 <div className="flex flex-col-reverse md:flex-row items-center gap-4">
                   <div className="flex-1 w-full">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileChange(e, 'projectPhoto')}
-                      className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500 file:cursor-pointer"
-                      disabled={loading}
-                    />
+                    <div className="relative">
+                      <input
+                        type="file"
+                        id="projectPhoto"
+                        className="hidden"
+                        accept=".jpg,.jpeg,.png,.avif,.svg"
+                        onChange={(e) => handleFileChange(e, 'projectPhoto')}
+                        disabled={uploadState.projectPhoto.loading || loading}
+                      />
+                      <label
+                        htmlFor="projectPhoto"
+                        className={`w-full text-left cursor-pointer px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition ${(uploadState.projectPhoto.loading || loading) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'}`}>
+                        {uploadState.projectPhoto.fileName || 'Choose a file...'}
+                      </label>
+                      {uploadState.projectPhoto.loading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-lg">
+                          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ed5a2d]"></div>
+                        </div>
+                      )}
+                    </div>
+                    {uploadState.projectPhoto.progress > 0 && (
+                      <div className="w-full bg-gray-600 rounded-full h-2.5 mt-2">
+                        <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadState.projectPhoto.progress}%` }}></div>
+                      </div>
+                    )}
+                    {uploadState.projectPhoto.status && uploadState.projectPhoto.status.message && (
+                      <p className={`mt-2 text-sm ${uploadState.projectPhoto.status.type === 'error' ? 'text-red-500' : 'text-green-500'}`}>
+                        {uploadState.projectPhoto.status.message}
+                      </p>
+                    )}
                   </div>
-                  <div className="w-32 h-32 rounded-lg overflow-hidden border-4 border-gray-700 shadow-lg">
+                  <div className={`relative w-48 h-32 rounded-lg overflow-hidden border-2 border-gray-700 shadow-lg ${uploadState.projectPhoto.loading ? 'animate-pulse' : ''}`}>
                     <img
                       src={preview.projectPhoto || config.defaultProjectImage}
                       alt="Project Preview"
-                      className="w-full h-full object-cover"
+                      className={`w-full h-full object-cover transition-all duration-300 ${uploadState.projectPhoto.loading ? 'opacity-50' : 'opacity-100'}`}
                       onError={(e) => {
                         console.log("Project preview image failed to load, using default");
                         e.target.src = config.defaultProjectImage;
-                        e.target.onerror = null; // Prevents infinite loop
+                        e.target.onerror = null;
                       }}
                     />
                   </div>
@@ -228,18 +403,68 @@ const EditProfile = () => {
 
               {/* Abstract Document Upload */}
               <div className="w-full">
-                <label className="block text-xl text-center font-medium mb-3 text-gray-300">Abstract Document</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx,image/*"
-                    onChange={(e) => handleFileChange(e, 'abstractDoc')}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500 file:cursor-pointer"
-                    disabled={loading}
-                  />
+                <div className="mb-2">
+                  <label className="block text-lg font-medium text-gray-300 mb-1">Abstract Document</label>
+                  <p className="text-xs text-gray-400">Accepted formats: PDF, DOC, DOCX (Max 5MB)</p>
+                </div>
+                <div className="flex flex-col-reverse md:flex-row items-center gap-4">
+                  <div className="flex-1 w-full">
+                    <div className="relative">
+                      <input
+                        type="file"
+                        id="abstractDoc"
+                        className="hidden"
+                        accept=".pdf,.doc,.docx"
+                        onChange={(e) => handleFileChange(e, 'abstractDoc')}
+                        disabled={uploadState.abstractDoc.loading || loading}
+                      />
+                      <label
+                        htmlFor="abstractDoc"
+                        className={`w-full text-left cursor-pointer px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition ${(uploadState.abstractDoc.loading || loading) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'}`}>
+                        {uploadState.abstractDoc.fileName || 'Choose a file...'}
+                      </label>
+                      {uploadState.abstractDoc.loading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-lg">
+                          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ed5a2d]"></div>
+                        </div>
+                      )}
+                    </div>
+                    {uploadState.abstractDoc.progress > 0 && (
+                      <div className="w-full bg-gray-600 rounded-full h-2.5 mt-2">
+                        <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadState.abstractDoc.progress}%` }}></div>
+                      </div>
+                    )}
+                    {uploadState.abstractDoc.status && uploadState.abstractDoc.status.message && (
+                      <p className={`mt-2 text-sm ${uploadState.abstractDoc.status.type === 'error' ? 'text-red-500' : 'text-green-500'}`}>
+                        {uploadState.abstractDoc.status.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className={`relative w-48 h-32 rounded-lg overflow-hidden border-2 border-gray-700 shadow-lg bg-gray-800 flex items-center justify-center ${uploadState.abstractDoc.loading ? 'opacity-50' : ''}`}>
+                    <div className="text-center p-4">
+                      <svg className="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                      <p className="mt-2 text-sm text-gray-400">
+                        {userData.abstractDoc ? 'Document Uploaded' : 'No Document'}
+                      </p>
+                    </div>
+                    {uploadState.abstractDoc.loading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-70">
+                        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#ed5a2d]"></div>
+                      </div>
+                    )}
+                    {userData.abstractDoc && !uploadState.abstractDoc.loading && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-green-600 bg-opacity-90 text-white text-xs text-center py-1">
+                        Document Ready
+                      </div>
+                    )}
+                  </div>
                 </div>
                 {userData.abstractDoc && (
-                  <p className="mt-2 text-sm text-green-400">Abstract document uploaded successfully</p>
+                  <p className="mt-2 text-sm text-green-400 text-center">
+                    Document uploaded successfully: {userData.abstractDoc.split('/').pop().substring(0, 20)}...
+                  </p>
                 )}
               </div>
 
@@ -252,29 +477,84 @@ const EditProfile = () => {
                     name="name"
                     value={userData.name}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
+                    disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xl font-medium mb-3 text-gray-300">Designation</label>
-                  <select
-                    name="designation"
-                    value={userData.designation}
-                    onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] appearance-none"
-                  >
-                    <option value="" className="bg-gray-700 text-gray-200">Select Designation</option>
-                    {designations.map((designation, index) => (
-                      <option
-                        key={index}
-                        value={designation}
-                        className="bg-gray-700 text-gray-200"
-                      >
-                        {designation}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="block text-xl font-medium mb-3 text-gray-300">
+                    Designations
+                    <span className="text-sm text-gray-400 ml-2">
+                      (Select 1-5 designations)
+                    </span>
+                  </label>
+                  <div className="border rounded-xl border-gray-600/50 bg-gray-700/30 backdrop-blur-sm p-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {designations.map((designation, index) => {
+                        const isSelected = userData.designations?.includes(designation);
+                        return (
+                          <label
+                            key={index}
+                            className={`flex items-center p-4 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
+                              isSelected 
+                                ? 'bg-gradient-to-r from-[#ed5a2d]/20 to-[#ff6b3d]/20 border-2 border-[#ed5a2d] text-white shadow-lg shadow-[#ed5a2d]/20' 
+                                : 'bg-gray-800/50 border-2 border-gray-600/50 text-gray-300 hover:bg-gray-700/50 hover:border-gray-500/50'
+                            } ${(loading || Object.values(uploadState).some(state => state.loading)) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => handleDesignationChange(designation)}
+                              disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                              className="sr-only"
+                            />
+                            <div className={`w-6 h-6 rounded-lg border-2 mr-4 flex items-center justify-center transition-all duration-200 ${
+                              isSelected 
+                                ? 'bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] border-[#ed5a2d] shadow-md' 
+                                : 'border-gray-500 hover:border-gray-400'
+                            }`}>
+                              {isSelected && (
+                                <svg className="w-4 h-4 text-white font-bold" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </div>
+                            <span className="text-sm font-semibold tracking-wide">{designation}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    {userData.designations && userData.designations.length > 0 && (
+                      <div className="mt-4 p-3 bg-gray-800/50 rounded-lg border border-gray-600/50 backdrop-blur-sm">
+                        <p className="text-sm text-gray-400 mb-3 font-medium">Selected designations:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {userData.designations.map((designation, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold tracking-wide 
+                                       bg-gradient-to-r from-[#ed5a2d] to-[#ff6b3d] text-white 
+                                       shadow-md hover:shadow-lg transition-all duration-200 
+                                       border border-[#ed5a2d]/30 backdrop-blur-sm group"
+                            >
+                              {designation}
+                              <button
+                                type="button"
+                                onClick={() => handleDesignationChange(designation)}
+                                disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                                className="ml-2 w-4 h-4 rounded-full bg-white/20 text-white hover:bg-white/30 
+                                         transition-all duration-200 flex items-center justify-center text-xs font-bold
+                                         group-hover:scale-110"
+                                title="Remove designation"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -284,7 +564,8 @@ const EditProfile = () => {
                     name="linkedin"
                     value={userData.linkedin}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
+                    disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -295,7 +576,8 @@ const EditProfile = () => {
                     name="github"
                     value={userData.github}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
+                    disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -306,7 +588,8 @@ const EditProfile = () => {
                     name="instagram"
                     value={userData.instagram}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
+                    disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -317,7 +600,8 @@ const EditProfile = () => {
                     name="phone"
                     value={userData.phone}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
+                    disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -328,7 +612,8 @@ const EditProfile = () => {
                     name="projectTitle"
                     value={userData.projectTitle}
                     onChange={handleChange}
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
+                    disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -339,23 +624,34 @@ const EditProfile = () => {
                     value={userData.projectDescription}
                     onChange={handleChange}
                     rows="4"
-                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d]"
+                    disabled={loading || Object.values(uploadState).some(state => state.loading)}
+                    className="w-full px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 outline-none transition focus:ring-2 focus:ring-[#ed5a2d] input-focus-animation disabled:opacity-50 disabled:cursor-not-allowed"
                   ></textarea>
                 </div>
               </div>
 
-              <div className="w-full flex justify-center mt-6">
-                <button
+                <div className="pt-4 border-t border-gray-700 mt-8">
+                <LoadingButton
                   type="submit"
-                  className="px-8 py-4 bg-[#ed5a2d] rounded-lg text-xl font-semibold text-center transition text-white shadow-md hover:bg-[#d54a1d] active:scale-95 cursor-pointer"
-                  disabled={loading}
+                  loading={loading}
+                  disabled={Object.values(uploadState).some(state => state.loading)}
+                  loadingText="Saving your changes..."
+                  size="lg"
+                  className="w-full"
                 >
                   Save Changes
-                </button>
+                </LoadingButton>
               </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
+        
+        {/* Upload Overlay */}
+        <LoadingOverlay 
+          show={showUploadOverlay} 
+          text="Uploading your file..." 
+        />
       </div>
     </>
   );

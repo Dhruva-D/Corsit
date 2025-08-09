@@ -29,7 +29,7 @@ const eventsData = [
     workshop: true
   },
   {
-    title: 'RoboCor',
+    title: 'ROBOCOR',
     description: 'Robocor, a nationally renowned Robotics Competition, which is one of the biggest events in Karnataka. It provides a platform for participants to showcase their innovative designs and compete for glory. In Robocor, the team has successfully organized several events such as Dcode, Spardha, Rugged Rage, Robo Soccer, Arduino Clash, Binary Rash, Project Symposium, Paper Presentation, and Init_Rc.',
     images: [
       rc1,

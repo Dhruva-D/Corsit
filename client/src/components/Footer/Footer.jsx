@@ -50,7 +50,6 @@ const Footer = () => {
           </p>
           <div className="flex space-x-4 mt-6">
             {[ 
-              { href: "https://www.facebook.com/thecorsit/", icon: faFacebook, color: "hover:text-blue-600" },
               { href: "https://www.youtube.com/channel/UCcm-ttunddHrEGWUdYkUd2w", icon: faYoutube, color: "hover:text-red-600" },
               { href: "https://www.instagram.com/corsit.sit", icon: faInstagram, color: "hover:text-pink-500" },
               { href: "https://www.linkedin.com/company/corsit/posts", icon: faLinkedin, color: "hover:text-blue-500" }

@@ -115,7 +115,7 @@ const Home = () => {
             {[
               {
                 date: '22 May 2025',
-                title: 'RoboCor',
+                title: 'ROBOCOR',
                 description: 'The ultimate battleground for innovation, where robots clash and creativity thrives!',
                 location: '📍 SIT Campus',
                 status: 'robocor'

@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
 
-// --- IMPORTS FOR THE NEW 2024 BATCH ---
+// --- IMPORTS FOR THE 2024 BATCH ---
 import aadarsh from "../../assets/team/fourth/aadarsh.jpg";
 import aditi from "../../assets/team/fourth/aditi.jpg";
 import aryan from "../../assets/team/fourth/aryan.jpg";
@@ -76,28 +76,6 @@ import Sameer from "./../../assets/alumni/Sameer.jpg";
 import TannisthaNandy from "./../../assets/alumni/Tannistha Nandy .jpg";
 import YashaswiniK_1 from "./../../assets/alumni/YashaswiniK_1.jpg";
 
-// --- DATA for the new 2024 Batch (with updated roles) ---
-const graduatingBatch2024 = [
-  { name: "Jatin Sharma", role: "Associate SDE at State Street", ima: jatin, linkedin: "https://www.linkedin.com/in/jatin-sharma-669590142" },
-  { name: "Ujjawal Singh", role: "Business Analyst at Impact Analytics", ima: ujjawal, linkedin: "https://www.linkedin.com/in/ujjawal-singh-4a4817229" },
-  { name: "Kumar Harsh", role: "Programming Analyst at Cognizant", ima: kumar, linkedin: "https://www.linkedin.com/in/kumar-harsh-39bb2b249" },
-  { name: "Namrata Bharadwaj", role: "Associate Engineer at State Street", ima: namrata, linkedin: "https://www.linkedin.com/in/namratabharadwaj/" },
-  { name: "Sharanya Bhat", role: "Siemens Healthineers", ima: sharanya, linkedin: "https://www.linkedin.com/in/sharanya-bhat-b2070a239" },
-  { name: "Aadarsh Shriniwas", role: "SDE at RedBus", ima: aadarsh, linkedin: "https://www.linkedin.com/in/aadarsh-shriniwas-512047227" },
-  { name: "Siddhant Raj", role: "Associate engineer at Oracle", ima: siddhant, linkedin: "https://www.linkedin.com/in/siddhant-raj-3a804a2a9/" }, // Placeholder
-  { name: "Aditi Joshi", role: "SDE at Nike", ima: aditi, linkedin: "https://www.linkedin.com/in/aditi-joshi-5a260b229" },
-  { name: "Lekhana Patel", role: "J.P. Morgan & Chase", ima: lekhana, linkedin: "https://www.linkedin.com/in/lekhana-patel-3b8986225" },
-  { name: "Ashutosh Malviya", role: "Associate Engineer at State Street", ima: ashutosh, linkedin: "https://www.linkedin.com/in/ashumalviya" },
-  { name: "Rishav Shekhar", role: "TCS Ninja", ima: rishav, linkedin: "https://www.linkedin.com/in/rishav-shekhar-a21279232" },
-  { name: "Harsh Gaurav", role: "Technology Intern at Saks", ima: harsh, linkedin: "https://www.linkedin.com/in/harsh-gaurav-1434b624b" },
-  { name: "Suraj Aribenchi", role: "Data Scientist at MIQ", ima: suraj, linkedin: "https://www.linkedin.com/in/suraj-aribenchi-9b5340239/" },
-  { name: "Vivek M", role: "Associate Engineer at State Street", ima: vivek_fourth, linkedin: "https://www.linkedin.com/in/vivekindev/" },
-  { name: "Vaishali Choudhary", role: "Analog Layout Engineer at Texas Instruments", ima: vaishali, linkedin: "https://www.linkedin.com/in/b-vaishali-choudhary-671075239" },
-  { name: "Mayank Pandey", role: "Technology Intern at Saks", ima: mayank, linkedin: "https://www.linkedin.com/in/mayank-pandey-1a16b7240" },
-  { name: "Badal Prakash Narayan", role: "Associate Software at Eurofins", ima: badal, linkedin: "https://www.linkedin.com/in/badal-prakash-narayan-a68b5a239/" },
-  { name: "Aryan", role: "TCS Ninja", ima: aryan, linkedin: "https://www.linkedin.com/in/aryan-kumar-86535724b/" },
-];
-
 // --- DATA for all previous Alumni ---
 const existingAlumni = [
   { name: "Ranjeet Kumar Chaurasiya", role: "Informatica SME at Kyndryl India", email: "", ima: ranjeet, git: "", linkedin: "https://www.linkedin.com/in/ranjeetchaurasiya" },
@@ -155,8 +133,30 @@ const existingAlumni = [
   { name: "Aditya Dubey", linkedin: "https://www.linkedin.com/in/aditya-dubey-611445331/", ima: AdithyaD, role: "Alumini" },
 ];
 
-// Combine the new batch with the existing list, with the new batch on top
-const people = [...graduatingBatch2024, ...existingAlumni];
+// --- DATA for the new 2024 Batch ---
+const graduatingBatch2024 = [
+  { name: "Jatin Sharma", role: "Associate SDE at State Street", ima: jatin, linkedin: "https://www.linkedin.com/in/jatin-sharma-669590142" },
+  { name: "Ujjawal Singh", role: "Business Analyst at Impact Analytics", ima: ujjawal, linkedin: "https://www.linkedin.com/in/ujjawal-singh-4a4817229" },
+  { name: "Kumar Harsh", role: "Programming Analyst at Cognizant", ima: kumar, linkedin: "https://www.linkedin.com/in/kumar-harsh-39bb2b249" },
+  { name: "Namrata Bharadwaj", role: "Associate Engineer at State Street", ima: namrata, linkedin: "https://www.linkedin.com/in/namratabharadwaj/" },
+  { name: "Sharanya Bhat", role: "Siemens Healthineers", ima: sharanya, linkedin: "https://www.linkedin.com/in/sharanya-bhat-b2070a239" },
+  { name: "Aadarsh Shriniwas", role: "SDE at RedBus", ima: aadarsh, linkedin: "https://www.linkedin.com/in/aadarsh-shriniwas-512047227" },
+  { name: "Siddhant Raj", role: "Associate Engineer at Oracle", ima: siddhant, linkedin: "https://www.linkedin.com/in/siddhant-raj-3a804a2a9/" }, // Placeholder
+  { name: "Aditi Joshi", role: "SDE at Nike", ima: aditi, linkedin: "https://www.linkedin.com/in/aditi-joshi-5a260b229" },
+  { name: "Lekhana Patel", role: "J.P. Morgan & Chase", ima: lekhana, linkedin: "https://www.linkedin.com/in/lekhana-patel-3b8986225" },
+  { name: "Ashutosh Malviya", role: "Associate Engineer at State Street", ima: ashutosh, linkedin: "https://www.linkedin.com/in/ashumalviya" },
+  { name: "Rishav Shekhar", role: "TCS Ninja", ima: rishav, linkedin: "https://www.linkedin.com/in/rishav-shekhar-a21279232" },
+  { name: "Harsh Gaurav", role: "Technology Intern at Saks", ima: harsh, linkedin: "https://www.linkedin.com/in/harsh-gaurav-1434b624b" },
+  { name: "Suraj Aribenchi", role: "Data Scientist at MIQ", ima: suraj, linkedin: "https://www.linkedin.com/in/suraj-aribenchi-9b5340239/" },
+  { name: "Vivek M", role: "Associate Engineer at State Street", ima: vivek_fourth, linkedin: "https://www.linkedin.com/in/vivekindev/" },
+  { name: "Vaishali Choudhary", role: "Analog Layout Engineer at Texas Instruments", ima: vaishali, linkedin: "https://www.linkedin.com/in/b-vaishali-choudhary-671075239" },
+  { name: "Mayank Pandey", role: "Technology Intern at Saks", ima: mayank, linkedin: "https://www.linkedin.com/in/mayank-pandey-1a16b7240" },
+  { name: "Badal Prakash Narayan", role: "Associate Software at Eurofins", ima: badal, linkedin: "https://www.linkedin.com/in/badal-prakash-narayan-a68b5a239/" },
+  { name: "Aryan", role: "TCS Ninja", ima: aryan, linkedin: "https://www.linkedin.com/in/aryan-kumar-86535724b/" },
+];
+
+// Combine the two lists, with the 2024 batch at the end
+const people = [...existingAlumni, ...graduatingBatch2024];
 
 export default function Alumni() {
   return (

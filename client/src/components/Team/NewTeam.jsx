@@ -403,7 +403,7 @@ const ProfileCard = ({ person }) => {
           )}
           {person.instagram && (
             <a 
-              href={`https://instagram.com/${person.instagram}`} 
+              href={person.instagram && person.instagram.trim() !== '' && !person.instagram.includes('instagram.com') ? `https://instagram.com/${person.instagram}` : person.instagram} 
               target="_blank" 
               rel="noopener noreferrer" 
               className="text-xl text-gray-400 hover:text-pink-500 transition-transform duration-300 hover:scale-110 hover:rotate-6"

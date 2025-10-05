@@ -8,6 +8,7 @@ require("dotenv").config();
 const fs = require('fs');
 const path = require('path');
 const PDFDocument = require('pdfkit');
+const https = require('https');
 
 // Import Cloudinary configuration and upload routes
 const cloudinary = require('./config/cloudinary');
@@ -964,6 +965,64 @@ app.get('/profile', authMiddleware, async (req, res) => {
             message: 'Error fetching user profile',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
+    }
+});
+
+// Download abstract endpoint
+app.get('/download-abstract/:userId', (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        User.findById(userId).then(user => {
+            if (!user || !user.abstractDoc) {
+                return res.status(404).json({ message: 'Abstract not found' });
+            }
+            
+            // Get the abstract URL
+            const abstractUrl = user.abstractDoc;
+            
+            // Extract filename and extension from Cloudinary URL
+            const urlParts = abstractUrl.split('/');
+            let filename = urlParts[urlParts.length - 1].split('?')[0];
+            
+            // If no extension found, default to .pdf
+            if (!filename.includes('.')) {
+                filename = filename + '.pdf';
+            }
+            
+            // Create a clean filename with user's name
+            const cleanUserName = user.name.replace(/[^a-zA-Z0-9]/g, '_');
+            const finalFilename = `${cleanUserName}_abstract_${filename}`;
+            
+            // Make HTTPS request to Cloudinary first to get the actual content type
+            https.get(abstractUrl, (response) => {
+                if (response.statusCode !== 200) {
+                    return res.status(404).json({ message: 'Abstract file not found' });
+                }
+                
+                // Get content type from Cloudinary response or default to PDF
+                const contentType = response.headers['content-type'] || 'application/pdf';
+                
+                // Set headers to force download with proper content type
+                res.setHeader('Content-Disposition', `attachment; filename="${finalFilename}"`);
+                res.setHeader('Content-Type', contentType);
+                res.setHeader('Content-Length', response.headers['content-length'] || '');
+                
+                // Pipe the response directly to the client
+                response.pipe(res);
+            }).on('error', (error) => {
+                console.error('Error fetching abstract:', error);
+                res.status(500).json({ message: 'Error downloading abstract' });
+            });
+            
+        }).catch(error => {
+            console.error('Error finding user:', error);
+            res.status(500).json({ message: 'Error downloading abstract' });
+        });
+        
+    } catch (error) {
+        console.error('Error downloading abstract:', error);
+        res.status(500).json({ message: 'Error downloading abstract' });
     }
 });
 

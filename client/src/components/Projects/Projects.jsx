@@ -103,9 +103,8 @@ const Projects = () => {
                     <div className="mt-auto">
                       {project.abstractDoc ? (
                         <a
-                          href={project.abstractDoc || '#'}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                          href={`${config.apiBaseUrl}/download-abstract/${project._id}`}
+                          download
                           className="w-full block text-center mt-4 px-4 sm:px-6 py-2 bg-orange-500 text-black font-bold rounded-lg transition-all transform hover:scale-105 hover:bg-orange-600 shadow-lg shadow-orange-500/50"
                         >
                           Download Abstract

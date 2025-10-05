@@ -149,7 +149,7 @@ const Profile = () => {
                           <span>GitHub</span>
                         </a>
                         <a 
-                          href={userData?.instagram && userData.instagram.trim() !== '' && !userData.instagram.includes('instagram.com') ? `https://instagram.com/${userData.instagram}` : 'https://instagram.com'} 
+                          href={userData?.instagram && userData.instagram.trim() !== '' && !userData.instagram.includes('instagram.com') ? `https://instagram.com/${userData.instagram}` : userData?.instagram || 'https://instagram.com'} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 px-5 py-3 border rounded-lg border-gray-600 text-lg bg-gray-700 hover:bg-gray-600 transition-all"
@@ -207,20 +207,11 @@ const Profile = () => {
                     {userData?.abstractDoc && (
                       <div className="pt-4">
                         <a 
-                          href={userData.abstractDoc}
-                          target="_blank" 
-                          rel="noopener noreferrer"
+                          href={`${config.apiBaseUrl}/download-abstract/${userData._id}`}
+                          download
                           className="inline-flex items-center gap-2 px-6 py-4 bg-[#ed5a2d] rounded-lg text-xl font-semibold text-center transition shadow-md hover:bg-[#d54a1d] active:scale-95 cursor-pointer"
-                          onClick={(e) => {
-                            // Validate URL before opening
-                            if (!userData.abstractDoc.startsWith('http')) {
-                              e.preventDefault();
-                              console.error("Invalid abstract document URL");
-                              alert("Abstract document URL is invalid");
-                            }
-                          }}
                         >
-                          View Abstract Document
+                          Download Abstract Document
                         </a>
                       </div>
                     )}

@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 
+// Configuration for event registration - change this to false after the event to show gallery again
+const ROBOEXPO_REGISTRATION_ACTIVE = true;
+
 import rc1 from '../../assets/events/robocor/1.png';
 import rc2 from '../../assets/events/robocor/2.png';
 import rc3 from '../../assets/events//robocor/3.png';
@@ -144,6 +147,23 @@ const Events = () => {
                 </a>
               )}
               {event.title === 'RoboExpo' && (
+                ROBOEXPO_REGISTRATION_ACTIVE ? (
+                  <NavLink
+                    to='/roboexpo-register'
+                    className='mt-6 inline-block border-2 border-[#ed5a2d] text-[#ed5a2d] px-10 sm:px-14 py-3 sm:py-4 rounded-3xl text-lg sm:text-xl font-semibold transition duration-300 hover:bg-[#ed5a2d] hover:text-white hover:border-4 hover:shadow-lg'
+                  >
+                    Register
+                  </NavLink>
+                ) : (
+                  <button
+                    onClick={() => openGallery(event)}
+                    className='mt-6 inline-block border-2 border-[#ed5a2d] text-[#ed5a2d] px-10 sm:px-14 py-3 sm:py-4 rounded-3xl text-lg sm:text-xl font-semibold transition duration-300 hover:bg-[#ed5a2d] hover:text-white hover:border-4 hover:shadow-lg'
+                  >
+                    View Gallery
+                  </button>
+                )
+              )}
+              {event.title === 'Hackathon' && (
                 <button
                   onClick={() => openGallery(event)}
                   className='mt-6 inline-block border-2 border-[#ed5a2d] text-[#ed5a2d] px-10 sm:px-14 py-3 sm:py-4 rounded-3xl text-lg sm:text-xl font-semibold transition duration-300 hover:bg-[#ed5a2d] hover:text-white hover:border-4 hover:shadow-lg'

@@ -106,6 +106,17 @@ const workshopRegistrationSchema = new mongoose.Schema({
 });
 const WorkshopRegistration = mongoose.model("WorkshopRegistration", workshopRegistrationSchema);
 
+// RoboExpo Registration Schema
+const roboExpoRegistrationSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    usn: { type: String, required: true },
+    phone: { type: String, required: true },
+    email: { type: String, required: true },
+    branch: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+});
+const RoboExpoRegistration = mongoose.model("RoboExpoRegistration", roboExpoRegistrationSchema);
+
 // Middleware for authentication
 const authMiddleware = async (req, res, next) => {
     const token = req.header("Authorization");
@@ -504,6 +515,57 @@ app.post("/workshop-register", async (req, res) => {
     }
 });
 
+// RoboExpo Registration
+app.post("/roboexpo-register", async (req, res) => {
+    try {
+        const { name, usn, phone, email, branch } = req.body;
+
+        // Validate required fields
+        if (!name || !usn || !phone || !email || !branch) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        // Check if user already registered with same email or phone
+        const existingRegistration = await RoboExpoRegistration.findOne({
+            $or: [
+                { email: email.toLowerCase() },
+                { phone: phone },
+                { usn: usn.toUpperCase() }
+            ]
+        });
+
+        if (existingRegistration) {
+            return res.status(400).json({ 
+                message: 'Registration already exists with this email, phone, or USN' 
+            });
+        }
+
+        // Create new registration
+        const registration = new RoboExpoRegistration({
+            name: name.trim(),
+            usn: usn.toUpperCase().trim(),
+            phone: phone.trim(),
+            email: email.toLowerCase().trim(),
+            branch: branch.trim()
+        });
+
+        await registration.save();
+
+        res.status(201).json({ 
+            message: 'RoboExpo registration successful!',
+            registration: {
+                name: registration.name,
+                usn: registration.usn,
+                email: registration.email,
+                registeredAt: registration.createdAt
+            }
+        });
+    } catch (error) {
+        console.error('RoboExpo registration error:', error);
+        res.status(500).json({ message: 'Error registering for RoboExpo' });
+    }
+});
+
 // Get Workshop Registrations for Admin
 app.get('/workshop-registrations', authMiddleware, async (req, res) => {
     try {
@@ -597,6 +659,46 @@ app.get('/workshop-registrations', authMiddleware, async (req, res) => {
         res.json(structuredRegistrations);
     } catch (error) {
         console.error('Error fetching workshop registrations:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Get RoboExpo Registrations for Admin
+app.get('/roboexpo-registrations', authMiddleware, async (req, res) => {
+    try {
+        // Check if user is admin
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        const registrations = await RoboExpoRegistration.find().sort({ createdAt: -1 });
+        res.json(registrations);
+    } catch (error) {
+        console.error('Error fetching RoboExpo registrations:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Delete RoboExpo Registration
+app.delete('/roboexpo-registrations/:registrationId', authMiddleware, async (req, res) => {
+    try {
+        // Check if user is admin
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+
+        const { registrationId } = req.params;
+        const registration = await RoboExpoRegistration.findByIdAndDelete(registrationId);
+
+        if (!registration) {
+            return res.status(404).json({ message: 'Registration not found' });
+        }
+
+        res.json({ message: 'Registration deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting RoboExpo registration:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTypewriter, Cursor } from 'react-simple-typewriter';
 import { NavLink } from 'react-router-dom';
+
+// Configuration for event registration - change this to false after the event to show gallery again
+const ROBOEXPO_REGISTRATION_ACTIVE = true;
 import lfr from '../../assets/home/lfr.jpg';
 import gesture from '../../assets/home/gcr.jpg';
 import smartHome from '../../assets/home/sha.webp';
@@ -148,12 +151,20 @@ const Home = () => {
                     </button>
                   </NavLink>
                 ) : event.status === 'roboexpo' ? (
-                  <button 
-                    onClick={() => openGallery('roboExpo')}
-                    className="mt-6 bg-gradient-to-r from-[#ed5a2d] to-orange-500 hover:from-orange-500 hover:to-[#ed5a2d] text-white font-bold py-2 px-6 rounded-full shadow-md transition-all duration-300 hover:scale-110"
-                  >
-                    View Gallery
-                  </button>
+                  ROBOEXPO_REGISTRATION_ACTIVE ? (
+                    <NavLink to="/roboexpo-register" onClick={() => window.scrollTo(0, 0)}>
+                      <button className="mt-6 bg-gradient-to-r from-[#ed5a2d] to-orange-500 hover:from-orange-500 hover:to-[#ed5a2d] text-white font-bold py-2 px-6 rounded-full shadow-md transition-all duration-300 hover:scale-110">
+                        Register Now
+                      </button>
+                    </NavLink>
+                  ) : (
+                    <button 
+                      onClick={() => openGallery('roboExpo')}
+                      className="mt-6 bg-gradient-to-r from-[#ed5a2d] to-orange-500 hover:from-orange-500 hover:to-[#ed5a2d] text-white font-bold py-2 px-6 rounded-full shadow-md transition-all duration-300 hover:scale-110"
+                    >
+                      View Gallery
+                    </button>
+                  )
                 ) : event.status === 'workshop' ? (
                   <button 
                     onClick={() => openGallery('workshop')}

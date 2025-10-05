@@ -156,22 +156,22 @@ const RoboExpoReg25 = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#080514] text-white p-30">
+        <div className="min-h-screen bg-[#080514] text-white px-4 pt-20 pb-8 sm:px-6 sm:pt-24 sm:pb-8 lg:px-8 lg:py-28">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold text-[#ed5a2d] mb-2">RoboExpo 2025 Registrations</h1>
-                        <p className="text-gray-300">
+                <div className="flex flex-col gap-4 mb-6 sm:mb-8">
+                    <div className="text-center sm:text-left">
+                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#ed5a2d] mb-2">RoboExpo 2025 Registrations</h1>
+                        <p className="text-gray-300 text-sm sm:text-base">
                             Total Registrations: <span className="font-semibold text-[#ed5a2d]">{registrations.length}</span>
                         </p>
                     </div>
                     
                     {/* Export buttons */}
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
                         <button
                             onClick={exportToPDF}
-                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-all"
+                            className="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-4 py-2 rounded-md flex items-center justify-center gap-2 transition-all text-sm sm:text-base"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -180,7 +180,7 @@ const RoboExpoReg25 = () => {
                         </button>
                         <button
                             onClick={exportToExcel}
-                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-all"
+                            className="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-md flex items-center justify-center gap-2 transition-all text-sm sm:text-base"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -197,42 +197,42 @@ const RoboExpoReg25 = () => {
                     </div>
                 ) : (
                     <>
-                        {/* Registrations Table */}
-                        <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                        {/* Desktop Table */}
+                        <div className="hidden lg:block bg-gray-800/50 rounded-lg shadow-lg overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full table-auto">
                                     <thead className="bg-[#ed5a2d]">
                                         <tr>
-                                            <th className="px-4 py-3 text-left text-sm font-medium text-white">S.No</th>
-                                            <th className="px-4 py-3 text-left text-sm font-medium text-white">Name</th>
-                                            <th className="px-4 py-3 text-left text-sm font-medium text-white">USN</th>
-                                            <th className="px-4 py-3 text-left text-sm font-medium text-white">Phone</th>
-                                            <th className="px-4 py-3 text-left text-sm font-medium text-white">Email</th>
-                                            <th className="px-4 py-3 text-left text-sm font-medium text-white">Branch</th>
-                                            <th className="px-4 py-3 text-left text-sm font-medium text-white">Registered On</th>
-                                            <th className="px-4 py-3 text-left text-sm font-medium text-white">Actions</th>
+                                            <th className="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">S.No</th>
+                                            <th className="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Name</th>
+                                            <th className="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">USN</th>
+                                            <th className="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Phone</th>
+                                            <th className="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Email</th>
+                                            <th className="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Branch</th>
+                                            <th className="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Registered On</th>
+                                            <th className="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-gray-800 divide-y divide-gray-700">
                                         {registrations.length > 0 ? (
                                             registrations.map((registration, index) => (
                                                 <tr key={registration._id} className="hover:bg-gray-700 transition-colors">
-                                                    <td className="px-4 py-4 text-sm text-gray-300">{index + 1}</td>
-                                                    <td className="px-4 py-4 text-sm font-medium text-white">{registration.name}</td>
-                                                    <td className="px-4 py-4 text-sm text-gray-300 font-mono">{registration.usn.toUpperCase()}</td>
-                                                    <td className="px-4 py-4 text-sm text-gray-300">{registration.phone}</td>
-                                                    <td className="px-4 py-4 text-sm text-gray-300">{registration.email}</td>
-                                                    <td className="px-4 py-4 text-sm text-gray-300">{registration.branch}</td>
-                                                    <td className="px-4 py-4 text-sm text-gray-300">
+                                                    <td className="px-3 py-3 text-sm text-gray-300">{index + 1}</td>
+                                                    <td className="px-3 py-3 text-sm font-medium text-white">{registration.name}</td>
+                                                    <td className="px-3 py-3 text-sm text-gray-300 font-mono">{registration.usn.toUpperCase()}</td>
+                                                    <td className="px-3 py-3 text-sm text-gray-300">{registration.phone}</td>
+                                                    <td className="px-3 py-3 text-sm text-gray-300 break-all">{registration.email}</td>
+                                                    <td className="px-3 py-3 text-sm text-gray-300">{registration.branch}</td>
+                                                    <td className="px-3 py-3 text-sm text-gray-300">
                                                         {new Date(registration.createdAt).toLocaleDateString()}
                                                     </td>
-                                                    <td className="px-4 py-4 text-sm">
+                                                    <td className="px-3 py-3 text-sm">
                                                         <button
                                                             onClick={() => {
                                                                 setRegistrationToDelete(registration);
                                                                 setShowDeleteModal(true);
                                                             }}
-                                                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-xs transition-all"
+                                                            className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-md text-xs transition-all"
                                                         >
                                                             Delete
                                                         </button>
@@ -241,7 +241,7 @@ const RoboExpoReg25 = () => {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan="8" className="px-4 py-8 text-center text-gray-400">
+                                                <td colSpan="8" className="px-3 py-8 text-center text-gray-400">
                                                     No registrations found
                                                 </td>
                                             </tr>
@@ -249,6 +249,66 @@ const RoboExpoReg25 = () => {
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+
+                        {/* Mobile Card Layout */}
+                        <div className="lg:hidden">
+                            {registrations.length > 0 ? (
+                                <div className="space-y-4">
+                                    {registrations.map((registration, index) => (
+                                        <motion.div
+                                            key={registration._id}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: index * 0.05 }}
+                                            className="bg-gray-800/50 rounded-lg p-4 shadow-lg border border-gray-700"
+                                        >
+                                            <div className="flex justify-between items-start mb-3">
+                                                <div className="flex-1">
+                                                    <h3 className="text-white font-semibold text-lg leading-tight">{registration.name}</h3>
+                                                    <p className="text-[#ed5a2d] text-sm font-medium">#{index + 1}</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        setRegistrationToDelete(registration);
+                                                        setShowDeleteModal(true);
+                                                    }}
+                                                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-xs transition-all ml-3 flex-shrink-0"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                                                <div>
+                                                    <span className="text-gray-400 text-xs uppercase tracking-wide">USN:</span>
+                                                    <p className="text-white font-medium font-mono">{registration.usn.toUpperCase()}</p>
+                                                </div>
+                                                <div>
+                                                    <span className="text-gray-400 text-xs uppercase tracking-wide">Branch:</span>
+                                                    <p className="text-white font-medium">{registration.branch}</p>
+                                                </div>
+                                                <div>
+                                                    <span className="text-gray-400 text-xs uppercase tracking-wide">Phone:</span>
+                                                    <p className="text-white font-medium">{registration.phone}</p>
+                                                </div>
+                                                <div>
+                                                    <span className="text-gray-400 text-xs uppercase tracking-wide">Registered:</span>
+                                                    <p className="text-white font-medium">{new Date(registration.createdAt).toLocaleDateString()}</p>
+                                                </div>
+                                                <div className="sm:col-span-2">
+                                                    <span className="text-gray-400 text-xs uppercase tracking-wide">Email:</span>
+                                                    <p className="text-white font-medium break-all">{registration.email}</p>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="bg-gray-800/50 rounded-lg p-8 text-center">
+                                    <p className="text-gray-400">No registrations found</p>
+                                </div>
+                            )}
                         </div>
                     </>
                 )}
@@ -266,30 +326,30 @@ const RoboExpoReg25 = () => {
                                 initial={{ scale: 0.95, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 exit={{ scale: 0.95, opacity: 0 }}
-                                className="bg-gray-800 rounded-lg p-6 w-full max-w-md"
+                                className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-md mx-4"
                             >
                                 <h3 className="text-lg font-semibold text-white mb-4">Confirm Delete</h3>
-                                <p className="text-gray-300 mb-6">
+                                <p className="text-gray-300 mb-6 text-sm sm:text-base">
                                     Are you sure you want to delete the registration for{' '}
                                     <span className="font-semibold text-[#ed5a2d]">
                                         {registrationToDelete?.name}
                                     </span>
                                     ? This action cannot be undone.
                                 </p>
-                                <div className="flex gap-4 justify-end">
+                                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-end">
                                     <button
                                         onClick={() => {
                                             setShowDeleteModal(false);
                                             setRegistrationToDelete(null);
                                         }}
-                                        className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-all"
+                                        className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-all text-sm sm:text-base order-2 sm:order-1"
                                         disabled={actionLoading}
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         onClick={() => handleDeleteRegistration(registrationToDelete._id)}
-                                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-all disabled:opacity-50"
+                                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-all disabled:opacity-50 text-sm sm:text-base order-1 sm:order-2"
                                         disabled={actionLoading}
                                     >
                                         {actionLoading ? 'Deleting...' : 'Delete'}

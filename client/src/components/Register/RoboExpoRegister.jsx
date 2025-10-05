@@ -142,7 +142,7 @@ const RoboExpoRegister = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 relative">
+    <div className="min-h-screen bg-gray-1100 relative">
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg p-8 flex flex-col items-center">
@@ -153,7 +153,7 @@ const RoboExpoRegister = () => {
         </div>
       )}
       
-      <div className="container mx-auto px-4 py-20 max-w-none">
+      <div className="container mx-auto px-4 py-32 max-w-none">
         <div className="w-full max-w-2xl mx-auto bg-gray-800 shadow-xl rounded-lg p-6 sm:p-8 lg:p-10 border border-gray-700">
           <div className="text-center mb-6 sm:mb-8">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#ed5a2d]">RoboExpo Registration</h2>

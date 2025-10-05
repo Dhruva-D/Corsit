@@ -85,7 +85,7 @@ const Login = () => {
 
               <p className="text-center text-gray-400">
                 Don't have an account?{' '}
-                <NavLink to="/signup" className="text-[#ed5a2d] hover:text-[#ff6b3d] font-bold">
+                <NavLink to="/signup" onClick={() => window.scrollTo(0, 0)} className="text-[#ed5a2d] hover:text-[#ff6b3d] font-bold">
                   Sign up here
                 </NavLink>
               </p>

@@ -70,11 +70,79 @@ const HeaderProfile = () => {
         setAdminDestination('/admin');
     };
 
-    const handleAdminGalleryClick = (e) => {
+    const handleWorkshopReg25Click = (e) => {
         e.preventDefault();
         setDropdownOpen(false);
         setShowAdminModal(true);
-        setAdminDestination('/admins-gallery');
+        setAdminDestination('/workshop-reg-25');
+    };
+
+    const handleRoboExpoRegClick = (e) => {
+        e.preventDefault();
+        setDropdownOpen(false);
+        // Show coming soon alert with custom styling
+        const alertDiv = document.createElement('div');
+        alertDiv.innerHTML = `
+            <div style="
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+                border: 2px solid #ed5a2d;
+                border-radius: 16px;
+                padding: 30px 40px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+                z-index: 9999;
+                text-align: center;
+                backdrop-filter: blur(10px);
+            ">
+                <h3 style="
+                    color: #ed5a2d;
+                    font-size: 24px;
+                    font-weight: bold;
+                    margin: 0 0 15px 0;
+                    font-family: 'Arial', sans-serif;
+                ">🤖 RoboExpo Registration</h3>
+                <p style="
+                    color: #ffffff;
+                    font-size: 16px;
+                    margin: 0 0 20px 0;
+                    font-family: 'Arial', sans-serif;
+                ">Coming Soon! Stay tuned for updates.</p>
+                <button onclick="this.parentElement.parentElement.remove()" style="
+                    background: linear-gradient(135deg, #ed5a2d 0%, #ff6b3d 100%);
+                    color: white;
+                    border: none;
+                    padding: 10px 25px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    font-family: 'Arial', sans-serif;
+                " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    Got it!
+                </button>
+            </div>
+            <div onclick="this.parentElement.remove()" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.7);
+                z-index: 9998;
+            "></div>
+        `;
+        document.body.appendChild(alertDiv);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (document.body.contains(alertDiv)) {
+                document.body.removeChild(alertDiv);
+            }
+        }, 5000);
     };
 
     const handleAuthSuccess = () => {
@@ -108,7 +176,7 @@ const HeaderProfile = () => {
                     <ul className='flex flex-col lg:flex-row items-center lg:gap-6 gap-4 text-lg py-4 lg:py-0'>
                         {navLinks.map(({ path, label }, index) => (
                             <li key={index}>
-                                <NavLink to={path} onClick={() => setNavOpen(false)} className='text-white hover:text-[#ed5a2d] px-4 py-2 block'>
+                                <NavLink to={path} onClick={() => { setNavOpen(false); window.scrollTo(0, 0); }} className='text-white hover:text-[#ed5a2d] px-4 py-2 block'>
                                     {label}
                                 </NavLink>
                             </li>
@@ -122,10 +190,11 @@ const HeaderProfile = () => {
                     </button>
                     {dropdownOpen && (
                         <div className='absolute right-0 mt-2 w-52 shadow-lg bg-gradient-to-b from-slate-700 to-slate-800 rounded-lg overflow-hidden z-50'>
-                            <NavLink to='/profile' onClick={() => setDropdownOpen(false)} className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Profile</NavLink>
-                            <NavLink to='/edit-profile' onClick={() => setDropdownOpen(false)} className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Edit Profile</NavLink>
-                            <NavLink to='/change-password' onClick={() => setDropdownOpen(false)} className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Change Password</NavLink>
-                            <NavLink to="#" onClick={handleAdminGalleryClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Admins Gallery</NavLink>
+                            <NavLink to='/profile' onClick={() => { setDropdownOpen(false); window.scrollTo(0, 0); }} className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Profile</NavLink>
+                            <NavLink to='/edit-profile' onClick={() => { setDropdownOpen(false); window.scrollTo(0, 0); }} className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Edit Profile</NavLink>
+                            <NavLink to='/change-password' onClick={() => { setDropdownOpen(false); window.scrollTo(0, 0); }} className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Change Password</NavLink>
+                            <NavLink to="#" onClick={handleWorkshopReg25Click} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Workshop Reg 2025</NavLink>
+                            <NavLink to="#" onClick={handleRoboExpoRegClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">RoboExpo Reg 2025</NavLink>
                             <NavLink to="#" onClick={handleAdminClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Admin Page</NavLink>
                             <button onClick={handleLogout} className='block w-full text-left px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Logout</button>
                         </div>

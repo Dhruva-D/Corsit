@@ -17,7 +17,7 @@ import Profile from "./components/Profile/Profile.jsx";
 import Editprofile from "./components/Profile/Editprofile.jsx";
 import Changepassword from "./components/Profile/Changepassword.jsx";
 import Admin from "./components/Profile/Admin.jsx";
-import AdminsGallery from "./components/Profile/AdminsGallery.jsx";
+import WorkshopReg25 from "./components/Profile/WorkshopReg25.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 // Global image error handler to ensure default images are shown when loading fails
@@ -113,7 +113,7 @@ const App = () => {
             <Route path="edit-profile" element={<ProtectedRoute><Editprofile /></ProtectedRoute>} />
             <Route path="change-password" element={<ProtectedRoute><Changepassword /></ProtectedRoute>} />
             <Route path="admin" element={<AdminProtectedRoute><Admin /></AdminProtectedRoute>} />
-            <Route path="admins-gallery" element={<AdminProtectedRoute><AdminsGallery /></AdminProtectedRoute>} />
+            <Route path="workshop-reg-25" element={<AdminProtectedRoute><WorkshopReg25 /></AdminProtectedRoute>} />
           </Route>
           
           {/* Catch all unmatched routes */}

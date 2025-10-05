@@ -253,7 +253,7 @@ const Admin = () => {
     const renderSocialLinks = (user) => (
         <div className="flex space-x-4 mt-2">
             {user.instagram && (
-                <a href={user.instagram} target="_blank" rel="noopener noreferrer" className="text-pink-500 hover:text-pink-400 transition-colors">
+                <a href={user.instagram && user.instagram.trim() !== '' && !user.instagram.includes('instagram.com') ? `https://instagram.com/${user.instagram}` : user.instagram} target="_blank" rel="noopener noreferrer" className="text-pink-500 hover:text-pink-400 transition-colors">
                     <FaInstagram size={20} />
                 </a>
             )}

@@ -1,14 +1,60 @@
 import React, { useEffect, useState } from "react";
 import config from '../../config';
 
+// Modern Loading Spinner Component for Projects
+const ProjectsLoadingSpinner = () => {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[400px] space-y-8 mt-12">
+      {/* Main spinner */}
+      <div className="relative">
+        {/* Outer ring */}
+        <div className="w-20 h-20 border-4 border-[#ed5a2d]/20 border-t-[#ed5a2d] rounded-full animate-spin"></div>
+        {/* Inner ring */}
+        <div className="absolute top-2 left-2 w-16 h-16 border-4 border-transparent border-r-[#ed5a2d]/60 rounded-full animate-spin animate-reverse"></div>
+        {/* Center dot */}
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-[#ed5a2d] rounded-full animate-pulse"></div>
+      </div>
+      
+      {/* Loading text with typing animation */}
+      <div className="text-center">
+        <h3 className="text-2xl font-semibold text-white mb-2 animate-pulse">Loading Projects</h3>
+        <div className="flex items-center justify-center space-x-1">
+          <div className="w-2 h-2 bg-[#ed5a2d] rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+          <div className="w-2 h-2 bg-[#ed5a2d] rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+          <div className="w-2 h-2 bg-[#ed5a2d] rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+        </div>
+      </div>
+      
+      {/* Skeleton cards preview */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8 max-w-[1240px] mx-auto px-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="w-full max-w-[20rem] h-auto bg-black/20 backdrop-blur-xl rounded-2xl border-[2px] border-[rgba(237,90,45,0.3)] shadow-lg flex flex-col items-center p-6 animate-pulse">
+            <div className="w-32 h-32 md:w-40 md:h-40  bg-gray-700/50 border-[3px] border-[rgba(237,90,45,0.5)]"></div>
+            <div className="mt-4 w-32 h-6 bg-gray-700/50 rounded"></div>
+            <div className="mt-3 w-24 h-4 bg-gray-700/30 rounded"></div>
+            <div className="mt-4 flex space-x-3">
+              <div className="w-6 h-6 bg-gray-700/30 rounded"></div>
+              <div className="w-6 h-6 bg-gray-700/30 rounded"></div>
+              <div className="w-6 h-6 bg-gray-700/30 rounded"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const Projects = () => {
   const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     fetch(`${config.apiBaseUrl}/team`)
       .then((response) => response.json())
       .then((data) => setProjects(data))
-      .catch((error) => console.error("Error fetching projects data:", error));
+      .catch((error) => console.error("Error fetching projects data:", error))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -21,11 +67,14 @@ const Projects = () => {
           </p>
         </div>
 
-        <div className="flex justify-center w-full mb-10 sm:mb-20 px-2 sm:px-4">
-          <div id="projects" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10">
-            {projects
-              .filter((project) => project.projectTitle && project.projectDescription)
-              .map((project, index) => (
+        {loading ? (
+          <ProjectsLoadingSpinner />
+        ) : (
+          <div className="flex justify-center w-full mb-10 sm:mb-20 px-2 sm:px-4">
+            <div id="projects" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10">
+              {projects
+                .filter((project) => project.projectTitle && project.projectDescription)
+                .map((project, index) => (
                 <div
                   key={index}
                   className="relative w-full max-w-sm sm:max-w-md rounded-xl border border-orange-500 bg-black/40 
@@ -73,8 +122,9 @@ const Projects = () => {
                   </div>
                 </div>
               ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

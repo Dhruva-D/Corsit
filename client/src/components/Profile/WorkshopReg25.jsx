@@ -30,7 +30,7 @@ const getDaySuffix = (day) => {
     }
 };
 
-const AdminsGallery = () => {
+const WorkshopReg25 = () => {
     const navigate = useNavigate();
     const [showAdminModal, setShowAdminModal] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -1827,4 +1827,4 @@ const StatCard = ({ title, value, icon, bgColor = "bg-gray-800", borderColor = "
     );
 };
 
-export default AdminsGallery;
+export default WorkshopReg25;

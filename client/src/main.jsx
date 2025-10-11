@@ -20,6 +20,7 @@ import Changepassword from "./components/Profile/Changepassword.jsx";
 import Admin from "./components/Profile/Admin.jsx";
 import WorkshopReg25 from "./components/Profile/WorkshopReg25.jsx";
 import RoboExpoReg25 from "./components/Profile/RoboExpoReg25.jsx";
+import Expo25Feedback from "./components/Feedback/Expo25Feedback.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 // Global image error handler to ensure default images are shown when loading fails
@@ -109,6 +110,7 @@ const App = () => {
             <Route path="events" element={<Events />} />
             <Route path="register" element={<Register />} />
             <Route path="roboexpo-register" element={<RoboExpoRegister />} />
+            <Route path="expo25-feedback" element={<Expo25Feedback />} />
             <Route path="team" element={<Team />} />
             
             {/* Protected Routes */}

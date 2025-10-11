@@ -21,6 +21,15 @@ import hc2 from '../../assets/events/hackathon/2.jpg';
 import hc3 from '../../assets/events/hackathon/3.jpg';
 
 const eventsData = [
+    {
+    title: 'RoboExpo',
+    description: 'ROBOEXPO is an annual event organized by the Robotics club of SIT CORSIT. The primary objective is to introduce the club and its activities to the newcomers by displaying the bots that the members have created over the year. The event showcases various bots such as Line Follower Robots (LFR), Roboracer, Gesture controlled bots, Bluetooth controlled bots, etc. The exhibition provides students with an opportunity to witness and understand the workings of these bots up close. It serves as an excellent platform for the Robotics club to attract new members who are interested in this field.',
+    images: [
+      re1,
+      re2,
+      re3
+    ]
+  },
   {
     title: 'Robotics Workshop',
     description: 'CORSIT offers free workshops on IoT, Arduino, cloud, and more, providing students with hands-on experience in building basic bots such as LFR, Bluetooth, and obstacle-avoiding bots. Participants learn to code and use different components to program the bot\'s brain. The club also conducts a paid workshop where a mentor guides students on emerging technologies with a mix of studio practice and lectures. The workshop aims to enhance practical skills and teach the theory and context behind the practice.',
@@ -40,15 +49,6 @@ const eventsData = [
       rc3
     ],
     robocor: true
-  },
-  {
-    title: 'RoboExpo',
-    description: 'ROBOEXPO is an annual event organized by the Robotics club of SIT CORSIT. The primary objective is to introduce the club and its activities to the newcomers by displaying the bots that the members have created over the year. The event showcases various bots such as Line Follower Robots (LFR), Roboracer, Gesture controlled bots, Bluetooth controlled bots, etc. The exhibition provides students with an opportunity to witness and understand the workings of these bots up close. It serves as an excellent platform for the Robotics club to attract new members who are interested in this field.',
-    images: [
-      re1,
-      re2,
-      re3
-    ]
   },
   
   {

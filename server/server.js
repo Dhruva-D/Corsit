@@ -118,6 +118,26 @@ const roboExpoRegistrationSchema = new mongoose.Schema({
 });
 const RoboExpoRegistration = mongoose.model("RoboExpoRegistration", roboExpoRegistrationSchema);
 
+// Expo25 Feedback Schema
+const expo25FeedbackSchema = new mongoose.Schema({
+    eventRating: { 
+        type: Number, 
+        required: true, 
+        min: 0, 
+        max: 5,
+        validate: {
+            validator: function(v) {
+                return v >= 0 && v <= 5;
+            },
+            message: 'Event rating must be between 0 and 5'
+        }
+    },
+    favoriteProject: { type: String, required: true },
+    suggestions: { type: String, default: '' },
+    submittedAt: { type: Date, default: Date.now }
+});
+const Expo25Feedback = mongoose.model("Expo25Feedback", expo25FeedbackSchema);
+
 // Middleware for authentication
 const authMiddleware = async (req, res, next) => {
     const token = req.header("Authorization");
@@ -567,6 +587,48 @@ app.post("/roboexpo-register", async (req, res) => {
     }
 });
 
+// Expo25 Feedback Submission
+app.post("/expo25-feedback", async (req, res) => {
+    try {
+        const { eventRating, favoriteProject, suggestions } = req.body;
+
+        // Validate required fields
+        if (eventRating === undefined || !favoriteProject) {
+            return res.status(400).json({ 
+                message: 'Event rating and favorite project are required' 
+            });
+        }
+
+        // Validate event rating
+        if (eventRating < 0 || eventRating > 5) {
+            return res.status(400).json({ 
+                message: 'Event rating must be between 0 and 5' 
+            });
+        }
+
+        // Create new feedback
+        const feedback = new Expo25Feedback({
+            eventRating: Number(eventRating),
+            favoriteProject: favoriteProject.trim(),
+            suggestions: suggestions ? suggestions.trim() : ''
+        });
+
+        await feedback.save();
+
+        res.status(201).json({ 
+            message: 'Thank you for your feedback! Your response has been recorded successfully.',
+            feedback: {
+                eventRating: feedback.eventRating,
+                favoriteProject: feedback.favoriteProject,
+                submittedAt: feedback.submittedAt
+            }
+        });
+    } catch (error) {
+        console.error('Expo25 feedback error:', error);
+        res.status(500).json({ message: 'Error submitting feedback' });
+    }
+});
+
 // Get Workshop Registrations for Admin
 app.get('/workshop-registrations', authMiddleware, async (req, res) => {
     try {
@@ -703,6 +765,8 @@ app.delete('/roboexpo-registrations/:registrationId', authMiddleware, async (req
         res.status(500).json({ message: 'Server error' });
     }
 });
+
+
 
 // Update payment verification status
 app.put('/workshop-registrations/:registrationId/verify', authMiddleware, async (req, res) => {

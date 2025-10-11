@@ -1,6 +1,14 @@
 {
   "routes": [
     {
+      "route": "/static/*",
+      "serve": "/static/:splat"
+    },
+    {
+      "route": "/assets/*",
+      "serve": "/assets/:splat"
+    },
+    {
       "route": "/*",
       "serve": "/index.html",
       "statusCode": 200

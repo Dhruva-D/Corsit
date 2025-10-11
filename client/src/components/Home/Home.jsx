@@ -117,25 +117,25 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-16">
             {[
               {
-                date: '22 May 2025',
+                date: 'Coming Soon',
+                title: 'RoboExpo',
+                description: 'A showcase of cutting-edge robotics, AI, and automation innovations.',
+                location: '📍 Birla Auditorium',
+                status: 'roboexpo'
+              },
+              {
+                date: 'Coming Soon',
                 title: 'ROBOCOR',
                 description: 'The ultimate battleground for innovation, where robots clash and creativity thrives!',
                 location: '📍 SIT Campus',
                 status: 'robocor'
               },
               {
-                date: '11 May 2025',
+                date: 'Coming Soon',
                 title: 'Robotics Workshop',
                 description: 'Learn the basics of robotics and automation in this hands-on workshop.',
                 location: '📍 MBA seminar hall ',
                 status: 'workshop'
-              },
-              {
-                date: 'Coming Soon',
-                title: 'RoboExpo',
-                description: 'A showcase of cutting-edge robotics, AI, and automation innovations.',
-                location: '📍 Birla Auditorium',
-                status: 'roboexpo'
               },
             ].map((event, index) => (
               <div key={index} className="relative h-[400px] w-full rounded-xl p-10 bg-gradient-to-br from-[#1a1a1a80] to-[#22222280] shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.05] border-4 border-[#ed5a2d40] flex flex-col items-center text-center justify-center backdrop-blur-md bg-opacity-80">

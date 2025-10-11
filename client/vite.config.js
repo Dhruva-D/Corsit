@@ -23,4 +23,7 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    historyApiFallback: true,
+  },
 })

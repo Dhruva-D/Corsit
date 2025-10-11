@@ -1,1 +1,6 @@
+# Redirect non-www to www
+https://corsit.in/*  https://www.corsit.in/:splat  301!
+http://corsit.in/*   https://www.corsit.in/:splat  301!
+
+# SPA fallback - serve index.html for all routes
 /*    /index.html   200 

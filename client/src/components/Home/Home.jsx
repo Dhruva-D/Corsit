@@ -117,7 +117,7 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-16">
             {[
               {
-                date: 'Coming Soon',
+                date: '28th October 2025',
                 title: 'RoboExpo',
                 description: 'A showcase of cutting-edge robotics, AI, and automation innovations.',
                 location: '📍 Birla Auditorium',

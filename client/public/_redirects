@@ -1,13 +1,6 @@
-# Redirect non-www to www (with force flag)
+# Redirect non-www to www
 https://corsit.in/*  https://www.corsit.in/:splat  301!
 http://corsit.in/*   https://www.corsit.in/:splat  301!
 
-# Handle API routes (if any)
-/api/*  /api/:splat  200
-
-# Handle static assets
-/assets/*  /assets/:splat  200
-/static/*  /static/:splat  200
-
-# SPA fallback - handle all other routes
+# SPA fallback - serve index.html for all routes
 /*    /index.html   200 

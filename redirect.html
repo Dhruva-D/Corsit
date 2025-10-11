@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting to CORSIT</title>
+    
+    <!-- Immediate redirect -->
+    <meta http-equiv="refresh" content="0; url=https://www.corsit.in">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://www.corsit.in">
+    
+    <!-- SEO meta tags -->
+    <meta name="description" content="CORSIT - Center of Robotics">
+    <meta property="og:url" content="https://www.corsit.in">
+    <meta property="og:title" content="CORSIT - Center of Robotics">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background: linear-gradient(135deg, #080514, #1a1a2e);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .loading {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .link {
+            color: #ed5a2d;
+            text-decoration: none;
+            font-size: 20px;
+        }
+        .link:hover {
+            text-decoration: underline;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #ed5a2d;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    
+    <script>
+        // JavaScript redirect as backup
+        window.location.replace("https://www.corsit.in");
+    </script>
+</head>
+<body>
+    <div class="loading">Redirecting to CORSIT...</div>
+    <div class="spinner"></div>
+    <p>If you're not redirected automatically, <a href="https://www.corsit.in" class="link">click here</a></p>
+</body>
+</html>

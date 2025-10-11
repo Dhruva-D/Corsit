@@ -1,0 +1,15 @@
+{
+  "name": "corsit-redirect",
+  "version": "1.0.0",
+  "description": "Simple redirect server for corsit.in to www.corsit.in",
+  "main": "redirect-server.js",
+  "scripts": {
+    "start": "node redirect-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

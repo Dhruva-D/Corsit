@@ -1,236 +1,299 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import Confetti from 'react-confetti';
 import axios from 'axios';
 import config from '../../config';
+import './Expo25Feedback.css';
+
+const branchOptions = [
+  'CSE Artificial Intelligence & Machine Learning Engineering',
+  'Biotechnology',
+  'Chemical Engineering',
+  'Civil Engineering',
+  'Computer Science & Engineering (CSE)',
+  'Artificial Intelligence & Data Science (AIDS)',
+  'Electrical & Electronics Engineering',
+  'Electronics & Communication Engineering (ECE)',
+  'Electronics & Instrumentation Engineering',
+  'Electronics & Telecommunication Engineering (ETE)',
+  'Industrial Engineering & Management',
+  'Information Science & Engineering (ISE)',
+  'Mechanical Engineering',
+  'Other'
+];
+
+const howHeardOptions = [
+  'Instagram',
+  'Friends / Word of Mouth',
+  'College Posters',
+  'CORSIT Website',
+  'Watsapp Groups',
+  'Other'
+];
 
 const Expo25Feedback = () => {
   const [formData, setFormData] = useState({
+    branch: '',
     eventRating: 0,
     favoriteProject: '',
-    suggestions: ''
+    suggestions: '',
+    howHeard: ''
   });
 
   const [errors, setErrors] = useState({});
-  const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
-  // Scroll to top when component mounts
+  const initialState = useMemo(() => ({
+    branch: '',
+    eventRating: 0,
+    favoriteProject: '',
+    suggestions: '',
+    howHeard: ''
+  }), []);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    
-    // Clear error for this field when user starts typing
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const updateSize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+
+  useEffect(() => {
+    if (showConfetti) {
+      const timer = setTimeout(() => setShowConfetti(false), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [showConfetti]);
+
+  useEffect(() => {
+    if (submitted) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [submitted]);
+
+  const handleFieldChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
     if (errors[name]) {
-      setErrors({ ...errors, [name]: '' });
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
-  const handleRatingClick = (rating) => {
-    setFormData({ ...formData, eventRating: rating });
+  const handleRatingSelect = (value) => {
+    setFormData((prev) => ({ ...prev, eventRating: value }));
+
     if (errors.eventRating) {
-      setErrors({ ...errors, eventRating: '' });
+      setErrors((prev) => ({ ...prev, eventRating: '' }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-    let isValid = true;
 
-    // Event rating validation
-    if (formData.eventRating === 0) {
-      newErrors.eventRating = 'Please provide an event rating';
-      isValid = false;
+    if (!formData.branch) {
+      newErrors.branch = 'Please select your branch';
     }
 
-    // Favorite project validation
-    if (!formData.favoriteProject.trim()) {
-      newErrors.favoriteProject = 'Please mention your favorite project';
-      isValid = false;
-    } else if (formData.favoriteProject.trim().length < 3) {
-      newErrors.favoriteProject = 'Project name must be at least 3 characters long';
-      isValid = false;
+    if (formData.eventRating === 0) {
+      newErrors.eventRating = 'Please rate the event';
+    }
+
+    const projectName = formData.favoriteProject.trim();
+    if (!projectName) {
+      newErrors.favoriteProject = 'Please tell us which project you liked most';
+    } else if (projectName.length < 3) {
+      newErrors.favoriteProject = 'Project name must be at least 3 characters';
+    }
+
+    if (!formData.howHeard) {
+      newErrors.howHeard = 'Please let us know how you heard about RoboExpo';
     }
 
     setErrors(newErrors);
-    return isValid;
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-    if (validateForm()) {
-      setIsLoading(true);
-      setSuccessMessage('');
-
-      try {
-        const response = await axios.post(`${config.apiBaseUrl}/expo25-feedback`, formData);
-        
-        setSuccessMessage('🎉 Thank you for your feedback! Your response has been recorded successfully.');
-        
-        // Reset form
-        setFormData({
-          eventRating: 0,
-          favoriteProject: '',
-          suggestions: ''
-        });
-        
-        // Clear any previous errors
-        setErrors({});
-        
-        // Scroll to top to show success message after a small delay
-        setTimeout(() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 300);
-        
-      } catch (error) {
-        console.error('Feedback submission error:', error);
-        setErrors({
-          submit: error.response?.data?.message || 'Failed to submit feedback. Please try again.'
-        });
-      } finally {
-        setIsLoading(false);
-      }
+    if (!validateForm()) {
+      return;
     }
-  };
 
-  const renderStars = () => {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      stars.push(
-        <button
-          key={i}
-          type="button"
-          onClick={() => handleRatingClick(i)}
-          className={`text-3xl sm:text-4xl transition-all duration-200 hover:scale-110 ${
-            i <= formData.eventRating
-              ? 'text-[#ed5a2d] hover:text-[#ff6b3d]'
-              : 'text-gray-400 hover:text-[#ed5a2d]'
-          }`}
-        >
-          ★
-        </button>
-      );
+    setIsLoading(true);
+    setErrors((prev) => ({ ...prev, submit: '' }));
+    setSuccessMessage('');
+
+    try {
+      await axios.post(`${config.apiBaseUrl}/expo25-feedback`, formData);
+
+      setSubmitted(true);
+      setShowConfetti(true);
+      setSuccessMessage('Thank you for your feedback! Your response has been recorded successfully.');
+      setFormData(initialState);
+      setErrors({});
+    } catch (error) {
+      console.error('Feedback submission error:', error);
+      setErrors((prev) => ({
+        ...prev,
+        submit: error.response?.data?.message || 'Failed to submit feedback. Please try again.'
+      }));
+    } finally {
+      setIsLoading(false);
     }
-    return stars;
   };
 
   return (
-    <div className="min-h-screen bg-[#272928] py-24 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-gray-800 shadow-xl rounded-lg p-6 sm:p-8 border border-gray-700">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold text-[#ed5a2d] mb-4">
-              Expo25 Feedback
-            </h1>
-            <p className="text-gray-300 text-lg">
-              We'd love to hear your thoughts about the event!
-            </p>
+    <>
+      {isLoading && (
+        <div className="feedback-loading-overlay">
+          <div className="feedback-loading-card">
+            <div className="feedback-loading-spinner" />
+            <p className="feedback-loading-text">Submitting your feedback...</p>
+            <p className="feedback-loading-subtext">Hang tight while we record your thoughts.</p>
           </div>
+        </div>
+      )}
 
+      <div className="feedback-page">
+        {showConfetti && windowSize.width > 0 && (
+          <Confetti
+            width={windowSize.width}
+            height={windowSize.height}
+            numberOfPieces={180}
+            recycle={false}
+            gravity={0.18}
+            colors={['#8b5cf6', '#ffffff', '#22d3ee']}
+          />
+        )}
+
+        <div className="feedback-container">
           {errors.submit && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500 rounded-md">
-              <p className="text-red-500 text-center text-sm sm:text-base">{errors.submit}</p>
+            <div className="feedback-alert feedback-alert--error">
+              {errors.submit}
             </div>
           )}
 
-          {successMessage && (
-            <div className="mb-6 p-4 bg-green-500/10 border border-green-500 rounded-md">
-              <p className="text-green-500 text-center text-sm sm:text-base">{successMessage}</p>
+          {submitted ? (
+            <div className="thank-you-card">
+              <h2>Thank You! 🙏</h2>
+              <p>{successMessage}</p>
+              <p>See you next year!</p>
             </div>
-          )}
+          ) : (
+            <form className="feedback-form" onSubmit={handleSubmit} noValidate>
+            <h1 className="form-title">RoboExpo 2025 Feedback ✨</h1>
+            <p className="form-subtitle">Help us shape the future of robotics at CORSIT.</p>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Event Rating */}
-            <div>
-              <label className="block text-gray-300 text-lg font-medium mb-4 text-center">
-                How would you rate the event overall? *
-              </label>
-              <div className="flex justify-center space-x-2 mb-2">
-                {renderStars()}
-              </div>
-              <div className="text-center text-sm text-gray-400 mb-2">
-                {formData.eventRating > 0 && (
-                  <span className="text-[#ed5a2d] font-medium">
-                    {formData.eventRating} out of 5 stars
-                  </span>
-                )}
-              </div>
-              {errors.eventRating && (
-                <p className="text-red-500 text-sm text-center">{errors.eventRating}</p>
-              )}
+            <div className="form-group">
+              <label htmlFor="branch" className="form-label">Which branch are you from?</label>
+              <select
+                id="branch"
+                name="branch"
+                className={`form-select ${errors.branch ? 'form-select--error' : ''}`}
+                value={formData.branch}
+                onChange={handleFieldChange}
+                required
+              >
+                <option value="">Select your branch...</option>
+                {branchOptions.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+              {errors.branch && <p className="error-text">{errors.branch}</p>}
             </div>
 
-            {/* Favorite Project */}
-            <div>
-              <label htmlFor="favoriteProject" className="block text-gray-300 text-lg font-medium mb-3">
-                Which project did you like the most? *
-              </label>
+            <div className="form-group">
+              <span className="form-label">How would you rate the event?</span>
+              <div className="star-rating">
+                {[5, 4, 3, 2, 1].map((value) => (
+                  <React.Fragment key={value}>
+                    <input
+                      type="radio"
+                      id={`star-${value}`}
+                      name="eventRating"
+                      value={value}
+                      checked={formData.eventRating === value}
+                      onChange={() => handleRatingSelect(value)}
+                    />
+                    <label htmlFor={`star-${value}`} aria-label={`${value} star${value > 1 ? 's' : ''}`}>
+                      ★
+                    </label>
+                  </React.Fragment>
+                ))}
+              </div>
+              {errors.eventRating && <p className="error-text">{errors.eventRating}</p>}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="favoriteProject" className="form-label">Which project did you like the most?</label>
               <input
                 type="text"
                 id="favoriteProject"
                 name="favoriteProject"
+                className={`form-input ${errors.favoriteProject ? 'form-input--error' : ''}`}
+                placeholder="e.g., Bluetooth Controlled Robot"
                 value={formData.favoriteProject}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 text-base rounded-md bg-gray-700 text-gray-200 border ${
-                  errors.favoriteProject ? 'border-red-500' : 'border-gray-600'
-                } focus:outline-none focus:ring-2 focus:ring-[#ed5a2d] focus:border-transparent transition-all duration-200`}
-                placeholder="Enter the name of your favorite project"
+                onChange={handleFieldChange}
+                required
               />
-              {errors.favoriteProject && (
-                <p className="mt-2 text-sm text-red-500">{errors.favoriteProject}</p>
-              )}
+              {errors.favoriteProject && <p className="error-text">{errors.favoriteProject}</p>}
             </div>
 
-            {/* Suggestions */}
-            <div>
-              <label htmlFor="suggestions" className="block text-gray-300 text-lg font-medium mb-3">
-                Any suggestions for improvement? (Optional)
-              </label>
+            <div className="form-group">
+              <label htmlFor="suggestions" className="form-label">Any suggestions for next time? <span className="form-label__optional">(Optional)</span></label>
               <textarea
                 id="suggestions"
                 name="suggestions"
-                value={formData.suggestions}
-                onChange={handleChange}
+                className="form-textarea"
                 rows="4"
-                className="w-full px-4 py-3 text-base rounded-md bg-gray-700 text-gray-200 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#ed5a2d] focus:border-transparent transition-all duration-200 resize-vertical"
-                placeholder="Share your thoughts and suggestions..."
+                placeholder="What could we improve? What did you love?"
+                value={formData.suggestions}
+                onChange={handleFieldChange}
               />
             </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`w-full py-4 px-6 rounded-md text-white font-semibold text-lg transition-all duration-200 ${
-                isLoading
-                  ? 'bg-gray-600 cursor-not-allowed opacity-60'
-                  : 'bg-[#ed5a2d] hover:bg-[#d54a1d] hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] transform'
-              }`}
-            >
+            <div className="form-group">
+              <label htmlFor="howHeard" className="form-label">How did you hear about RoboExpo?</label>
+              <select
+                id="howHeard"
+                name="howHeard"
+                className={`form-select ${errors.howHeard ? 'form-select--error' : ''}`}
+                value={formData.howHeard}
+                onChange={handleFieldChange}
+                required
+              >
+                <option value="">Select an option...</option>
+                {howHeardOptions.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+              {errors.howHeard && <p className="error-text">{errors.howHeard}</p>}
+            </div>
+
+            <button type="submit" className="submit-button" disabled={isLoading}>
               {isLoading ? 'Submitting Feedback...' : 'Submit Feedback'}
             </button>
           </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-xs text-gray-400">
-              * Required fields
-            </p>
-            
-            <div className="mt-4">
-              <a
-                href="/"
-                className="text-[#ed5a2d] hover:text-[#ff6b3d] text-sm font-medium transition-colors"
-              >
-                ← Back to Home
-              </a>
-            </div>
-          </div>
+          )}
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -120,6 +120,7 @@ const RoboExpoRegistration = mongoose.model("RoboExpoRegistration", roboExpoRegi
 
 // Expo25 Feedback Schema
 const expo25FeedbackSchema = new mongoose.Schema({
+    branch: { type: String, required: true },
     eventRating: { 
         type: Number, 
         required: true, 
@@ -134,6 +135,7 @@ const expo25FeedbackSchema = new mongoose.Schema({
     },
     favoriteProject: { type: String, required: true },
     suggestions: { type: String, default: '' },
+    howHeard: { type: String, required: true },
     submittedAt: { type: Date, default: Date.now }
 });
 const Expo25Feedback = mongoose.model("Expo25Feedback", expo25FeedbackSchema);
@@ -590,12 +592,17 @@ app.post("/roboexpo-register", async (req, res) => {
 // Expo25 Feedback Submission
 app.post("/expo25-feedback", async (req, res) => {
     try {
-        const { eventRating, favoriteProject, suggestions } = req.body;
+        const { branch, eventRating, favoriteProject, suggestions, howHeard } = req.body;
+
+        const sanitizedBranch = typeof branch === 'string' ? branch.trim() : '';
+        const sanitizedProject = typeof favoriteProject === 'string' ? favoriteProject.trim() : '';
+        const sanitizedHowHeard = typeof howHeard === 'string' ? howHeard.trim() : '';
+        const sanitizedSuggestions = typeof suggestions === 'string' ? suggestions.trim() : '';
 
         // Validate required fields
-        if (eventRating === undefined || !favoriteProject) {
+        if (!sanitizedBranch || eventRating === undefined || !sanitizedProject || !sanitizedHowHeard) {
             return res.status(400).json({ 
-                message: 'Event rating and favorite project are required' 
+                message: 'Branch, event rating, favorite project, and discovery source are required' 
             });
         }
 
@@ -608,9 +615,11 @@ app.post("/expo25-feedback", async (req, res) => {
 
         // Create new feedback
         const feedback = new Expo25Feedback({
+            branch: sanitizedBranch,
             eventRating: Number(eventRating),
-            favoriteProject: favoriteProject.trim(),
-            suggestions: suggestions ? suggestions.trim() : ''
+            favoriteProject: sanitizedProject,
+            suggestions: sanitizedSuggestions,
+            howHeard: sanitizedHowHeard
         });
 
         await feedback.save();
@@ -618,8 +627,10 @@ app.post("/expo25-feedback", async (req, res) => {
         res.status(201).json({ 
             message: 'Thank you for your feedback! Your response has been recorded successfully.',
             feedback: {
+                branch: feedback.branch,
                 eventRating: feedback.eventRating,
                 favoriteProject: feedback.favoriteProject,
+                howHeard: feedback.howHeard,
                 submittedAt: feedback.submittedAt
             }
         });

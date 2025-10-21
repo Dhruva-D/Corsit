@@ -1,0 +1,313 @@
+/* RoboExpo 2025 feedback form styling */
+.feedback-page {
+  min-height: 100vh;
+  background: radial-gradient(circle at top, rgba(30, 30, 50, 0.9), rgba(12, 12, 20, 0.95));
+  padding: 50px 16px 32px 16px;
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.feedback-container {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.feedback-alert {
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.feedback-alert--error {
+  background: rgba(255, 95, 109, 0.1);
+  border-color: rgba(255, 95, 109, 0.45);
+  color: #ff5f6d;
+}
+
+.feedback-form {
+  width: 100%;
+  background-color: rgba(20, 20, 30, 0.88);
+  border-radius: 14px;
+  padding: 40px 36px;
+  box-sizing: border-box;
+  border: 1px solid rgba(139, 92, 246, 0.32);
+  box-shadow: 0 24px 40px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+}
+
+.form-title {
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.form-subtitle {
+  color: #a2a2ba;
+  font-size: 16px;
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.form-group {
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.form-group:focus-within {
+  z-index: 2;
+}
+
+.form-label {
+  display: block;
+  color: #c5c5da;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.form-label__optional {
+  color: #888;
+  font-weight: 400;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 10px;
+  border: 1px solid #3c3c55;
+  background-color: rgba(24, 24, 40, 0.9);
+  color: #ffffff;
+  font-size: 16px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+}
+
+.form-input--error,
+.form-select--error {
+  border-color: rgba(255, 95, 109, 0.75);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.star-rating {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: center;
+  font-size: 34px;
+  gap: 6px;
+}
+
+.star-rating input[type='radio'] {
+  display: none;
+}
+
+.star-rating label {
+  color: #444452;
+  cursor: pointer;
+  transition: transform 0.15s ease, color 0.2s ease;
+}
+
+.star-rating label:hover {
+  transform: scale(1.25);
+  color: #c084fc;
+}
+
+.star-rating input[type='radio']:checked ~ label {
+  color: #a855f7;
+}
+
+.star-rating input[type='radio']:checked ~ label:hover {
+  color: #a855f7;
+}
+
+.error-text {
+  margin-top: 8px;
+  color: #ff5f6d;
+  font-size: 0.85rem;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #7c3aed, #6366f1);
+  border: none;
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 22px rgba(124, 58, 237, 0.35);
+}
+
+.submit-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  box-shadow: none;
+}
+
+.thank-you-card {
+  background-color: rgba(20, 20, 32, 0.88);
+  border-radius: 14px;
+  padding: 40px 32px;
+  text-align: center;
+  color: #ffffff;
+  max-width: 520px;
+  border: 1px solid rgba(139, 92, 246, 0.32);
+  box-shadow: 0 24px 36px rgba(0, 0, 0, 0.45);
+  animation: feedbackFadeIn 0.5s ease;
+  box-sizing: border-box;
+}
+
+.thank-you-card h2 {
+  font-size: 32px;
+  margin-bottom: 16px;
+  color: #a855f7;
+}
+
+.thank-you-card p {
+  color: #d2d2e0;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+@keyframes feedbackFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.feedback-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.feedback-loading-card {
+  background: rgba(24, 24, 36, 0.95);
+  border-radius: 14px;
+  padding: 28px 32px;
+  text-align: center;
+  border: 1px solid rgba(139, 92, 246, 0.32);
+  box-shadow: 0 24px 40px rgba(0, 0, 0, 0.45);
+  max-width: 320px;
+  width: 90%;
+  box-sizing: border-box;
+}
+
+.feedback-loading-spinner {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px auto;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.12);
+  border-top-color: #8b5cf6;
+  animation: feedbackSpin 0.9s linear infinite;
+  position: relative;
+}
+
+.feedback-loading-spinner::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  animation: feedbackPulse 1.6s ease-in-out infinite;
+}
+
+.feedback-loading-text {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.feedback-loading-subtext {
+  color: #b4b4c8;
+  font-size: 14px;
+}
+
+@keyframes feedbackSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes feedbackPulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+}
+
+@media (max-width: 600px) {
+  .feedback-page {
+    padding-top: 70px;
+  }
+
+  .feedback-form {
+    padding: 28px 22px;
+  }
+
+  .form-title {
+    font-size: 24px;
+  }
+
+  .form-subtitle {
+    font-size: 14px;
+  }
+
+  .star-rating {
+    font-size: 30px;
+  }
+}

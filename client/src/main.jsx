@@ -18,7 +18,7 @@ import Editprofile from "./components/Profile/Editprofile.jsx";
 import Changepassword from "./components/Profile/Changepassword.jsx";
 import Admin from "./components/Profile/Admin.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import ExpoFeedback from "./components/ExpoFeedback.jsx"; // ✅ 1. This line is added
+import Expo25Feedback from "./components/Feedback/Expo25Feedback.jsx";
 
 // Global image error handler to ensure default images are shown when loading fails
 import defaultProfileImage from './assets/default-profile.svg';
@@ -107,7 +107,7 @@ const App = () => {
             <Route path="events" element={<Events />} />
             <Route path="register" element={<Register />} />
             <Route path="team" element={<Team />} />
-            <Route path="expo25-feedback" element={<ExpoFeedback />} /> {/* ✅ 2. This line is added */}
+            <Route path="expo25-feedback" element={<Expo25Feedback />} />
             
             {/* Protected Routes */}
             <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

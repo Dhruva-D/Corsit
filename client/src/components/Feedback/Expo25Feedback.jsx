@@ -1,8 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
 import axios from 'axios';
 import config from '../../config';
 import './Expo25Feedback.css';
+
+const defaultFormState = {
+  branch: '',
+  eventRating: 0,
+  favoriteProject: '',
+  suggestions: '',
+  howHeard: ''
+};
 
 const branchOptions = [
   'CSE Artificial Intelligence & Machine Learning Engineering',
@@ -31,13 +39,7 @@ const howHeardOptions = [
 ];
 
 const Expo25Feedback = () => {
-  const [formData, setFormData] = useState({
-    branch: '',
-    eventRating: 0,
-    favoriteProject: '',
-    suggestions: '',
-    howHeard: ''
-  });
+  const [formData, setFormData] = useState({ ...defaultFormState });
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -45,14 +47,6 @@ const Expo25Feedback = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
-
-  const initialState = useMemo(() => ({
-    branch: '',
-    eventRating: 0,
-    favoriteProject: '',
-    suggestions: '',
-    howHeard: ''
-  }), []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -145,7 +139,7 @@ const Expo25Feedback = () => {
       setSubmitted(true);
       setShowConfetti(true);
       setSuccessMessage('Thank you for your feedback! Your response has been recorded successfully.');
-      setFormData(initialState);
+      setFormData({ ...defaultFormState });
       setErrors({});
     } catch (error) {
       console.error('Feedback submission error:', error);
@@ -161,7 +155,7 @@ const Expo25Feedback = () => {
   return (
     <>
       {isLoading && (
-        <div className="feedback-loading-overlay">
+        <div className="feedback-loading-overlay" role="status" aria-live="assertive">
           <div className="feedback-loading-card">
             <div className="feedback-loading-spinner" />
             <p className="feedback-loading-text">Submitting your feedback...</p>
@@ -178,25 +172,30 @@ const Expo25Feedback = () => {
             numberOfPieces={180}
             recycle={false}
             gravity={0.18}
-            colors={['#8b5cf6', '#ffffff', '#22d3ee']}
+            colors={['#ed5a2d', '#ff9f1c', '#ffffff']}
           />
         )}
 
         <div className="feedback-container">
           {errors.submit && (
-            <div className="feedback-alert feedback-alert--error">
+            <div className="feedback-alert feedback-alert--error" role="alert">
               {errors.submit}
             </div>
           )}
 
           {submitted ? (
-            <div className="thank-you-card">
+            <div className="thank-you-card" aria-live="polite">
               <h2>Thank You! 🙏</h2>
               <p>{successMessage}</p>
               <p>See you next year!</p>
             </div>
           ) : (
-            <form className="feedback-form" onSubmit={handleSubmit} noValidate>
+            <form
+              className="feedback-form"
+              onSubmit={handleSubmit}
+              noValidate
+              aria-busy={isLoading}
+            >
             <h1 className="form-title">RoboExpo 2025 Feedback ✨</h1>
             <p className="form-subtitle">Help us shape the future of robotics at CORSIT.</p>
 
@@ -208,6 +207,9 @@ const Expo25Feedback = () => {
                 className={`form-select ${errors.branch ? 'form-select--error' : ''}`}
                 value={formData.branch}
                 onChange={handleFieldChange}
+                aria-invalid={Boolean(errors.branch)}
+                aria-describedby={errors.branch ? 'branch-error' : undefined}
+                disabled={isLoading}
                 required
               >
                 <option value="">Select your branch...</option>
@@ -215,12 +217,18 @@ const Expo25Feedback = () => {
                   <option key={option} value={option}>{option}</option>
                 ))}
               </select>
-              {errors.branch && <p className="error-text">{errors.branch}</p>}
+              {errors.branch && <p className="error-text" id="branch-error">{errors.branch}</p>}
             </div>
 
             <div className="form-group">
-              <span className="form-label">How would you rate the event?</span>
-              <div className="star-rating">
+              <span className="form-label" id="eventRating-label">How would you rate the event?</span>
+              <div
+                className="star-rating"
+                role="radiogroup"
+                aria-labelledby="eventRating-label"
+                aria-invalid={Boolean(errors.eventRating)}
+                aria-describedby={errors.eventRating ? 'eventRating-error' : undefined}
+              >
                 {[5, 4, 3, 2, 1].map((value) => (
                   <React.Fragment key={value}>
                     <input
@@ -230,6 +238,7 @@ const Expo25Feedback = () => {
                       value={value}
                       checked={formData.eventRating === value}
                       onChange={() => handleRatingSelect(value)}
+                      disabled={isLoading}
                     />
                     <label htmlFor={`star-${value}`} aria-label={`${value} star${value > 1 ? 's' : ''}`}>
                       ★
@@ -237,7 +246,7 @@ const Expo25Feedback = () => {
                   </React.Fragment>
                 ))}
               </div>
-              {errors.eventRating && <p className="error-text">{errors.eventRating}</p>}
+              {errors.eventRating && <p className="error-text" id="eventRating-error">{errors.eventRating}</p>}
             </div>
 
             <div className="form-group">
@@ -250,9 +259,12 @@ const Expo25Feedback = () => {
                 placeholder="e.g., Bluetooth Controlled Robot"
                 value={formData.favoriteProject}
                 onChange={handleFieldChange}
+                aria-invalid={Boolean(errors.favoriteProject)}
+                aria-describedby={errors.favoriteProject ? 'favoriteProject-error' : undefined}
+                disabled={isLoading}
                 required
               />
-              {errors.favoriteProject && <p className="error-text">{errors.favoriteProject}</p>}
+              {errors.favoriteProject && <p className="error-text" id="favoriteProject-error">{errors.favoriteProject}</p>}
             </div>
 
             <div className="form-group">
@@ -265,6 +277,7 @@ const Expo25Feedback = () => {
                 placeholder="What could we improve? What did you love?"
                 value={formData.suggestions}
                 onChange={handleFieldChange}
+                disabled={isLoading}
               />
             </div>
 
@@ -276,6 +289,9 @@ const Expo25Feedback = () => {
                 className={`form-select ${errors.howHeard ? 'form-select--error' : ''}`}
                 value={formData.howHeard}
                 onChange={handleFieldChange}
+                aria-invalid={Boolean(errors.howHeard)}
+                aria-describedby={errors.howHeard ? 'howHeard-error' : undefined}
+                disabled={isLoading}
                 required
               >
                 <option value="">Select an option...</option>
@@ -283,7 +299,7 @@ const Expo25Feedback = () => {
                   <option key={option} value={option}>{option}</option>
                 ))}
               </select>
-              {errors.howHeard && <p className="error-text">{errors.howHeard}</p>}
+              {errors.howHeard && <p className="error-text" id="howHeard-error">{errors.howHeard}</p>}
             </div>
 
             <button type="submit" className="submit-button" disabled={isLoading}>

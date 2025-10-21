@@ -187,7 +187,7 @@ const Expo25Feedback = () => {
             <div className="thank-you-card" aria-live="polite">
               <h2>Thank You! 🙏</h2>
               <p>{successMessage}</p>
-              <p>See you next year!</p>
+              <p>See you in Recruitments!</p>
             </div>
           ) : (
             <form

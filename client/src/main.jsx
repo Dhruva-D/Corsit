@@ -10,6 +10,7 @@ import Events from "./components/Events/Events.jsx";
 import Home from "./components/Home/Home.jsx";
 import Projects from "./components/Projects/Projects.jsx";
 import Register from "./components/Register/Register.jsx";
+import RoboExpoRegister from "./components/Register/RoboExpoRegister.jsx";
 import Team from "./components/Team/Team.jsx";
 import Login from "./components/Login/Login.jsx";
 import Signup from "./components/Login/Signup.jsx";
@@ -17,6 +18,8 @@ import Profile from "./components/Profile/Profile.jsx";
 import Editprofile from "./components/Profile/Editprofile.jsx";
 import Changepassword from "./components/Profile/Changepassword.jsx";
 import Admin from "./components/Profile/Admin.jsx";
+import WorkshopReg25 from "./components/Profile/WorkshopReg25.jsx";
+import RoboExpoReg25 from "./components/Profile/RoboExpoReg25.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Expo25Feedback from "./components/Feedback/Expo25Feedback.jsx";
 
@@ -106,6 +109,7 @@ const App = () => {
             <Route path="contact" element={<Contact />} />
             <Route path="events" element={<Events />} />
             <Route path="register" element={<Register />} />
+            <Route path="roboexpo-register" element={<RoboExpoRegister />} />
             <Route path="team" element={<Team />} />
             <Route path="expo25-feedback" element={<Expo25Feedback />} />
             
@@ -114,7 +118,8 @@ const App = () => {
             <Route path="edit-profile" element={<ProtectedRoute><Editprofile /></ProtectedRoute>} />
             <Route path="change-password" element={<ProtectedRoute><Changepassword /></ProtectedRoute>} />
             <Route path="admin" element={<AdminProtectedRoute><Admin /></AdminProtectedRoute>} />
-          
+            <Route path="workshop-reg-25" element={<AdminProtectedRoute><WorkshopReg25 /></AdminProtectedRoute>} />
+            <Route path="roboexpo-reg-25" element={<AdminProtectedRoute><RoboExpoReg25 /></AdminProtectedRoute>} />
           </Route>
           
           {/* Catch all unmatched routes */}

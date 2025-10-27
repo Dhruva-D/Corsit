@@ -22,6 +22,7 @@ import Admin from "./components/Profile/Admin.jsx";
 import WorkshopReg25 from "./components/Profile/WorkshopReg25.jsx";
 import RoboExpoReg25 from "./components/Profile/RoboExpoReg25.jsx";
 import RecruitmentsReg25 from "./components/Profile/RecruitmentsReg25.jsx";
+import Expo25FeedbackReg from "./components/Profile/Expo25FeedbackReg.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Expo25Feedback from "./components/Feedback/Expo25Feedback.jsx";
 
@@ -124,6 +125,7 @@ const App = () => {
             <Route path="workshop-reg-25" element={<AdminProtectedRoute><WorkshopReg25 /></AdminProtectedRoute>} />
             <Route path="roboexpo-reg-25" element={<AdminProtectedRoute><RoboExpoReg25 /></AdminProtectedRoute>} />
             <Route path="recruitments-reg-25" element={<AdminProtectedRoute><RecruitmentsReg25 /></AdminProtectedRoute>} />
+            <Route path="expo25-feedback-reg" element={<AdminProtectedRoute><Expo25FeedbackReg /></AdminProtectedRoute>} />
           </Route>
           
           {/* Catch all unmatched routes */}

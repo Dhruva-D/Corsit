@@ -886,7 +886,43 @@ app.delete('/recruitments-2025/:applicationId', authMiddleware, async (req, res)
     }
 });
 
+// Get Expo25 Feedback for Admin
+app.get('/expo25-feedback', authMiddleware, async (req, res) => {
+    try {
+        const isAdmin = req.header('isAdmin');
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
+        }
 
+        const feedbacks = await Expo25Feedback.find().sort({ submittedAt: -1 });
+        res.json(feedbacks);
+    } catch (error) {
+        console.error('Error fetching expo25 feedback:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Delete Expo25 Feedback
+app.delete('/expo25-feedback/:feedbackId', authMiddleware, async (req, res) => {
+    try {
+        const isAdmin = req.header('isAdmin');
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
+        }
+
+        const { feedbackId } = req.params;
+        const feedback = await Expo25Feedback.findByIdAndDelete(feedbackId);
+
+        if (!feedback) {
+            return res.status(404).json({ message: 'Feedback not found' });
+        }
+
+        res.json({ message: 'Feedback deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting expo25 feedback:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 
 // Update payment verification status
 app.put('/workshop-registrations/:registrationId/verify', authMiddleware, async (req, res) => {

@@ -188,6 +188,36 @@ const Expo25Feedback = () => {
               <h2>Thank You! 🙏</h2>
               <p>{successMessage}</p>
               <p>See you in Recruitments!</p>
+              <div style={{ marginTop: '24px' }}>
+                <a
+                  href="/recruitments25"
+                  className="recruitments-button"
+                  style={{
+                    display: 'inline-block',
+                    padding: '12px 32px',
+                    backgroundColor: '#ed5a2d',
+                    color: 'white',
+                    textDecoration: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    fontSize: '16px',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 4px 6px rgba(237, 90, 45, 0.2)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#d54a1d';
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 6px 12px rgba(237, 90, 45, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = '#ed5a2d';
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 4px 6px rgba(237, 90, 45, 0.2)';
+                  }}
+                >
+                  Apply for Recruitments 2025 →
+                </a>
+              </div>
             </div>
           ) : (
             <form

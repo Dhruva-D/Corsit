@@ -11,6 +11,7 @@ import Home from "./components/Home/Home.jsx";
 import Projects from "./components/Projects/Projects.jsx";
 import Register from "./components/Register/Register.jsx";
 import RoboExpoRegister from "./components/Register/RoboExpoRegister.jsx";
+import Recruitments25 from "./components/Register/Recruitments25.jsx";
 import Team from "./components/Team/Team.jsx";
 import Login from "./components/Login/Login.jsx";
 import Signup from "./components/Login/Signup.jsx";
@@ -20,6 +21,7 @@ import Changepassword from "./components/Profile/Changepassword.jsx";
 import Admin from "./components/Profile/Admin.jsx";
 import WorkshopReg25 from "./components/Profile/WorkshopReg25.jsx";
 import RoboExpoReg25 from "./components/Profile/RoboExpoReg25.jsx";
+import RecruitmentsReg25 from "./components/Profile/RecruitmentsReg25.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Expo25Feedback from "./components/Feedback/Expo25Feedback.jsx";
 
@@ -110,6 +112,7 @@ const App = () => {
             <Route path="events" element={<Events />} />
             <Route path="register" element={<Register />} />
             <Route path="roboexpo-register" element={<RoboExpoRegister />} />
+            <Route path="recruitments25" element={<Recruitments25 />} />
             <Route path="team" element={<Team />} />
             <Route path="expo25-feedback" element={<Expo25Feedback />} />
             
@@ -120,6 +123,7 @@ const App = () => {
             <Route path="admin" element={<AdminProtectedRoute><Admin /></AdminProtectedRoute>} />
             <Route path="workshop-reg-25" element={<AdminProtectedRoute><WorkshopReg25 /></AdminProtectedRoute>} />
             <Route path="roboexpo-reg-25" element={<AdminProtectedRoute><RoboExpoReg25 /></AdminProtectedRoute>} />
+            <Route path="recruitments-reg-25" element={<AdminProtectedRoute><RecruitmentsReg25 /></AdminProtectedRoute>} />
           </Route>
           
           {/* Catch all unmatched routes */}

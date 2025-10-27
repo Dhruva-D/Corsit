@@ -118,6 +118,20 @@ const roboExpoRegistrationSchema = new mongoose.Schema({
 });
 const RoboExpoRegistration = mongoose.model("RoboExpoRegistration", roboExpoRegistrationSchema);
 
+// Recruitment 2025 Schema - stored in dedicated 2025 collection/folder
+const recruitment2025Schema = new mongoose.Schema({
+    name: { type: String, required: true },
+    usn: { type: String, required: true },
+    phone: { type: String, required: true },
+    email: { type: String, required: true },
+    branch: { type: String, required: true },
+    year: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+}, {
+    collection: 'recruitments_2025'
+});
+const Recruitment2025 = mongoose.model('Recruitment2025', recruitment2025Schema);
+
 // Expo25 Feedback Schema
 const expo25FeedbackSchema = new mongoose.Schema({
     branch: { type: String, required: true },
@@ -589,6 +603,62 @@ app.post("/roboexpo-register", async (req, res) => {
     }
 });
 
+// Recruitments 2025 Registration
+app.post('/recruitments-2025', async (req, res) => {
+    try {
+        const {
+            name,
+            usn,
+            phone,
+            email,
+            branch,
+            year
+        } = req.body;
+
+        if (!name || !usn || !phone || !email || !branch || !year) {
+            return res.status(400).json({ message: 'Name, USN, phone, email, branch, and year are required' });
+        }
+
+        // Duplicate check for same academic year batch
+        const duplicate = await Recruitment2025.findOne({
+            $or: [
+                { email: email.toLowerCase().trim() },
+                { phone: phone.trim() },
+                { usn: usn.toUpperCase().trim() }
+            ]
+        });
+
+        if (duplicate) {
+            return res.status(400).json({ message: 'Application already exists with this email, phone, or USN' });
+        }
+
+        const application = new Recruitment2025({
+            name: name.trim(),
+            usn: usn.toUpperCase().trim(),
+            phone: phone.trim(),
+            email: email.toLowerCase().trim(),
+            branch: branch.trim(),
+            year: year.trim()
+        });
+
+        await application.save();
+
+        res.status(201).json({
+            message: 'Recruitments 2025 application submitted successfully!',
+            application: {
+                name: application.name,
+                usn: application.usn,
+                email: application.email,
+                year: application.year,
+                submittedAt: application.createdAt
+            }
+        });
+    } catch (error) {
+        console.error('Recruitments 2025 registration error:', error);
+        res.status(500).json({ message: 'Error submitting recruitment application' });
+    }
+});
+
 // Expo25 Feedback Submission
 app.post("/expo25-feedback", async (req, res) => {
     try {
@@ -754,6 +824,22 @@ app.get('/roboexpo-registrations', authMiddleware, async (req, res) => {
     }
 });
 
+// Get Recruitments 2025 Applications for Admin
+app.get('/recruitments-2025', authMiddleware, async (req, res) => {
+    try {
+        const isAdmin = req.header('isAdmin');
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
+        }
+
+        const applications = await Recruitment2025.find().sort({ createdAt: -1 });
+        res.json(applications);
+    } catch (error) {
+        console.error('Error fetching recruitments 2025 applications:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 // Delete RoboExpo Registration
 app.delete('/roboexpo-registrations/:registrationId', authMiddleware, async (req, res) => {
     try {
@@ -773,6 +859,29 @@ app.delete('/roboexpo-registrations/:registrationId', authMiddleware, async (req
         res.json({ message: 'Registration deleted successfully' });
     } catch (error) {
         console.error('Error deleting RoboExpo registration:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+
+// Delete Recruitments 2025 Application
+app.delete('/recruitments-2025/:applicationId', authMiddleware, async (req, res) => {
+    try {
+        const isAdmin = req.header('isAdmin');
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
+        }
+
+        const { applicationId } = req.params;
+        const application = await Recruitment2025.findByIdAndDelete(applicationId);
+
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        res.json({ message: 'Application deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting recruitments 2025 application:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

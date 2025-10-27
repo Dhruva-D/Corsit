@@ -84,6 +84,13 @@ const HeaderProfile = () => {
         setAdminDestination('/roboexpo-reg-25');
     };
 
+    const handleRecruitmentsRegClick = (e) => {
+        e.preventDefault();
+        setDropdownOpen(false);
+        setShowAdminModal(true);
+        setAdminDestination('/recruitments-reg-25');
+    };
+
     const handleAuthSuccess = () => {
         setShowAdminModal(false);
         navigate(adminDestination); // Ensure navigation happens
@@ -93,6 +100,7 @@ const HeaderProfile = () => {
     const navLinks = [
         { path: '/', label: 'HOME' },
         { path: '/events', label: 'EVENTS' },
+        { path: '/recruitments25', label: 'RECRUITMENTS 2025' },
         { path: '/about', label: 'ABOUT' },
         { path: '/projects', label: 'PROJECTS' },
         { path: '/team', label: 'TEAM' },
@@ -134,6 +142,7 @@ const HeaderProfile = () => {
                             <NavLink to='/change-password' onClick={() => { setDropdownOpen(false); window.scrollTo(0, 0); }} className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Change Password</NavLink>
                             <NavLink to="#" onClick={handleWorkshopReg25Click} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Workshop Reg 2025</NavLink>
                             <NavLink to="#" onClick={handleRoboExpoRegClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">RoboExpo Reg 2025</NavLink>
+                            <NavLink to="#" onClick={handleRecruitmentsRegClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Recruitments Reg 2025</NavLink>
                             <NavLink to="#" onClick={handleAdminClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Admin Page</NavLink>
                             <button onClick={handleLogout} className='block w-full text-left px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Logout</button>
                         </div>

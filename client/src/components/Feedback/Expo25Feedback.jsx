@@ -185,7 +185,7 @@ const Expo25Feedback = () => {
 
           {submitted ? (
             <div className="thank-you-card" aria-live="polite">
-              <h2>Thank You! 🙏</h2>
+              <h2>Thank You !!</h2>
               <p>{successMessage}</p>
               <p>See you in Recruitments!</p>
               <div style={{ marginTop: '24px' }}>

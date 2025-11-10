@@ -25,6 +25,7 @@ import RecruitmentsReg25 from "./components/Profile/RecruitmentsReg25.jsx";
 import Expo25FeedbackReg from "./components/Profile/Expo25FeedbackReg.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Expo25Feedback from "./components/Feedback/Expo25Feedback.jsx";
+import Round1Results from "./components/Results/Round1Results.jsx";
 
 // Global image error handler to ensure default images are shown when loading fails
 import defaultProfileImage from './assets/default-profile.svg';
@@ -116,6 +117,7 @@ const App = () => {
             <Route path="recruitments25" element={<Recruitments25 />} />
             <Route path="team" element={<Team />} />
             <Route path="expo25-feedback" element={<Expo25Feedback />} />
+            <Route path="round1-res" element={<Round1Results />} />
             
             {/* Protected Routes */}
             <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

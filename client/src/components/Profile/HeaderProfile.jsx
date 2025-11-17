@@ -91,6 +91,13 @@ const HeaderProfile = () => {
         setAdminDestination('/recruitments-reg-25');
     };
 
+    const handleRecruitmentFeedbackClick = (e) => {
+        e.preventDefault();
+        setDropdownOpen(false);
+        setShowAdminModal(true);
+        setAdminDestination('/recruitment-feedback');
+    };
+
     const handleFeedbackRegClick = (e) => {
         e.preventDefault();
         setDropdownOpen(false);
@@ -150,6 +157,7 @@ const HeaderProfile = () => {
                             <NavLink to="#" onClick={handleWorkshopReg25Click} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Workshop Reg 2025</NavLink>
                             <NavLink to="#" onClick={handleRoboExpoRegClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">RoboExpo Reg 2025</NavLink>
                             <NavLink to="#" onClick={handleRecruitmentsRegClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Recruitments Reg 2025</NavLink>
+                            <NavLink to="#" onClick={handleRecruitmentFeedbackClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Recruitment Feedback</NavLink>
                             <NavLink to="#" onClick={handleFeedbackRegClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Feedback 2025</NavLink>
                             <NavLink to="#" onClick={handleAdminClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Admin Page</NavLink>
                             <button onClick={handleLogout} className='block w-full text-left px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Logout</button>

@@ -886,6 +886,185 @@ app.delete('/recruitments-2025/:applicationId', authMiddleware, async (req, res)
     }
 });
 
+// Generate Recruitment Feedback PDF
+app.get('/recruitments-2025/feedback-pdf/:candidateId', authMiddleware, async (req, res) => {
+    try {
+        const isAdmin = req.header('isAdmin');
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
+        }
+
+        const { candidateId } = req.params;
+        const candidate = await Recruitment2025.findById(candidateId);
+
+        if (!candidate) {
+            return res.status(404).json({ message: 'Candidate not found' });
+        }
+
+        // Create a PDF document - compact to fit 2 forms per page
+        const doc = new PDFDocument({ 
+            size: 'A4',
+            margins: { top: 30, bottom: 30, left: 40, right: 40 }
+        });
+        const filename = `recruitment_feedback_${candidate.name.replace(/\s+/g, '_')}.pdf`;
+
+        // Set response headers
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+        // Pipe the PDF to the response
+        doc.pipe(res);
+
+        // Function to draw a single feedback form
+        const drawFeedbackForm = (startY, formNumber) => {
+            // Top decorative line
+            doc.strokeColor('#E74C3C')
+               .lineWidth(2)
+               .moveTo(40, startY)
+               .lineTo(doc.page.width - 40, startY)
+               .stroke();
+
+            // Main title
+            doc.fontSize(15)
+               .fillColor('#E74C3C')
+               .font('Helvetica-Bold')
+               .text('CORSIT RECRUITMENT 2025', 40, startY + 10, { align: 'center' });
+
+            // Bottom of title line
+            const titleBottomY = startY + 32;
+            doc.strokeColor('#E74C3C')
+               .lineWidth(2)
+               .moveTo(40, titleBottomY)
+               .lineTo(doc.page.width - 40, titleBottomY)
+               .stroke();
+
+            // Candidate Name Section
+            const nameY = titleBottomY + 18;
+            doc.fontSize(11)
+               .fillColor('#2C3E50')
+               .font('Helvetica-Bold')
+               .text('Name:', 40, nameY);
+            
+            doc.fontSize(10)
+               .fillColor('#34495E')
+               .font('Helvetica')
+               .text('_____________________________', 85, nameY);
+
+            // Panel Members Section - Two lines
+            const panelY = nameY + 22;
+            doc.fontSize(11)
+               .fillColor('#2C3E50')
+               .font('Helvetica-Bold')
+               .text('Panel:', 40, panelY);
+            
+            doc.fontSize(10)
+               .fillColor('#34495E')
+               .font('Helvetica')
+               .text('______________________________', 85, panelY)
+               .text('______________________________', 85, panelY + 16);
+
+            // Right side checkboxes
+            const rightColumnX = 380;
+            
+            // Year checkboxes
+            doc.fontSize(10)
+               .fillColor('#2C3E50')
+               .font('Helvetica-Bold')
+               .text('Year:', rightColumnX - 30, nameY);
+            
+            doc.roundedRect(rightColumnX, nameY - 2, 14, 14, 2).stroke();
+            doc.fontSize(9).fillColor('#34495E').font('Helvetica').text('1st', rightColumnX + 17, nameY);
+            
+            doc.roundedRect(rightColumnX + 50, nameY - 2, 14, 14, 2).stroke();
+            doc.text('2nd', rightColumnX + 67, nameY);
+
+            // Type checkboxes
+            const typeY = nameY + 18;
+            doc.fontSize(10)
+               .fillColor('#2C3E50')
+               .font('Helvetica-Bold')
+               .text('Type:', rightColumnX - 30, typeY);
+            
+            doc.roundedRect(rightColumnX, typeY - 2, 14, 14, 2).stroke();
+            doc.fontSize(9).fillColor('#34495E').font('Helvetica').text('Hostel', rightColumnX + 17, typeY);
+            
+            doc.roundedRect(rightColumnX + 50, typeY - 2, 14, 14, 2).stroke();
+            doc.text('Localite', rightColumnX + 67, typeY);
+
+            // Performance Parameters
+            const perfY = panelY + 42;
+            doc.fillColor('#E74C3C')
+               .font('Helvetica-Bold')
+               .fontSize(10)
+               .text('PERFORMANCE (Rate 0-5)', 40, perfY);
+            
+
+            const parameters = ['Tech Knowledge', 'Communication', 'Problem Solving', 'Leadership', 'Behaviour'];
+            
+            let currentY = perfY + 26;
+            doc.fontSize(10).fillColor('#2C3E50').font('Helvetica');
+
+            parameters.forEach((param, index) => {
+                doc.font('Helvetica-Bold').text(`${index + 1}. ${param}:`, 40, currentY);
+                
+                // Rating boxes
+                const boxStartX = 200;
+                const boxSize = 18;
+                const boxSpacing = 32;
+                
+                for (let i = 0; i <= 5; i++) {
+                    const boxX = boxStartX + (i * boxSpacing);
+                    doc.roundedRect(boxX, currentY - 2, boxSize, boxSize, 2).stroke();
+                    doc.fontSize(7).fillColor('#34495E').text(i.toString(), boxX + 7, currentY + 18);
+                }
+                
+                currentY += 25;
+                doc.fontSize(10).fillColor('#2C3E50');
+            });
+
+            // Remarks Section - 4 lines
+            const remarksY = currentY + 8;
+            doc.fontSize(11)
+               .fillColor('#2C3E50')
+               .font('Helvetica-Bold')
+               .text('REMARKS:', 40, remarksY);
+            
+            doc.fontSize(10).fillColor('#CCCCCC').font('Helvetica');
+            for (let i = 0; i < 4; i++) {
+                doc.text('________________________________________________________________________________________', 40, remarksY + 18 + (i * 12));
+            }
+
+            // Decision checkboxes
+            const decisionY = remarksY + 73;
+            doc.fontSize(11).fillColor('#2C3E50').font('Helvetica-Bold').text('DECISION:', 40, decisionY);
+            
+            const decisions = ['Selected', 'Not Selected', '2nd Round'];
+            let decisionX = 120;
+            decisions.forEach((decision) => {
+                doc.roundedRect(decisionX, decisionY - 2, 14, 14, 2).stroke();
+                doc.fontSize(9).fillColor('#34495E').font('Helvetica').text(decision, decisionX + 19, decisionY);
+                decisionX += 95;
+            });
+
+            // Return bottom position (no bottom line)
+            const bottomY = decisionY + 22;
+            return bottomY;
+        };
+
+        // Draw first form at top
+        const firstFormEnd = drawFeedbackForm(35, 1);
+
+        // Draw second form below with spacing
+        drawFeedbackForm(firstFormEnd + 25, 2);
+
+        // Finalize the PDF
+        doc.end();
+    } catch (error) {
+        console.error('Error generating recruitment feedback PDF:', error);
+        res.status(500).json({ message: 'Error generating PDF' });
+    }
+});
+
 // Get Expo25 Feedback for Admin
 app.get('/expo25-feedback', authMiddleware, async (req, res) => {
     try {

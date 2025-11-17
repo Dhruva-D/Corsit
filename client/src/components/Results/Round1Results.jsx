@@ -9,7 +9,7 @@ const Round1Results = () => {
           CORSIT Recruitments 2025
         </h1>
         <h2 className="text-xl md:text-2xl text-center text-gray-300 mb-12">
-          Round 1 Results
+          Round 1 Extended Shortlist
         </h2>
         
         <div className="bg-gray-900 rounded-lg shadow-xl p-8 md:p-12 text-center">
@@ -18,7 +18,7 @@ const Round1Results = () => {
           </div>
           
           <p className="text-gray-300 mb-8 text-lg">
-            View or download the Round 1 results PDF document
+            View or download the Round 1 Extended Shortlist PDF document
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

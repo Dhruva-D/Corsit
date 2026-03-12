@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTypewriter, Cursor } from 'react-simple-typewriter';
 import { NavLink } from 'react-router-dom';
 
@@ -120,21 +120,21 @@ const Home = () => {
                 date: 'Coming Soon',
                 title: 'RoboExpo',
                 description: 'A showcase of cutting-edge robotics, AI, and automation innovations.',
-                location: '📍 Birla Auditorium',
+                // location: '📍 Birla Auditorium',
                 status: 'roboexpo'
               },
               {
                 date: 'Coming Soon',
                 title: 'ROBOCOR',
                 description: 'The ultimate battleground for innovation, where robots clash and creativity thrives!',
-                location: '📍 SIT Campus',
+                // location: '📍 SIT Campus',
                 status: 'robocor'
               },
               {
                 date: '28th and 29th March 2026',
                 title: 'Robotics Workshop',
                 description: 'Learn the basics of robotics and automation in this hands-on workshop.',
-                location: '📍 Telecom seminar hall ',
+                // location: '📍 Telecom seminar hall ',
                 status: 'workshop'
               },
             ].map((event, index) => (

@@ -77,6 +77,13 @@ const HeaderProfile = () => {
         setAdminDestination('/workshop-reg-25');
     };
 
+    const handleWorkshopReg26Click = (e) => {
+        e.preventDefault();
+        setDropdownOpen(false);
+        setShowAdminModal(true);
+        setAdminDestination('/workshop-reg-26');
+    };
+
     const handleRoboExpoRegClick = (e) => {
         e.preventDefault();
         setDropdownOpen(false);
@@ -114,7 +121,7 @@ const HeaderProfile = () => {
     const navLinks = [
         { path: '/', label: 'HOME' },
         { path: '/events', label: 'EVENTS' },
-        { path: '/recruitments25', label: 'RECRUITMENTS 2025' },
+        { path: '/register', label: 'WORKSHOP 2026' },
         { path: '/about', label: 'ABOUT' },
         { path: '/projects', label: 'PROJECTS' },
         { path: '/team', label: 'TEAM' },
@@ -155,6 +162,7 @@ const HeaderProfile = () => {
                             <NavLink to='/edit-profile' onClick={() => { setDropdownOpen(false); window.scrollTo(0, 0); }} className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Edit Profile</NavLink>
                             <NavLink to='/change-password' onClick={() => { setDropdownOpen(false); window.scrollTo(0, 0); }} className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Change Password</NavLink>
                             <NavLink to="#" onClick={handleWorkshopReg25Click} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Workshop Reg 2025</NavLink>
+                            <NavLink to="#" onClick={handleWorkshopReg26Click} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Workshop Reg 2026</NavLink>
                             <NavLink to="#" onClick={handleRoboExpoRegClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">RoboExpo Reg 2025</NavLink>
                             <NavLink to="#" onClick={handleRecruitmentsRegClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Recruitments Reg 2025</NavLink>
                             <NavLink to="#" onClick={handleRecruitmentFeedbackClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Recruitment Feedback</NavLink>

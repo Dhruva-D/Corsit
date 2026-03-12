@@ -117,7 +117,7 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-16">
             {[
               {
-                date: '28th October 2025',
+                date: 'Coming Soon',
                 title: 'RoboExpo',
                 description: 'A showcase of cutting-edge robotics, AI, and automation innovations.',
                 location: '📍 Birla Auditorium',
@@ -131,10 +131,10 @@ const Home = () => {
                 status: 'robocor'
               },
               {
-                date: 'Coming Soon',
+                date: '28th and 29th March 2026',
                 title: 'Robotics Workshop',
                 description: 'Learn the basics of robotics and automation in this hands-on workshop.',
-                location: '📍 MBA seminar hall ',
+                location: '📍 Telecom seminar hall ',
                 status: 'workshop'
               },
             ].map((event, index) => (

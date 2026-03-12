@@ -74,6 +74,12 @@ const Register = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Limit file size to 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors({ ...errors, payment_screenshot: 'Image must be less than 5MB' });
+      return;
+    }
+
     // Set local file reference for validation
     setPaymentScreenshot(file);
     // Create preview URL
@@ -84,29 +90,15 @@ const Register = () => {
       setErrors({ ...errors, payment_screenshot: '' });
     }
 
-    // Upload to Cloudinary immediately
-    try {
-      const uploadFormData = new FormData();
-      uploadFormData.append('image', file);
-
-      setIsLoading(true);
-      const response = await axios.post(
-        `${config.apiBaseUrl}/api/upload/payment`, 
-        uploadFormData, 
-        { headers: { 'Content-Type': 'multipart/form-data' } }
-      );
-
-      // Store the Cloudinary URL
-      setFormData({ ...formData, payment_screenshot: response.data.imageUrl });
-    } catch (error) {
-      console.error('Error uploading payment screenshot:', error);
-      setErrors({
-        ...errors,
-        payment_screenshot: 'Failed to upload image. Please try again.'
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Convert to base64 and store directly (no Cloudinary)
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData({ ...formData, payment_screenshot: reader.result });
+    };
+    reader.onerror = () => {
+      setErrors({ ...errors, payment_screenshot: 'Failed to read image. Please try again.' });
+    };
+    reader.readAsDataURL(file);
   };
 
   const validateForm = () => {
@@ -310,7 +302,7 @@ const Register = () => {
           member4_year: showMember4 ? formData.member4_year : ''
         };
 
-        const response = await axios.post(`${config.apiBaseUrl}/workshop-register`, submitData);
+        const response = await axios.post(`${config.apiBaseUrl}/workshop-register-2026`, submitData);
         
         setSuccessMessage(response.data.message || 'Registration successful!');
         // Reset form after successful submission
@@ -883,7 +875,7 @@ const Register = () => {
                   </div>
                   
                   <div className="text-center mb-4">
-                    <p className="text-lg font-semibold text-gray-200 mb-1">Component Price: ₹1,600/-</p>
+                    <p className="text-lg font-semibold text-gray-200 mb-1">Component Price: ₹1,700/-</p>
                     <p className="text-sm text-gray-400">Please transfer the above amount to proceed with registration</p>
                   </div>
                   

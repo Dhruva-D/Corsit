@@ -16,7 +16,7 @@ const uploadRoutes = require('./config/routes');
 const { uploadProfile, uploadPayment, uploadProject, uploadAbstract } = require('./config/storage');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cors());
 app.use("/uploads", express.static("uploads"));
 
@@ -106,6 +106,40 @@ const workshopRegistrationSchema = new mongoose.Schema({
     registeredAt: { type: Date, default: Date.now }
 });
 const WorkshopRegistration = mongoose.model("WorkshopRegistration", workshopRegistrationSchema);
+
+// Workshop Registration 2026 Schema - stored in dedicated 2026 collection
+const workshopRegistration2026Schema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    phone: { type: String, required: true },
+    usn: { type: String, required: true },
+    year: { type: String, required: true },
+    utr_number: { type: String },
+    payment_screenshot: { type: String },
+    payment_status: { type: String, default: 'Unpaid', enum: ['Paid', 'Unpaid'] },
+    payment_verified: { type: Boolean, default: false },
+    team_number: { type: String, required: true },
+    member2_name: { type: String, default: "None" },
+    member2_email: { type: String, default: "None" },
+    member2_phone: { type: String, default: "None" },
+    member2_usn: { type: String, default: "None" },
+    member2_year: { type: String, default: "None" },
+    member3_name: { type: String, default: "None" },
+    member3_email: { type: String, default: "None" },
+    member3_phone: { type: String, default: "None" },
+    member3_usn: { type: String, default: "None" },
+    member3_year: { type: String, default: "None" },
+    member4_name: { type: String, default: "None" },
+    member4_email: { type: String, default: "None" },
+    member4_phone: { type: String, default: "None" },
+    member4_usn: { type: String, default: "None" },
+    member4_year: { type: String, default: "None" },
+    members_count: { type: Number, default: 1, min: 1, max: 4 },
+    registeredAt: { type: Date, default: Date.now }
+}, {
+    collection: 'workshop_registrations_2026'
+});
+const WorkshopRegistration2026 = mongoose.model("WorkshopRegistration2026", workshopRegistration2026Schema);
 
 // RoboExpo Registration Schema
 const roboExpoRegistrationSchema = new mongoose.Schema({
@@ -548,6 +582,69 @@ app.post("/workshop-register", async (req, res) => {
         });
     } catch (error) {
         console.error('Workshop registration error:', error);
+        res.status(500).json({ message: 'Error registering for workshop' });
+    }
+});
+
+// Workshop Registration 2026
+app.post("/workshop-register-2026", async (req, res) => {
+    try {
+        const { 
+            name, email, phone, usn, year, 
+            payment_status, utr_number, payment_screenshot,
+            member2_name, member2_email, member2_phone, member2_usn, member2_year,
+            member3_name, member3_email, member3_phone, member3_usn, member3_year,
+            member4_name, member4_email, member4_phone, member4_usn, member4_year
+        } = req.body;
+
+        if (!name || !email || !phone || !usn || !year) {
+            return res.status(400).json({ message: 'All primary team member fields are required' });
+        }
+
+        let members_count = 1;
+        if (member2_name && member2_email && member2_phone && member2_usn && member2_year) members_count++;
+        if (member3_name && member3_email && member3_phone && member3_usn && member3_year) members_count++;
+        if (member4_name && member4_email && member4_phone && member4_usn && member4_year) members_count++;
+        
+        const lastRegistration = await WorkshopRegistration2026.findOne().sort({ team_number: -1 });
+        let nextTeamNumber = 1;
+        if (lastRegistration && lastRegistration.team_number) {
+            nextTeamNumber = parseInt(lastRegistration.team_number, 10) + 1;
+        }
+        const team_number = nextTeamNumber.toString().padStart(2, "0");
+
+        const registration = new WorkshopRegistration2026({
+            name, email, phone, usn, year,
+            payment_status,
+            utr_number: utr_number || null,
+            payment_screenshot: payment_screenshot || null,
+            team_number,
+            member2_name: member2_name || "None",
+            member2_email: member2_email || "None",
+            member2_phone: member2_phone || "None",
+            member2_usn: member2_usn || "None",
+            member2_year: member2_year || "None",
+            member3_name: member3_name || "None",
+            member3_email: member3_email || "None",
+            member3_phone: member3_phone || "None",
+            member3_usn: member3_usn || "None",
+            member3_year: member3_year || "None",
+            member4_name: member4_name || "None",
+            member4_email: member4_email || "None",
+            member4_phone: member4_phone || "None",
+            member4_usn: member4_usn || "None",
+            member4_year: member4_year || "None",
+            members_count
+        });
+
+        await registration.save();
+
+        res.status(201).json({ 
+            message: 'Team registration successful! Your team number is ' + team_number,
+            registration: { name, email, phone, usn, year, team_number, payment_status, members_count }
+        });
+    } catch (error) {
+        console.error('Workshop 2026 registration error:', error);
         res.status(500).json({ message: 'Error registering for workshop' });
     }
 });
@@ -1312,6 +1409,263 @@ app.get('/workshop-registrations/export-all', authMiddleware, async (req, res) =
         res.send(csvContent);
     } catch (error) {
         console.error('Error exporting registrations:', error);
+        res.status(500).json({ message: 'Error exporting registrations' });
+    }
+});
+
+// ==================== Workshop 2026 Admin Routes ====================
+
+// Get all 2026 workshop registrations (admin)
+app.get('/workshop-registrations-2026', authMiddleware, async (req, res) => {
+    try {
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        const workshopRegistrations = await WorkshopRegistration2026.find().sort({ registeredAt: -1 });
+        const regularUsers = await User.find().sort({ createdAt: -1 });
+        
+        const structuredRegistrations = { teams: {}, individual: [] };
+        
+        workshopRegistrations.forEach(registration => {
+            const teamNumber = registration.team_number;
+            if (!structuredRegistrations.teams[teamNumber]) {
+                structuredRegistrations.teams[teamNumber] = [];
+            }
+            
+            structuredRegistrations.teams[teamNumber].push({
+                _id: registration._id,
+                name: registration.name,
+                email: registration.email,
+                phone: registration.phone,
+                usn: registration.usn,
+                year: registration.year,
+                payment_status: registration.payment_status,
+                payment_verified: registration.payment_verified,
+                utr_number: registration.utr_number,
+                payment_screenshot: registration.payment_screenshot,
+                registeredAt: registration.registeredAt,
+                isTeamHeader: true,
+                teamNo: teamNumber,
+                membersCount: registration.members_count
+            });
+            
+            if (registration.member2_name && registration.member2_name !== "None") {
+                structuredRegistrations.teams[teamNumber].push({
+                    name: registration.member2_name,
+                    email: registration.member2_email,
+                    phone: registration.member2_phone,
+                    usn: registration.member2_usn,
+                    year: registration.member2_year,
+                    isTeamMember: true,
+                    teamNo: teamNumber
+                });
+            }
+            
+            if (registration.member3_name && registration.member3_name !== "None") {
+                structuredRegistrations.teams[teamNumber].push({
+                    name: registration.member3_name,
+                    email: registration.member3_email,
+                    phone: registration.member3_phone,
+                    usn: registration.member3_usn,
+                    year: registration.member3_year,
+                    isTeamMember: true,
+                    teamNo: teamNumber
+                });
+            }
+            
+            if (registration.member4_name && registration.member4_name !== "None") {
+                structuredRegistrations.teams[teamNumber].push({
+                    name: registration.member4_name,
+                    email: registration.member4_email,
+                    phone: registration.member4_phone,
+                    usn: registration.member4_usn,
+                    year: registration.member4_year,
+                    isTeamMember: true,
+                    teamNo: teamNumber
+                });
+            }
+        });
+        
+        res.json(structuredRegistrations);
+    } catch (error) {
+        console.error('Error fetching 2026 workshop registrations:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Verify payment for 2026 workshop registration
+app.put('/workshop-registrations-2026/:registrationId/verify', authMiddleware, async (req, res) => {
+    try {
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        const { registrationId } = req.params;
+        const { payment_verified } = req.body;
+        
+        const updatedRegistration = await WorkshopRegistration2026.findByIdAndUpdate(
+            registrationId,
+            { payment_verified },
+            { new: true }
+        );
+        
+        if (!updatedRegistration) {
+            return res.status(404).json({ message: "Registration not found" });
+        }
+        
+        res.json({ 
+            message: `Payment verification ${payment_verified ? 'confirmed' : 'removed'}`,
+            registration: updatedRegistration
+        });
+    } catch (error) {
+        console.error('Error updating 2026 payment verification:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Delete 2026 workshop registration
+app.delete('/workshop-registrations-2026/:registrationId', authMiddleware, async (req, res) => {
+    try {
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        const { registrationId } = req.params;
+        const deletedRegistration = await WorkshopRegistration2026.findByIdAndDelete(registrationId);
+        
+        if (!deletedRegistration) {
+            return res.status(404).json({ message: "Registration not found" });
+        }
+        
+        res.json({ message: "Registration deleted successfully" });
+    } catch (error) {
+        console.error('Error deleting 2026 registration:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Generate 2026 registration PDF
+app.get('/workshop-registrations-2026/export/:registrationId', authMiddleware, async (req, res) => {
+    try {
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        const { registrationId } = req.params;
+        const registration = await WorkshopRegistration2026.findById(registrationId);
+        
+        if (!registration) {
+            return res.status(404).json({ message: "Registration not found" });
+        }
+        
+        const doc = new PDFDocument();
+        const filename = `registration-2026-${registration._id}.pdf`;
+        
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        doc.pipe(res);
+        
+        doc.fontSize(20).text('Workshop Registration 2026 Details', { align: 'center' });
+        doc.moveDown();
+        doc.fontSize(14).fillColor('#E74C3C').text(`Team Information:`);
+        doc.fontSize(12).fillColor('#34495E').text(`Team Size: ${registration.members_count} members`);
+        doc.moveDown();
+        doc.fontSize(16).fillColor('#2C3E50').text('Team Leader:');
+        doc.fontSize(12).fillColor('#34495E');
+        doc.text(`Name: ${registration.name}`);
+        doc.text(`Email: ${registration.email}`);
+        doc.text(`Phone: ${registration.phone}`);
+        doc.text(`USN: ${registration.usn}`);
+        doc.text(`Year: ${registration.year}`);
+        doc.moveDown();
+        doc.fontSize(14).fillColor('#E74C3C').text('Payment Information:');
+        doc.fontSize(12).fillColor('#34495E');
+        doc.text(`Payment Status: ${registration.payment_status}`);
+        doc.text(`Payment Verified: ${registration.payment_verified ? 'Yes' : 'No'}`);
+        if (registration.payment_status === 'Paid') {
+            doc.text(`UTR Number: ${registration.utr_number}`);
+        }
+        doc.moveDown();
+        
+        if (registration.members_count > 1) {
+            doc.fontSize(16).fillColor('#2C3E50').text('Team Members:');
+            if (registration.member2_name && registration.member2_name !== "None") {
+                doc.fontSize(14).fillColor('#2980B9').text(`Member 2:`);
+                doc.fontSize(12).fillColor('#34495E');
+                doc.text(`Name: ${registration.member2_name}`);
+                doc.text(`Email: ${registration.member2_email}`);
+                doc.text(`Phone: ${registration.member2_phone}`);
+                doc.text(`USN: ${registration.member2_usn}`);
+                doc.text(`Year: ${registration.member2_year}`);
+                doc.moveDown();
+            }
+            if (registration.member3_name && registration.member3_name !== "None") {
+                doc.fontSize(14).fillColor('#2980B9').text(`Member 3:`);
+                doc.fontSize(12).fillColor('#34495E');
+                doc.text(`Name: ${registration.member3_name}`);
+                doc.text(`Email: ${registration.member3_email}`);
+                doc.text(`Phone: ${registration.member3_phone}`);
+                doc.text(`USN: ${registration.member3_usn}`);
+                doc.text(`Year: ${registration.member3_year}`);
+                doc.moveDown();
+            }
+            if (registration.member4_name && registration.member4_name !== "None") {
+                doc.fontSize(14).fillColor('#2980B9').text(`Member 4:`);
+                doc.fontSize(12).fillColor('#34495E');
+                doc.text(`Name: ${registration.member4_name}`);
+                doc.text(`Email: ${registration.member4_email}`);
+                doc.text(`Phone: ${registration.member4_phone}`);
+                doc.text(`USN: ${registration.member4_usn}`);
+                doc.text(`Year: ${registration.member4_year}`);
+                doc.moveDown();
+            }
+        }
+        
+        doc.fontSize(12).fillColor('#7F8C8D');
+        doc.text(`Registered on: ${new Date(registration.registeredAt).toLocaleDateString()}`);
+        doc.end();
+    } catch (error) {
+        console.error('Error generating 2026 PDF:', error);
+        res.status(500).json({ message: 'Error generating PDF' });
+    }
+});
+
+// Export all 2026 workshop registrations as CSV
+app.get('/workshop-registrations-2026/export-all', authMiddleware, async (req, res) => {
+    try {
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        const registrations = await WorkshopRegistration2026.find().sort({ registeredAt: -1 });
+        
+        let csvContent = 'Team No,Role,Name,Email,Phone,USN,Year,Payment Status,Payment Verified,UTR Number,Registered At\n';
+        
+        registrations.forEach((reg, index) => {
+            const teamNo = index + 1;
+            csvContent += `${teamNo},Leader,${reg.name},${reg.email},${reg.phone},${reg.usn},${reg.year},${reg.payment_status},${reg.payment_verified ? 'Yes' : 'No'},${reg.utr_number || ''},${new Date(reg.registeredAt).toLocaleDateString()}\n`;
+            if (reg.member2_name && reg.member2_name !== "None") {
+                csvContent += `${teamNo},Member,${reg.member2_name},${reg.member2_email},${reg.member2_phone},${reg.member2_usn},${reg.member2_year},,,,\n`;
+            }
+            if (reg.member3_name && reg.member3_name !== "None") {
+                csvContent += `${teamNo},Member,${reg.member3_name},${reg.member3_email},${reg.member3_phone},${reg.member3_usn},${reg.member3_year},,,,\n`;
+            }
+            if (reg.member4_name && reg.member4_name !== "None") {
+                csvContent += `${teamNo},Member,${reg.member4_name},${reg.member4_email},${reg.member4_phone},${reg.member4_usn},${reg.member4_year},,,,\n`;
+            }
+        });
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="workshop-registrations-2026.csv"');
+        res.send(csvContent);
+    } catch (error) {
+        console.error('Error exporting 2026 registrations:', error);
         res.status(500).json({ message: 'Error exporting registrations' });
     }
 });

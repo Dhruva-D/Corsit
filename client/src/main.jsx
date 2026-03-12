@@ -20,6 +20,7 @@ import Editprofile from "./components/Profile/Editprofile.jsx";
 import Changepassword from "./components/Profile/Changepassword.jsx";
 import Admin from "./components/Profile/Admin.jsx";
 import WorkshopReg25 from "./components/Profile/WorkshopReg25.jsx";
+import WorkshopReg26 from "./components/Profile/WorkshopReg26.jsx";
 import RoboExpoReg25 from "./components/Profile/RoboExpoReg25.jsx";
 import RecruitmentsReg25 from "./components/Profile/RecruitmentsReg25.jsx";
 import RecruitmentFeedback from "./components/Profile/RecruitmentFeedback.jsx";
@@ -126,6 +127,7 @@ const App = () => {
             <Route path="change-password" element={<ProtectedRoute><Changepassword /></ProtectedRoute>} />
             <Route path="admin" element={<AdminProtectedRoute><Admin /></AdminProtectedRoute>} />
             <Route path="workshop-reg-25" element={<AdminProtectedRoute><WorkshopReg25 /></AdminProtectedRoute>} />
+            <Route path="workshop-reg-26" element={<AdminProtectedRoute><WorkshopReg26 /></AdminProtectedRoute>} />
             <Route path="roboexpo-reg-25" element={<AdminProtectedRoute><RoboExpoReg25 /></AdminProtectedRoute>} />
             <Route path="recruitments-reg-25" element={<AdminProtectedRoute><RecruitmentsReg25 /></AdminProtectedRoute>} />
             <Route path="recruitment-feedback" element={<AdminProtectedRoute><RecruitmentFeedback /></AdminProtectedRoute>} />

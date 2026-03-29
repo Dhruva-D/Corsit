@@ -112,6 +112,13 @@ const HeaderProfile = () => {
         setAdminDestination('/expo25-feedback-reg');
     };
 
+    const handleWorkshopFeedbackRegClick = (e) => {
+        e.preventDefault();
+        setDropdownOpen(false);
+        setShowAdminModal(true);
+        setAdminDestination('/workshop-feedback-reg');
+    };
+
     const handleAuthSuccess = () => {
         setShowAdminModal(false);
         navigate(adminDestination); // Ensure navigation happens
@@ -167,6 +174,7 @@ const HeaderProfile = () => {
                             <NavLink to="#" onClick={handleRecruitmentsRegClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Recruitments Reg 2025</NavLink>
                             <NavLink to="#" onClick={handleRecruitmentFeedbackClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Recruitment Feedback</NavLink>
                             <NavLink to="#" onClick={handleFeedbackRegClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Feedback 2025</NavLink>
+                            <NavLink to="#" onClick={handleWorkshopFeedbackRegClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Workshop Feedback</NavLink>
                             <NavLink to="#" onClick={handleAdminClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Admin Page</NavLink>
                             <button onClick={handleLogout} className='block w-full text-left px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Logout</button>
                         </div>

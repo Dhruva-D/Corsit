@@ -188,6 +188,29 @@ const expo25FeedbackSchema = new mongoose.Schema({
 });
 const Expo25Feedback = mongoose.model("Expo25Feedback", expo25FeedbackSchema);
 
+// Workshop Feedback Schema
+const workshopFeedbackSchema = new mongoose.Schema({
+    name: { type: String, default: 'Anonymous' },
+    email: { type: String, default: 'Not provided' },
+    workshopRating: { 
+        type: Number, 
+        required: true, 
+        min: 1, 
+        max: 5,
+        validate: {
+            validator: function(v) {
+                return v >= 1 && v <= 5;
+            },
+            message: 'Workshop rating must be between 1 and 5'
+        }
+    },
+    feedbackText: { type: String, required: true },
+    favoriteTopic: { type: String, default: '' },
+    suggestions: { type: String, default: '' },
+    submittedAt: { type: Date, default: Date.now }
+});
+const WorkshopFeedback = mongoose.model("WorkshopFeedback", workshopFeedbackSchema);
+
 // Middleware for authentication
 const authMiddleware = async (req, res, next) => {
     const token = req.header("Authorization");
@@ -807,6 +830,40 @@ app.post("/expo25-feedback", async (req, res) => {
     }
 });
 
+// Workshop Feedback Submission
+app.post("/workshop-feedback", async (req, res) => {
+    try {
+        const { name, email, workshopRating, feedbackText, favoriteTopic, suggestions } = req.body;
+
+        // Validate required fields
+        if (workshopRating === undefined || !feedbackText) {
+            return res.status(400).json({ 
+                message: 'Workshop rating and feedback text are required' 
+            });
+        }
+
+        // Create new feedback
+        const feedback = new WorkshopFeedback({
+            name: name || 'Anonymous',
+            email: email || 'Not provided',
+            workshopRating: Number(workshopRating),
+            feedbackText,
+            favoriteTopic: favoriteTopic || '',
+            suggestions: suggestions || ''
+        });
+
+        await feedback.save();
+
+        res.status(201).json({ 
+            message: 'Thank you for your feedback! Your response has been recorded.',
+            feedback
+        });
+    } catch (error) {
+        console.error('Workshop feedback error:', error);
+        res.status(500).json({ message: 'Error submitting feedback' });
+    }
+});
+
 // Get Workshop Registrations for Admin
 app.get('/workshop-registrations', authMiddleware, async (req, res) => {
     try {
@@ -1196,6 +1253,44 @@ app.delete('/expo25-feedback/:feedbackId', authMiddleware, async (req, res) => {
         res.json({ message: 'Feedback deleted successfully' });
     } catch (error) {
         console.error('Error deleting expo25 feedback:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Get Workshop Feedback for Admin
+app.get('/workshop-feedbacks', authMiddleware, async (req, res) => {
+    try {
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        const feedbacks = await WorkshopFeedback.find().sort({ submittedAt: -1 });
+        res.json(feedbacks);
+    } catch (error) {
+        console.error('Error fetching workshop feedback:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Delete Workshop Feedback
+app.delete('/workshop-feedback/:feedbackId', authMiddleware, async (req, res) => {
+    try {
+        const isAdmin = req.header("isAdmin");
+        if (!isAdmin || isAdmin !== 'true') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+        
+        const { feedbackId } = req.params;
+        const feedback = await WorkshopFeedback.findByIdAndDelete(feedbackId);
+        
+        if (!feedback) {
+            return res.status(404).json({ message: 'Feedback not found' });
+        }
+        
+        res.json({ message: 'Feedback deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting workshop feedback:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

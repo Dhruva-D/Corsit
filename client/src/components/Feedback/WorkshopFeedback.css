@@ -1,0 +1,105 @@
+/* Workshop feedback experience styling */
+
+.feedback-page {
+  min-height: 100vh;
+  background: radial-gradient(circle at top, rgba(30, 30, 50, 0.9), rgba(12, 12, 20, 0.95));
+  padding: 100px 16px 32px 16px;
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.feedback-container {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.feedback-form {
+  width: 100%;
+  background-color: rgba(20, 20, 30, 0.88);
+  border-radius: 14px;
+  padding: 40px 36px;
+  box-sizing: border-box;
+  border: 1px solid rgba(237, 90, 45, 0.4);
+  box-shadow: 0 24px 48px rgba(237, 90, 45, 0.12);
+  backdrop-filter: blur(12px);
+}
+
+.form-title {
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.form-subtitle {
+  color: #a2a2ba;
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  display: block;
+  color: #c5c5da;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 10px;
+  border: 1px solid #3c3c55;
+  background-color: rgba(24, 24, 40, 0.9);
+  color: #ffffff;
+  font-size: 16px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #ed5a2d;
+  box-shadow: 0 0 0 3px rgba(237, 90, 45, 0.28);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.thank-you-card {
+  background-color: rgba(20, 20, 32, 0.88);
+  border-radius: 14px;
+  padding: 40px 32px;
+  text-align: center;
+  color: #ffffff;
+  max-width: 520px;
+  border: 1px solid rgba(237, 90, 45, 0.4);
+  box-shadow: 0 24px 36px rgba(237, 90, 45, 0.14);
+  box-sizing: border-box;
+}
+
+.thank-you-card h2 {
+  font-size: 32px;
+  margin-bottom: 16px;
+  color: #ff7a32;
+}
+
+@media (max-width: 600px) {
+  .feedback-page {
+    padding-top: 80px;
+  }
+  .feedback-form {
+    padding: 28px 22px;
+  }
+}

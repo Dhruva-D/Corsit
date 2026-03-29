@@ -27,7 +27,9 @@ import RecruitmentFeedback from "./components/Profile/RecruitmentFeedback.jsx";
 import Expo25FeedbackReg from "./components/Profile/Expo25FeedbackReg.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Expo25Feedback from "./components/Feedback/Expo25Feedback.jsx";
+import WorkshopFeedback from "./components/Feedback/WorkshopFeedback.jsx";
 import Round1Results from "./components/Results/Round1Results.jsx";
+import WorkshopFeedbackReg from "./components/Profile/WorkshopFeedbackReg.jsx";
 
 // Global image error handler to ensure default images are shown when loading fails
 import defaultProfileImage from './assets/default-profile.svg';
@@ -119,6 +121,7 @@ const App = () => {
             <Route path="recruitments25" element={<Recruitments25 />} />
             <Route path="team" element={<Team />} />
             <Route path="expo25-feedback" element={<Expo25Feedback />} />
+            <Route path="workshop-feedback" element={<WorkshopFeedback />} />
             <Route path="round1-res" element={<Round1Results />} />
             
             {/* Protected Routes */}
@@ -132,6 +135,7 @@ const App = () => {
             <Route path="recruitments-reg-25" element={<AdminProtectedRoute><RecruitmentsReg25 /></AdminProtectedRoute>} />
             <Route path="recruitment-feedback" element={<AdminProtectedRoute><RecruitmentFeedback /></AdminProtectedRoute>} />
             <Route path="expo25-feedback-reg" element={<AdminProtectedRoute><Expo25FeedbackReg /></AdminProtectedRoute>} />
+            <Route path="workshop-feedback-reg" element={<AdminProtectedRoute><WorkshopFeedbackReg /></AdminProtectedRoute>} />
           </Route>
           
           {/* Catch all unmatched routes */}

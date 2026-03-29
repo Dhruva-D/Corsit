@@ -93,8 +93,6 @@ const WorkshopFeedbackReg = () => {
 
     const tableData = feedbacks.map((feedback, index) => [
       index + 1,
-      feedback.name || 'Anonymous',
-      feedback.email || 'Not provided',
       feedback.workshopRating ?? '-',
       feedback.feedbackText || '-',
       feedback.favoriteTopic || '-',
@@ -105,8 +103,6 @@ const WorkshopFeedbackReg = () => {
       startY: 50,
       head: [[
         'S.No',
-        'Name',
-        'Email',
         'Rating',
         'Feedback',
         'Favorite Topic',
@@ -125,8 +121,6 @@ const WorkshopFeedbackReg = () => {
   const exportToExcel = () => {
     const worksheetData = feedbacks.map((feedback, index) => ({
       'S.No': index + 1,
-      'Name': feedback.name || 'Anonymous',
-      'Email': feedback.email || 'Not provided',
       'Rating': feedback.workshopRating ?? '-',
       'Feedback': feedback.feedbackText || '-',
       'Favorite Topic': feedback.favoriteTopic || '-',
@@ -203,7 +197,6 @@ const WorkshopFeedbackReg = () => {
                   <thead className="bg-[#ed5a2d] text-white uppercase tracking-wider font-semibold">
                     <tr>
                       <th className="px-4 py-3">S.No</th>
-                      <th className="px-4 py-3">Name</th>
                       <th className="px-4 py-3">Rating</th>
                       <th className="px-4 py-3">Favorite Topic</th>
                       <th className="px-4 py-3">Feedback</th>
@@ -216,10 +209,6 @@ const WorkshopFeedbackReg = () => {
                       feedbacks.map((feedback, index) => (
                         <tr key={feedback._id} className="hover:bg-gray-800 transition-colors">
                           <td className="px-4 py-4 text-gray-400">{index + 1}</td>
-                          <td className="px-4 py-4">
-                            <p className="font-medium text-white">{feedback.name}</p>
-                            <p className="text-xs text-gray-500">{feedback.email}</p>
-                          </td>
                           <td className="px-4 py-4 text-yellow-400">★ {feedback.workshopRating}/5</td>
                           <td className="px-4 py-4 text-gray-300">{feedback.favoriteTopic}</td>
                           <td className="px-4 py-4 text-gray-300 max-w-xs">{feedback.feedbackText}</td>
@@ -256,7 +245,7 @@ const WorkshopFeedbackReg = () => {
                 <div key={feedback._id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-lg">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h3 className="text-lg font-semibold text-white">{feedback.name}</h3>
+                      <h3 className="text-lg font-semibold text-white">Feedback #{index + 1}</h3>
                       <p className="text-yellow-400 text-sm">Rating: ★ {feedback.workshopRating}/5</p>
                     </div>
                     <button
@@ -292,7 +281,7 @@ const WorkshopFeedbackReg = () => {
                 initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
               >
                 <h3 className="text-xl font-bold mb-4">Delete Feedback?</h3>
-                <p className="text-gray-300 mb-6">Are you sure you want to delete {feedbackToDelete?.name}'s feedback?</p>
+                <p className="text-gray-300 mb-6">Are you sure you want to delete this feedback entry? This action cannot be undone.</p>
                 <div className="flex justify-end gap-3">
                   <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2 bg-gray-700 rounded transition-all">Cancel</button>
                   <button onClick={handleDeleteFeedback} className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded transition-all" disabled={actionLoading}>

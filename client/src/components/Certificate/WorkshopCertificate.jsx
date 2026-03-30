@@ -80,7 +80,7 @@ const WorkshopCertificate = () => {
   };
 
   return (
-    <div className="certificate-page min-h-screen pt-48 pb-20 px-4 relative z-10">
+    <div className="certificate-page min-h-screen pt-52 pb-20 px-4 relative z-10">
       <div className="max-w-4xl mx-auto text-center">
         <h1 className="text-4xl md:text-6xl font-bold text-[#ed5a2d] mb-4 uppercase tracking-tighter">CORSIT WORKSHOP 2026</h1>
         <p className="text-white mb-10 text-2xl md:text-3xl font-medium tracking-wide">Download your participation certificate</p>

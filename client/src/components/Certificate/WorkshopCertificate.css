@@ -41,9 +41,4 @@
   align-items: center;
 }
 
-/* Responsive adjustment */
-@media (max-width: 768px) {
-  .certificate-page {
-    padding-top: 80px;
-  }
-}
+/* Mobile padding handled by tailwind classes in Component JSX */

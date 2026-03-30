@@ -693,7 +693,7 @@ app.get("/workshop-2026/verify-certificate/:identifier", async (req, res) => {
         });
 
         if (!registration) {
-            return res.status(404).json({ message: "Participant not found or payment not verified." });
+            return res.status(404).json({ message: "Participant not found" });
         }
 
         // Identify which specific member it is to get their name

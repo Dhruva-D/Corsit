@@ -672,6 +672,49 @@ app.post("/workshop-register-2026", async (req, res) => {
     }
 });
 
+// Verify Workshop 2026 Participant for Certificate
+app.get("/workshop-2026/verify-certificate/:identifier", async (req, res) => {
+    try {
+        const identifier = req.params.identifier.trim().toLowerCase();
+        
+        // Search leader and members by both email and USN
+        // Certificates are available for all registered participants
+        const registration = await WorkshopRegistration2026.findOne({
+            $or: [
+                { email: identifier },
+                { usn: identifier.toUpperCase() },
+                { member2_email: identifier },
+                { member2_usn: identifier.toUpperCase() },
+                { member3_email: identifier },
+                { member3_usn: identifier.toUpperCase() },
+                { member4_email: identifier },
+                { member4_usn: identifier.toUpperCase() }
+            ]
+        });
+
+        if (!registration) {
+            return res.status(404).json({ message: "Participant not found or payment not verified." });
+        }
+
+        // Identify which specific member it is to get their name
+        let participantName = "";
+        if (registration.email.toLowerCase() === identifier || registration.usn.toUpperCase() === identifier.toUpperCase()) {
+            participantName = registration.name;
+        } else if (registration.member2_email.toLowerCase() === identifier || registration.member2_usn.toUpperCase() === identifier.toUpperCase()) {
+            participantName = registration.member2_name;
+        } else if (registration.member3_email.toLowerCase() === identifier || registration.member3_usn.toUpperCase() === identifier.toUpperCase()) {
+            participantName = registration.member3_name;
+        } else if (registration.member4_email.toLowerCase() === identifier || registration.member4_usn.toUpperCase() === identifier.toUpperCase()) {
+            participantName = registration.member4_name;
+        }
+
+        res.json({ name: participantName });
+    } catch (error) {
+        console.error('Certificate verification error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 // RoboExpo Registration
 app.post("/roboexpo-register", async (req, res) => {
     try {

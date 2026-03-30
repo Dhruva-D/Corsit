@@ -30,6 +30,7 @@ import Expo25Feedback from "./components/Feedback/Expo25Feedback.jsx";
 import WorkshopFeedback from "./components/Feedback/WorkshopFeedback.jsx";
 import Round1Results from "./components/Results/Round1Results.jsx";
 import WorkshopFeedbackReg from "./components/Profile/WorkshopFeedbackReg.jsx";
+import WorkshopCertificate from "./components/Certificate/WorkshopCertificate.jsx";
 
 // Global image error handler to ensure default images are shown when loading fails
 import defaultProfileImage from './assets/default-profile.svg';
@@ -122,6 +123,7 @@ const App = () => {
             <Route path="team" element={<Team />} />
             <Route path="expo25-feedback" element={<Expo25Feedback />} />
             <Route path="workshop-feedback" element={<WorkshopFeedback />} />
+            <Route path="workshop-2026/certificate" element={<WorkshopCertificate />} />
             <Route path="round1-res" element={<Round1Results />} />
             
             {/* Protected Routes */}

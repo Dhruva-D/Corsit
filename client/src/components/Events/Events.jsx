@@ -44,6 +44,7 @@ const eventsData = [
   {
     title: 'ROBOCOR',
     description: 'Robocor, a nationally renowned Robotics Competition, which is one of the biggest events in Karnataka. It provides a platform for participants to showcase their innovative designs and compete for glory. In Robocor, the team has successfully organized several events such as Dcode, Spardha, Rugged Rage, Robo Soccer, Arduino Clash, Binary Rash, Project Symposium, Paper Presentation, and Init_Rc.',
+    date: 'April 16th, 2026',
     images: [
       rc1,
       rc2,
@@ -153,7 +154,7 @@ const Events = () => {
                   rel='noopener noreferrer'
                   className='mt-6 inline-block border-2 border-[#ed5a2d] text-[#ed5a2d] px-10 sm:px-14 py-3 sm:py-4 rounded-3xl text-lg sm:text-xl font-semibold transition duration-300 hover:bg-[#ed5a2d] hover:text-white hover:border-4 hover:shadow-lg'
                 >
-                  View Details
+                  Register
                 </a>
               )}
               {event.title === 'RoboExpo' && (

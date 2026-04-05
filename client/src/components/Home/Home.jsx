@@ -124,7 +124,7 @@ const Home = () => {
                 status: 'roboexpo'
               },
               {
-                date: 'Coming Soon',
+                date: 'April 16th, 2026',
                 title: 'ROBOCOR',
                 description: 'The ultimate battleground for innovation, where robots clash and creativity thrives!',
                 // location: '📍 SIT Campus',
@@ -179,7 +179,7 @@ const Home = () => {
                     rel="noopener noreferrer"
                     className="mt-6 inline-block bg-gradient-to-r from-[#ed5a2d] to-orange-500 hover:from-orange-500 hover:to-[#ed5a2d] text-white font-bold py-2 px-6 rounded-full shadow-md transition-all duration-300 hover:scale-110"
                   >
-                    View Details
+                    Register
                   </a>
                 ) : (
                   <div className="mt-6 bg-gray-700 text-gray-300 font-bold py-2 px-6 rounded-full shadow-md">

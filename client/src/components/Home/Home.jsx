@@ -17,6 +17,9 @@ import re3 from '../../assets/events/roboexpo/3.jpg';
 import ws1 from '../../assets/events/workshop/1.jpg';
 import ws2 from '../../assets/events/workshop/2.jpg';
 import ws3 from '../../assets/events/workshop/3.jpg';
+import rc1 from '../../assets/events/robocor/1.png';
+import rc2 from '../../assets/events/robocor/2.png';
+import rc3 from '../../assets/events/robocor/3.png';
 
 const Home = () => {
   const [text] = useTypewriter({
@@ -37,6 +40,10 @@ const Home = () => {
     workshop: {
       title: 'Robotics Workshop',
       images: [ws1, ws2, ws3]
+    },
+    robocor: {
+      title: 'ROBOCOR',
+      images: [rc1, rc2, rc3]
     }
   };
 
@@ -117,21 +124,21 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-16">
             {[
               {
-                date: 'Coming Soon',
+                date: 'November 25, 2026',
                 title: 'RoboExpo',
                 description: 'A showcase of cutting-edge robotics, AI, and automation innovations.',
-                // location: '📍 Birla Auditorium',
+                location: '📍 Birla Auditorium',
                 status: 'roboexpo'
               },
               {
-                date: 'April 16th, 2026',
+                date: 'Coming Soon',
                 title: 'ROBOCOR',
                 description: 'The ultimate battleground for innovation, where robots clash and creativity thrives!',
                 // location: '📍 SIT Campus',
                 status: 'robocor'
               },
               {
-                date: '28th and 29th March 2026',
+                date: 'Coming Soon',
                 title: 'Robotics Workshop',
                 description: 'Learn the basics of robotics and automation in this hands-on workshop.',
                 // location: '📍 Telecom seminar hall ',
@@ -173,14 +180,12 @@ const Home = () => {
                     View Gallery
                   </button>
                 ) : event.status === 'robocor' ? (
-                  <a 
-                    href="https://robocor.corsit.in" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="mt-6 inline-block bg-gradient-to-r from-[#ed5a2d] to-orange-500 hover:from-orange-500 hover:to-[#ed5a2d] text-white font-bold py-2 px-6 rounded-full shadow-md transition-all duration-300 hover:scale-110"
+                  <button
+                    onClick={() => openGallery('robocor')}
+                    className="mt-6 bg-gradient-to-r from-[#ed5a2d] to-orange-500 hover:from-orange-500 hover:to-[#ed5a2d] text-white font-bold py-2 px-6 rounded-full shadow-md transition-all duration-300 hover:scale-110"
                   >
-                    Register
-                  </a>
+                    View Gallery
+                  </button>
                 ) : (
                   <div className="mt-6 bg-gray-700 text-gray-300 font-bold py-2 px-6 rounded-full shadow-md">
                     <span className="flex items-center">

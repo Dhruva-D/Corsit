@@ -144,7 +144,8 @@ const Recruitments25 = () => {
       <div className="container mx-auto px-4 py-32 max-w-none">
         <div className="w-full max-w-2xl mx-auto bg-gray-800 shadow-xl rounded-lg p-6 sm:p-8 lg:p-10 border border-gray-700">
           <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#ed5a2d]">Corsit Recruitments 2025</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#ed5a2d]">CORSIT Recruitment 2026</h2>
+            <p className="mt-2 text-sm sm:text-base text-gray-300">November 26–27, 2026</p>
            
           </div>
 

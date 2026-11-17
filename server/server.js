@@ -149,11 +149,11 @@ const roboExpoRegistrationSchema = new mongoose.Schema({
     email: { type: String, required: true },
     branch: { type: String, required: true },
     createdAt: { type: Date, default: Date.now }
-});
+}, { collection: 'roboexpo_registrations_2026' });
 const RoboExpoRegistration = mongoose.model("RoboExpoRegistration", roboExpoRegistrationSchema);
 
-// Recruitment 2025 Schema - stored in dedicated 2025 collection/folder
-const recruitment2025Schema = new mongoose.Schema({
+// Recruitment 2026 submissions are kept separate from the archived 2025 collection.
+const recruitment2026Schema = new mongoose.Schema({
     name: { type: String, required: true },
     usn: { type: String, required: true },
     phone: { type: String, required: true },
@@ -162,12 +162,12 @@ const recruitment2025Schema = new mongoose.Schema({
     year: { type: String, required: true },
     createdAt: { type: Date, default: Date.now }
 }, {
-    collection: 'recruitments_2025'
+    collection: 'recruitments_2026'
 });
-const Recruitment2025 = mongoose.model('Recruitment2025', recruitment2025Schema);
+const Recruitment2026 = mongoose.model('Recruitment2026', recruitment2026Schema);
 
-// Expo25 Feedback Schema
-const expo25FeedbackSchema = new mongoose.Schema({
+// RoboExpo 2026 feedback is kept separate from archived 2025 submissions.
+const expo26FeedbackSchema = new mongoose.Schema({
     branch: { type: String, required: true },
     eventRating: { 
         type: Number, 
@@ -185,8 +185,8 @@ const expo25FeedbackSchema = new mongoose.Schema({
     suggestions: { type: String, default: '' },
     howHeard: { type: String, required: true },
     submittedAt: { type: Date, default: Date.now }
-});
-const Expo25Feedback = mongoose.model("Expo25Feedback", expo25FeedbackSchema);
+}, { collection: 'expo_feedback_2026' });
+const Expo26Feedback = mongoose.model("Expo26Feedback", expo26FeedbackSchema);
 
 // Workshop Feedback Schema
 const workshopFeedbackSchema = new mongoose.Schema({
@@ -766,7 +766,7 @@ app.post("/roboexpo-register", async (req, res) => {
     }
 });
 
-// Recruitments 2025 Registration
+// Recruitments 2026 Registration
 app.post('/recruitments-2025', async (req, res) => {
     try {
         const {
@@ -783,7 +783,7 @@ app.post('/recruitments-2025', async (req, res) => {
         }
 
         // Duplicate check for same academic year batch
-        const duplicate = await Recruitment2025.findOne({
+        const duplicate = await Recruitment2026.findOne({
             $or: [
                 { email: email.toLowerCase().trim() },
                 { phone: phone.trim() },
@@ -795,7 +795,7 @@ app.post('/recruitments-2025', async (req, res) => {
             return res.status(400).json({ message: 'Application already exists with this email, phone, or USN' });
         }
 
-        const application = new Recruitment2025({
+        const application = new Recruitment2026({
             name: name.trim(),
             usn: usn.toUpperCase().trim(),
             phone: phone.trim(),
@@ -807,7 +807,7 @@ app.post('/recruitments-2025', async (req, res) => {
         await application.save();
 
         res.status(201).json({
-            message: 'Recruitments 2025 application submitted successfully!',
+            message: 'Recruitments 2026 application submitted successfully!',
             application: {
                 name: application.name,
                 usn: application.usn,
@@ -817,12 +817,12 @@ app.post('/recruitments-2025', async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Recruitments 2025 registration error:', error);
+        console.error('Recruitments 2026 registration error:', error);
         res.status(500).json({ message: 'Error submitting recruitment application' });
     }
 });
 
-// Expo25 Feedback Submission
+// RoboExpo 2026 Feedback Submission
 app.post("/expo25-feedback", async (req, res) => {
     try {
         const { branch, eventRating, favoriteProject, suggestions, howHeard } = req.body;
@@ -847,7 +847,7 @@ app.post("/expo25-feedback", async (req, res) => {
         }
 
         // Create new feedback
-        const feedback = new Expo25Feedback({
+        const feedback = new Expo26Feedback({
             branch: sanitizedBranch,
             eventRating: Number(eventRating),
             favoriteProject: sanitizedProject,
@@ -868,7 +868,7 @@ app.post("/expo25-feedback", async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Expo25 feedback error:', error);
+        console.error('RoboExpo 2026 feedback error:', error);
         res.status(500).json({ message: 'Error submitting feedback' });
     }
 });
@@ -1021,7 +1021,7 @@ app.get('/roboexpo-registrations', authMiddleware, async (req, res) => {
     }
 });
 
-// Get Recruitments 2025 Applications for Admin
+// Get Recruitments 2026 Applications for Admin
 app.get('/recruitments-2025', authMiddleware, async (req, res) => {
     try {
         const isAdmin = req.header('isAdmin');
@@ -1029,10 +1029,10 @@ app.get('/recruitments-2025', authMiddleware, async (req, res) => {
             return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
         }
 
-        const applications = await Recruitment2025.find().sort({ createdAt: -1 });
+        const applications = await Recruitment2026.find().sort({ createdAt: -1 });
         res.json(applications);
     } catch (error) {
-        console.error('Error fetching recruitments 2025 applications:', error);
+        console.error('Error fetching recruitments 2026 applications:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
@@ -1061,7 +1061,7 @@ app.delete('/roboexpo-registrations/:registrationId', authMiddleware, async (req
 });
 
 
-// Delete Recruitments 2025 Application
+// Delete Recruitments 2026 Application
 app.delete('/recruitments-2025/:applicationId', authMiddleware, async (req, res) => {
     try {
         const isAdmin = req.header('isAdmin');
@@ -1070,7 +1070,7 @@ app.delete('/recruitments-2025/:applicationId', authMiddleware, async (req, res)
         }
 
         const { applicationId } = req.params;
-        const application = await Recruitment2025.findByIdAndDelete(applicationId);
+        const application = await Recruitment2026.findByIdAndDelete(applicationId);
 
         if (!application) {
             return res.status(404).json({ message: 'Application not found' });
@@ -1078,7 +1078,7 @@ app.delete('/recruitments-2025/:applicationId', authMiddleware, async (req, res)
 
         res.json({ message: 'Application deleted successfully' });
     } catch (error) {
-        console.error('Error deleting recruitments 2025 application:', error);
+        console.error('Error deleting recruitments 2026 application:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
@@ -1092,7 +1092,7 @@ app.get('/recruitments-2025/feedback-pdf/:candidateId', authMiddleware, async (r
         }
 
         const { candidateId } = req.params;
-        const candidate = await Recruitment2025.findById(candidateId);
+        const candidate = await Recruitment2026.findById(candidateId);
 
         if (!candidate) {
             return res.status(404).json({ message: 'Candidate not found' });
@@ -1125,7 +1125,7 @@ app.get('/recruitments-2025/feedback-pdf/:candidateId', authMiddleware, async (r
             doc.fontSize(15)
                .fillColor('#E74C3C')
                .font('Helvetica-Bold')
-               .text('CORSIT RECRUITMENT 2025', 40, startY + 10, { align: 'center' });
+               .text('CORSIT RECRUITMENT 2026', 40, startY + 10, { align: 'center' });
 
             // Bottom of title line
             const titleBottomY = startY + 32;
@@ -1262,7 +1262,7 @@ app.get('/recruitments-2025/feedback-pdf/:candidateId', authMiddleware, async (r
     }
 });
 
-// Get Expo25 Feedback for Admin
+// Get RoboExpo 2026 Feedback for Admin
 app.get('/expo25-feedback', authMiddleware, async (req, res) => {
     try {
         const isAdmin = req.header('isAdmin');
@@ -1270,10 +1270,10 @@ app.get('/expo25-feedback', authMiddleware, async (req, res) => {
             return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
         }
 
-        const feedbacks = await Expo25Feedback.find().sort({ submittedAt: -1 });
+        const feedbacks = await Expo26Feedback.find().sort({ submittedAt: -1 });
         res.json(feedbacks);
     } catch (error) {
-        console.error('Error fetching expo25 feedback:', error);
+        console.error('Error fetching RoboExpo 2026 feedback:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
@@ -1287,7 +1287,7 @@ app.delete('/expo25-feedback/:feedbackId', authMiddleware, async (req, res) => {
         }
 
         const { feedbackId } = req.params;
-        const feedback = await Expo25Feedback.findByIdAndDelete(feedbackId);
+        const feedback = await Expo26Feedback.findByIdAndDelete(feedbackId);
 
         if (!feedback) {
             return res.status(404).json({ message: 'Feedback not found' });
@@ -1295,7 +1295,7 @@ app.delete('/expo25-feedback/:feedbackId', authMiddleware, async (req, res) => {
 
         res.json({ message: 'Feedback deleted successfully' });
     } catch (error) {
-        console.error('Error deleting expo25 feedback:', error);
+        console.error('Error deleting RoboExpo 2026 feedback:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

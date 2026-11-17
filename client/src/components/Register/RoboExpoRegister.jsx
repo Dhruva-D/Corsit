@@ -156,8 +156,9 @@ const RoboExpoRegister = () => {
       <div className="container mx-auto px-4 py-32 max-w-none">
         <div className="w-full max-w-2xl mx-auto bg-gray-800 shadow-xl rounded-lg p-6 sm:p-8 lg:p-10 border border-gray-700">
           <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#ed5a2d]">RoboExpo Registration</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#ed5a2d]">RoboExpo 2026 Registration</h2>
             <p className="mt-2 text-sm sm:text-base text-gray-300">Join us for an amazing robotics exhibition experience!</p>
+            <p className="mt-2 text-sm sm:text-base text-gray-300">November 25, 2026 · Birla Auditorium</p>
           </div>
 
         {errors.submit && (

@@ -70,53 +70,25 @@ const HeaderProfile = () => {
         setAdminDestination('/admin');
     };
 
-    const handleWorkshopReg25Click = (e) => {
-        e.preventDefault();
-        setDropdownOpen(false);
-        setShowAdminModal(true);
-        setAdminDestination('/workshop-reg-25');
-    };
-
-    const handleWorkshopReg26Click = (e) => {
-        e.preventDefault();
-        setDropdownOpen(false);
-        setShowAdminModal(true);
-        setAdminDestination('/workshop-reg-26');
-    };
-
     const handleRoboExpoRegClick = (e) => {
         e.preventDefault();
         setDropdownOpen(false);
         setShowAdminModal(true);
-        setAdminDestination('/roboexpo-reg-25');
+        setAdminDestination('/roboexpo-reg-26');
     };
 
     const handleRecruitmentsRegClick = (e) => {
         e.preventDefault();
         setDropdownOpen(false);
         setShowAdminModal(true);
-        setAdminDestination('/recruitments-reg-25');
-    };
-
-    const handleRecruitmentFeedbackClick = (e) => {
-        e.preventDefault();
-        setDropdownOpen(false);
-        setShowAdminModal(true);
-        setAdminDestination('/recruitment-feedback');
+        setAdminDestination('/recruitments-reg-26');
     };
 
     const handleFeedbackRegClick = (e) => {
         e.preventDefault();
         setDropdownOpen(false);
         setShowAdminModal(true);
-        setAdminDestination('/expo25-feedback-reg');
-    };
-
-    const handleWorkshopFeedbackRegClick = (e) => {
-        e.preventDefault();
-        setDropdownOpen(false);
-        setShowAdminModal(true);
-        setAdminDestination('/workshop-feedback-reg');
+        setAdminDestination('/expo26-feedback-reg');
     };
 
     const handleAuthSuccess = () => {
@@ -128,7 +100,7 @@ const HeaderProfile = () => {
     const navLinks = [
         { path: '/', label: 'HOME' },
         { path: '/events', label: 'EVENTS' },
-        { path: '/register', label: 'WORKSHOP 2026' },
+        { path: '/roboexpo-register', label: 'EXPO 2026' },
         { path: '/about', label: 'ABOUT' },
         { path: '/projects', label: 'PROJECTS' },
         { path: '/team', label: 'TEAM' },
@@ -164,18 +136,17 @@ const HeaderProfile = () => {
                         <img src={userData?.profilePhoto || '/default_profile.png'} alt='Profile' className='w-12 h-12 rounded-full border-2 border-[#ed5a2d] cursor-pointer' />
                     </button>
                     {dropdownOpen && (
-                        <div className='absolute right-0 mt-2 w-52 shadow-lg bg-gradient-to-b from-slate-700 to-slate-800 rounded-lg overflow-hidden z-50'>
+                        <div className='absolute right-0 mt-2 w-64 shadow-lg bg-gradient-to-b from-slate-700 to-slate-800 rounded-lg overflow-hidden z-50'>
                             <NavLink to='/profile' onClick={() => { setDropdownOpen(false); window.scrollTo(0, 0); }} className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Profile</NavLink>
                             <NavLink to='/edit-profile' onClick={() => { setDropdownOpen(false); window.scrollTo(0, 0); }} className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Edit Profile</NavLink>
-                            <NavLink to='/change-password' onClick={() => { setDropdownOpen(false); window.scrollTo(0, 0); }} className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Change Password</NavLink>
-                            <NavLink to="#" onClick={handleWorkshopReg25Click} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Workshop Reg 2025</NavLink>
-                            <NavLink to="#" onClick={handleWorkshopReg26Click} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Workshop Reg 2026</NavLink>
-                            <NavLink to="#" onClick={handleRoboExpoRegClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">RoboExpo Reg 2025</NavLink>
-                            <NavLink to="#" onClick={handleRecruitmentsRegClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Recruitments Reg 2025</NavLink>
-                            <NavLink to="#" onClick={handleRecruitmentFeedbackClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Recruitment Feedback</NavLink>
-                            <NavLink to="#" onClick={handleFeedbackRegClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Feedback 2025</NavLink>
-                            <NavLink to="#" onClick={handleWorkshopFeedbackRegClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Workshop Feedback</NavLink>
                             <NavLink to="#" onClick={handleAdminClick} className="block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Admin Page</NavLink>
+                            <NavLink to='/change-password' onClick={() => { setDropdownOpen(false); window.scrollTo(0, 0); }} className='block px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Change Password</NavLink>
+                            <div className='px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-400 border-t border-gray-600'>2026 Events</div>
+                            <div className='px-4 py-1 text-sm font-semibold text-[#ed5a2d]'>RoboExpo</div>
+                            <NavLink to="#" onClick={handleRoboExpoRegClick} className="block px-4 py-2 pl-7 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Registrations</NavLink>
+                            <NavLink to="#" onClick={handleFeedbackRegClick} className="block px-4 py-2 pl-7 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Feedback</NavLink>
+                            <div className='px-4 py-1 text-sm font-semibold text-[#ed5a2d]'>Recruitment</div>
+                            <NavLink to="#" onClick={handleRecruitmentsRegClick} className="block px-4 py-2 pl-7 text-white hover:bg-gray-900 hover:text-[#ed5a2d] transition-all duration-200">Registrations</NavLink>
                             <button onClick={handleLogout} className='block w-full text-left px-4 py-3 text-white hover:bg-gray-900 hover:text-[#ed5a2d]'>Logout</button>
                         </div>
                     )}

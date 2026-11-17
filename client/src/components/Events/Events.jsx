@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 
 // Configuration for event registration - change these to false after the event to show gallery again
-const ROBOEXPO_REGISTRATION_ACTIVE = false;
-const WORKSHOP_REGISTRATION_ACTIVE = true;
+const ROBOEXPO_REGISTRATION_ACTIVE = true;
+const WORKSHOP_REGISTRATION_ACTIVE = false;
 
 import rc1 from '../../assets/events/robocor/1.png';
 import rc2 from '../../assets/events/robocor/2.png';
@@ -24,6 +24,8 @@ import hc3 from '../../assets/events/hackathon/3.jpg';
 const eventsData = [
     {
     title: 'RoboExpo',
+    date: 'November 25, 2026',
+    venue: 'Birla Auditorium',
     description: 'ROBOEXPO is an annual event organized by the Robotics club of SIT CORSIT. The primary objective is to introduce the club and its activities to the newcomers by displaying the bots that the members have created over the year. The event showcases various bots such as Line Follower Robots (LFR), Roboracer, Gesture controlled bots, Bluetooth controlled bots, etc. The exhibition provides students with an opportunity to witness and understand the workings of these bots up close. It serves as an excellent platform for the Robotics club to attract new members who are interested in this field.',
     images: [
       re1,
@@ -33,6 +35,7 @@ const eventsData = [
   },
   {
     title: 'Robotics Workshop',
+    date: 'Coming Soon',
     description: 'CORSIT offers free workshops on IoT, Arduino, cloud, and more, providing students with hands-on experience in building basic bots such as LFR, Bluetooth, and obstacle-avoiding bots. Participants learn to code and use different components to program the bot\'s brain. The club also conducts a paid workshop where a mentor guides students on emerging technologies with a mix of studio practice and lectures. The workshop aims to enhance practical skills and teach the theory and context behind the practice.',
     images: [
       ws1,
@@ -44,7 +47,7 @@ const eventsData = [
   {
     title: 'ROBOCOR',
     description: 'Robocor, a nationally renowned Robotics Competition, which is one of the biggest events in Karnataka. It provides a platform for participants to showcase their innovative designs and compete for glory. In Robocor, the team has successfully organized several events such as Dcode, Spardha, Rugged Rage, Robo Soccer, Arduino Clash, Binary Rash, Project Symposium, Paper Presentation, and Init_Rc.',
-    date: 'April 16th, 2026',
+    date: 'Coming Soon',
     images: [
       rc1,
       rc2,
@@ -122,6 +125,11 @@ const Events = () => {
             <div className='w-full text-center md:text-left md:w-3/5 p-6 sm:p-8 md:p-12 order-1 md:order-none'>
               <h3 className='text-4xl sm:text-6xl font-semibold text-[#ed5a2d]'>{event.title}</h3>
               <p className='text-[#f7ffff] mt-4 text-lg sm:text-xl leading-relaxed'>{event.description}</p>
+              {(event.date || event.venue) && (
+                <p className='text-[#f7ffff] mt-3 text-base sm:text-lg'>
+                  {event.date}{event.venue ? ` · ${event.venue}` : ''}
+                </p>
+              )}
               {event.register && (
                 <NavLink
                   to='/register'
@@ -148,14 +156,12 @@ const Events = () => {
                 )
               )}
               {event.robocor && (
-                <a
-                  href='https://robocor.corsit.in'
-                  target='_blank'
-                  rel='noopener noreferrer'
+                <button
+                  onClick={() => openGallery(event)}
                   className='mt-6 inline-block border-2 border-[#ed5a2d] text-[#ed5a2d] px-10 sm:px-14 py-3 sm:py-4 rounded-3xl text-lg sm:text-xl font-semibold transition duration-300 hover:bg-[#ed5a2d] hover:text-white hover:border-4 hover:shadow-lg'
                 >
-                  Register
-                </a>
+                  View Gallery
+                </button>
               )}
               {event.title === 'RoboExpo' && (
                 ROBOEXPO_REGISTRATION_ACTIVE ? (

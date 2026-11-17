@@ -80,7 +80,7 @@ const RecruitmentsReg25 = () => {
 
     doc.setFontSize(18);
     doc.setTextColor(237, 90, 45);
-    doc.text('Recruitments 2025 Applications', 55, 25);
+    doc.text('Recruitments 2026 Applications', 55, 25);
 
     doc.setFontSize(10);
     doc.setTextColor(100);
@@ -117,7 +117,7 @@ const RecruitmentsReg25 = () => {
       margin: { top: 50 }
     });
 
-    doc.save('recruitments-2025-applications.pdf');
+    doc.save('recruitments-2026-applications.pdf');
   };
 
   const exportToExcel = () => {
@@ -134,8 +134,8 @@ const RecruitmentsReg25 = () => {
 
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Recruitments 2025');
-    XLSX.writeFile(workbook, 'recruitments-2025-applications.xlsx');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Recruitments 2026');
+    XLSX.writeFile(workbook, 'recruitments-2026-applications.xlsx');
   };
 
   const handleAdminAuth = (success) => {
@@ -166,7 +166,7 @@ const RecruitmentsReg25 = () => {
         <div className="flex flex-col gap-4 mb-6 sm:mb-8">
           <div className="text-center sm:text-left">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#ed5a2d] mb-2">
-              Recruitments 2025 Applications
+              Recruitments 2026 Applications
             </h1>
             <p className="text-gray-300 text-sm sm:text-base">
               Total Applications: <span className="font-semibold text-[#ed5a2d]">{applications.length}</span>

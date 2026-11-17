@@ -119,9 +119,9 @@ const App = () => {
             <Route path="events" element={<Events />} />
             <Route path="register" element={<Register />} />
             <Route path="roboexpo-register" element={<RoboExpoRegister />} />
-            <Route path="recruitments25" element={<Recruitments25 />} />
+            <Route path="recruitments-2026" element={<Recruitments25 />} />
             <Route path="team" element={<Team />} />
-            <Route path="expo25-feedback" element={<Expo25Feedback />} />
+            <Route path="expo26-feedback" element={<Expo25Feedback />} />
             <Route path="workshop-feedback" element={<WorkshopFeedback />} />
             <Route path="workshop-2026/certificate" element={<WorkshopCertificate />} />
             <Route path="round1-res" element={<Round1Results />} />
@@ -133,10 +133,10 @@ const App = () => {
             <Route path="admin" element={<AdminProtectedRoute><Admin /></AdminProtectedRoute>} />
             <Route path="workshop-reg-25" element={<AdminProtectedRoute><WorkshopReg25 /></AdminProtectedRoute>} />
             <Route path="workshop-reg-26" element={<AdminProtectedRoute><WorkshopReg26 /></AdminProtectedRoute>} />
-            <Route path="roboexpo-reg-25" element={<AdminProtectedRoute><RoboExpoReg25 /></AdminProtectedRoute>} />
-            <Route path="recruitments-reg-25" element={<AdminProtectedRoute><RecruitmentsReg25 /></AdminProtectedRoute>} />
+            <Route path="roboexpo-reg-26" element={<AdminProtectedRoute><RoboExpoReg25 /></AdminProtectedRoute>} />
+            <Route path="recruitments-reg-26" element={<AdminProtectedRoute><RecruitmentsReg25 /></AdminProtectedRoute>} />
             <Route path="recruitment-feedback" element={<AdminProtectedRoute><RecruitmentFeedback /></AdminProtectedRoute>} />
-            <Route path="expo25-feedback-reg" element={<AdminProtectedRoute><Expo25FeedbackReg /></AdminProtectedRoute>} />
+            <Route path="expo26-feedback-reg" element={<AdminProtectedRoute><Expo25FeedbackReg /></AdminProtectedRoute>} />
             <Route path="workshop-feedback-reg" element={<AdminProtectedRoute><WorkshopFeedbackReg /></AdminProtectedRoute>} />
           </Route>
           

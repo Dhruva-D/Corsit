@@ -83,7 +83,7 @@ const RoboExpoReg25 = () => {
         // Add title
         doc.setFontSize(18);
         doc.setTextColor(237, 90, 45); // Orange color
-        doc.text('RoboExpo 2025 - Registration Report', 55, 25);
+        doc.text('RoboExpo 2026 - Registration Report', 55, 25);
         
         // Add date
         doc.setFontSize(10);
@@ -113,7 +113,7 @@ const RoboExpoReg25 = () => {
             margin: { top: 50 }
         });
         
-        doc.save('roboexpo-registrations-2025.pdf');
+        doc.save('roboexpo-registrations-2026.pdf');
     };
 
     const exportToExcel = () => {
@@ -130,7 +130,7 @@ const RoboExpoReg25 = () => {
         const worksheet = XLSX.utils.json_to_sheet(worksheetData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'RoboExpo Registrations');
-        XLSX.writeFile(workbook, 'roboexpo-registrations-2025.xlsx');
+        XLSX.writeFile(workbook, 'roboexpo-registrations-2026.xlsx');
     };
 
     const handleAdminAuth = (success) => {
@@ -161,7 +161,7 @@ const RoboExpoReg25 = () => {
                 {/* Header */}
                 <div className="flex flex-col gap-4 mb-6 sm:mb-8">
                     <div className="text-center sm:text-left">
-                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#ed5a2d] mb-2">RoboExpo 2025 Registrations</h1>
+                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#ed5a2d] mb-2">RoboExpo 2026 Registrations</h1>
                         <p className="text-gray-300 text-sm sm:text-base">
                             Total Registrations: <span className="font-semibold text-[#ed5a2d]">{registrations.length}</span>
                         </p>

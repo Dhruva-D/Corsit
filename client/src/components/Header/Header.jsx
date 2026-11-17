@@ -29,7 +29,7 @@ const Header = () => {
         { path: '/', label: 'HOME' },
         { path: '/about', label: 'ABOUT' },
         { path: '/events', label: 'EVENTS' },
-        { path: '/register', label: 'WORKSHOP 2026' },
+        { path: '/roboexpo-register', label: 'EXPO 2026' },
         { path: '/projects', label: 'PROJECTS' }, 
         { path: '/team', label: 'TEAM' },
         { path: '/alumni', label: 'ALUMNI' },

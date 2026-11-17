@@ -190,7 +190,7 @@ const Expo25Feedback = () => {
               <p>See you in Recruitments!</p>
               <div style={{ marginTop: '24px' }}>
                 <a
-                  href="/recruitments25"
+                  href="/recruitments-2026"
                   className="recruitments-button"
                   style={{
                     display: 'inline-block',
@@ -215,7 +215,7 @@ const Expo25Feedback = () => {
                     e.target.style.boxShadow = '0 4px 6px rgba(237, 90, 45, 0.2)';
                   }}
                 >
-                  Apply for Recruitments 2025 →
+                  Apply for Recruitments 2026 →
                 </a>
               </div>
             </div>
@@ -226,7 +226,7 @@ const Expo25Feedback = () => {
               noValidate
               aria-busy={isLoading}
             >
-            <h1 className="form-title">RoboExpo 2025 Feedback ✨</h1>
+            <h1 className="form-title">RoboExpo 2026 Feedback ✨</h1>
             <p className="form-subtitle">Help us shape the future of robotics at CORSIT.</p>
 
             <div className="form-group">

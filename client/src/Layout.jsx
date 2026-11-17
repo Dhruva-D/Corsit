@@ -10,7 +10,7 @@ const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const hideHeaderRoutes = ["/expo25-feedback"];
+  const hideHeaderRoutes = ["/expo26-feedback"];
   const shouldHideHeader = hideHeaderRoutes.includes(location.pathname);
 
   return (

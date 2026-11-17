@@ -91,7 +91,7 @@ const RecruitmentFeedback = () => {
             <div className="max-w-7xl mx-auto">
                 <div className="mb-8">
                     <h1 className="text-4xl font-bold text-[#ed5a2d] mb-4">
-                        CORSIT Recruitment 2025 - Candidate Feedback Forms
+                        CORSIT Recruitment 2026 - Candidate Feedback Forms
                     </h1>
                     <p className="text-gray-300">
                         Export interview feedback forms for candidates in PDF format

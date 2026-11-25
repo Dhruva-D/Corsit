@@ -160,7 +160,7 @@ const Recruitments25 = () => {
               <p className="text-green-500 text-center text-sm sm:text-base mb-4">{successMessage}</p>
               <div className="text-center">
                 <a
-                  href="https://chat.whatsapp.com/IcRDYj22U7S9A0myfAdZgE"
+                  href="https://chat.whatsapp.com/BVE5WStEhiH9zHzn5NnliQ"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
